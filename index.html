@@ -9,8 +9,8 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="apple-touch-icon" href="icon-192.png">
-<link rel="icon" href="data:image/svg+xml,%3Csvg width='2000' height='2000' viewBox='0 0 2000 2000' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Crect width='2000' height='2000' fill='black'/%3E %3Crect x='900' y='1100' width='200' height='400' fill='white'/%3E %3Crect x='1100' y='1100' width='200' height='400' transform='rotate(-90 1100 1100)' fill='white'/%3E %3Crect x='500' y='1100' width='200' height='400' transform='rotate(-90 500 1100)' fill='white'/%3E %3Crect x='900' y='500' width='200' height='400' fill='white'/%3E %3C/svg%3E">
 <link rel="icon" type="image/png" href="icon-192.png">
+<link rel="icon" href="data:image/svg+xml,%3Csvg width='2000' height='2000' viewBox='0 0 2000 2000' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Crect width='2000' height='2000' fill='black'/%3E %3Crect x='900' y='1100' width='200' height='400' fill='white'/%3E %3Crect x='1100' y='1100' width='200' height='400' transform='rotate(-90 1100 1100)' fill='white'/%3E %3Crect x='500' y='1100' width='200' height='400' transform='rotate(-90 500 1100)' fill='white'/%3E %3Crect x='900' y='500' width='200' height='400' fill='white'/%3E %3C/svg%3E">
 <style>
 html{-webkit-text-size-adjust:100%;color-scheme:dark;background:#0d0d0c}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -34,16 +34,19 @@ img{max-width:100%}
   --bg:#0d0d0c; --panel:#151413; --panel-2:#1a1917; --line:#272523; --line-2:#1f1e1c;
   --ink:#edebe5; --ink-2:#9d9890; --ink-3:#6b6760;
   --well:#121110; --lapsed:#232220;
-  --xeron:#e0514e;   --xeron-dim:#3a1d1c;
-  --arurael:#5a8de6; --arurael-dim:#1b2940;
-  --xenlil:#dfa838;  --xenlil-dim:#382b11;
-  --arexia:#3cb886;  --arexia-dim:#113128;
+  --xeron:#FF000A;   --xeron-dim:#420a0c;   --xeron-hot:#ff666c;
+  --arurael:#1D4ED8; --arurael-dim:#111b39; --arurael-hot:#7795e8;
+  --xenlil:#FDC500;  --xenlil-dim:#423509;  --xenlil-hot:#fedc66;
+  --arexia:#0DAF0B;  --arexia-dim:#0d310c;  --arexia-hot:#6dcf6d;
   --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --rune:"Noto Sans Runic","Segoe UI Symbol","Segoe UI Historic",serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+html{scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar,.chartbox::-webkit-scrollbar{width:0;height:0;display:none}
+.chartbox{scrollbar-width:none;-ms-overflow-style:none}
 body,svg{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
 body{
@@ -70,13 +73,12 @@ svg.dial{width:100%;max-width:400px;height:auto}
 .band:focus,.band:focus-visible{outline:none}
 @media (prefers-reduced-motion:no-preference){
   .band.open{animation:breathe 2.8s ease-in-out infinite}
-  .needle{transition:transform .6s cubic-bezier(.33,1,.68,1)}
 }
 @keyframes breathe{0%,100%{stroke-opacity:1}50%{stroke-opacity:.28}}
 .tick{stroke:var(--ink-3)}
 .numeral{font-size:14px;fill:var(--ink-3)}
 .flame{pointer-events:none}
-.count{font-family:var(--mono);font-weight:500;font-size:30px;fill:var(--ink);font-variant-numeric:tabular-nums}
+#eye{pointer-events:none}
 .godname{font-size:13px;font-weight:500;letter-spacing:.04em}
 
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -172,15 +174,37 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         <g id="bands"></g>
         <g id="ticks"></g>
         <circle cx="190" cy="190" r="88" fill="var(--bg)" stroke="var(--line)"></circle>
-        <g class="needle" id="needle">
-          <line id="hand" x1="190" y1="128" x2="190" y2="103" stroke="var(--ink-2)" stroke-width="2" stroke-linecap="round"></line>
+        <g id="eye" transform="translate(190,190) scale(1.62)">
+          <defs>
+            <clipPath id="eyeClip"><path id="eyeClipPath" d=""></path></clipPath>
+            <radialGradient id="irisGrad" cx="50%" cy="50%" r="52%">
+              <stop offset="0%" stop-color="#ffffff"></stop>
+              <stop id="gs1" offset="14%" stop-color="#ffffff"></stop>
+              <stop id="gs2" offset="64%" stop-color="#000000"></stop>
+              <stop id="gs3" offset="100%" stop-color="#000000"></stop>
+            </radialGradient>
+            <filter id="eyeBlur" x="-80%" y="-160%" width="260%" height="420%">
+              <feGaussianBlur stdDeviation="5.5"></feGaussianBlur>
+            </filter>
+          </defs>
+          <g id="eyeMood">
+            <ellipse id="eyeAura" rx="25" ry="23" filter="url(#eyeBlur)" opacity=".4"></ellipse>
+            <path id="eyeLid" d="" fill="#000"></path>
+            <g clip-path="url(#eyeClip)">
+              <g id="gaze">
+                <ellipse id="iris" cx="0" cy="0" rx="13" ry="14" fill="url(#irisGrad)"></ellipse>
+                <ellipse id="pupil" cx="0" cy="0" rx="3" ry="10" fill="#000"></ellipse>
+              </g>
+            </g>
+            <path id="eyeBrow" d="" fill="none" stroke-width="2.2" stroke-linecap="round" opacity=".8"></path>
+          </g>
+        </g>
         </g>
         <g class="flame" id="flame" opacity="0">
           <path id="fl0"></path><path id="fl1"></path><path id="fl2"></path>
           <g id="embers"></g>
           <path id="fl3"></path><path id="fl4"></path>
         </g>
-        <text class="count" id="count" x="190" y="200" text-anchor="middle">0/8</text>
       </svg>
     </div>
     <div class="cards" id="cards"></div>
@@ -213,11 +237,22 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   /* Hours of grace after a rite's window closes. 0 = the past is past. */
   var GRACE=0;
   var GODS=[
-    {key:"arexia", name:"Arexia",  face:"12–3", a0:0,   a1:90,  hue:"var(--arexia)",  dim:"var(--arexia-dim)"},
-    {key:"xeron",  name:"Xeron",   face:"3–6",  a0:90,  a1:180, hue:"var(--xeron)",   dim:"var(--xeron-dim)"},
-    {key:"arurael",name:"Arurael", face:"6–9",  a0:180, a1:270, hue:"var(--arurael)", dim:"var(--arurael-dim)"},
-    {key:"xenlil", name:"Xenlil",  face:"9–12", a0:270, a1:360, hue:"var(--xenlil)",  dim:"var(--xenlil-dim)"}
+    {key:"arexia", name:"Arexia",  face:"12–3", a0:0,   a1:90,  hue:"var(--arexia)",  dim:"var(--arexia-dim)",  hot:"var(--arexia-hot)"},
+    {key:"xeron",  name:"Xeron",   face:"3–6",  a0:90,  a1:180, hue:"var(--xeron)",   dim:"var(--xeron-dim)",   hot:"var(--xeron-hot)"},
+    {key:"arurael",name:"Arurael", face:"6–9",  a0:180, a1:270, hue:"var(--arurael)", dim:"var(--arurael-dim)", hot:"var(--arurael-hot)"},
+    {key:"xenlil", name:"Xenlil",  face:"9–12", a0:270, a1:360, hue:"var(--xenlil)",  dim:"var(--xenlil-dim)",  hot:"var(--xenlil-hot)"}
   ];
+  /* Each god looks out of the dial differently, not only in colour.
+     Arexia's eye is upswept and lashed; Xeron's is cut hard under a heavy brow;
+     Arurael's is wide with a round pupil; Xenlil's is hooded. */
+  var EYES={
+    arexia: {lid:"M-44 0 Q0 -37 44 0 Q0 37 -44 0 Z", iris:18, pr:[4.2,15]},
+    xeron:  {lid:"M-46 0 L-20 -22 L20 -22 L46 0 L20 24 L-20 24 Z", iris:17, pr:[2.8,18],
+             brow:"M-37 -30 Q0 -40 37 -30"},
+    arurael:{lid:"M-41 0 Q0 -43 41 0 Q0 43 -41 0 Z", iris:20.5, pr:[7.5,15.5]},
+    xenlil: {lid:"M-44 2 Q0 -31 44 2 Q0 35 -44 2 Z", iris:18, pr:[3.8,16],
+             brow:"M-39 -22 Q0 -40 39 -22"}
+  };
   var CX=190, CY=190, GAP=2.2, RINGS=[[94,116],[120,148]], svgNS="http://www.w3.org/2000/svg";
   /* the eight rites of the day, in order from midnight */
   var RUNE=["\u16A0","\u16A2","\u16A6","\u16A8","\u16B1","\u16B2","\u16B7","\u16B9"];
@@ -339,14 +374,19 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
 
   function attempt(god,i){
-    if(riteState(god,i)==="lapsed"){ toast("The hour has passed."); return; }
-    state.day.checks[god.key][i]=!state.day.checks[god.key][i];
+    if(riteState(god,i)==="lapsed"){
+      stareAt(god,i,2.4); feel("upset",2.2);
+      toast("The hour has passed."); return;
+    }
+    var now=!state.day.checks[god.key][i];
+    state.day.checks[god.key][i]=now;
+    stareAt(god,i, now?3.0:2.2);
+    feel(now?"excited":"upset", now?3.2:2.0);
     save(); render();
   }
 
   function render(){
     var done=total(state.day.checks);
-    document.getElementById("count").textContent=done+"/8";
     document.getElementById("statToday").textContent=done+"/8";
     var openIdx=null, openGod=null;
 
@@ -370,6 +410,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       card.dataset.active=active?"1":"0";
       if(active) openGod=god;
     });
+    /* an hour that just closed: kept, or missed */
+    var lapsed=0, seen={};
+    GODS.forEach(function(god){ [0,1].forEach(function(i){
+      var key=god.key+i, st=riteState(god,i), on=!!state.day.checks[god.key][i];
+      seen[key]=st;
+      if(st==="lapsed" && !on) lapsed++;
+      if(WAS && WAS[key]==="open" && st==="lapsed") feel(on?"pleased":"upset", on?4:7);
+    }); });
+    WAS=seen;
+    EYE.base = done===8 ? "triumph" : lapsed>=2 ? "grim" : (done>=3 && lapsed===0) ? "pleased" : "calm";
     placeFlame(openGod,openIdx);
     drawChart();
     renderClock();
@@ -429,6 +479,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
             '" fill="'+FIRE.hue+'" opacity="'+(f*.85).toFixed(2)+'"/>';
     }
     box.innerHTML=html;
+    eyeStep(dt,t,puff);
     FIRE.raf=requestAnimationFrame(frame);
   }
   function kindle(){
@@ -438,6 +489,122 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   function douse(){ FIRE.on=false; if(FIRE.raf) cancelAnimationFrame(FIRE.raf); FIRE.raf=0; }
 
+  /* How the eye carries itself. Sealing a rite excites it; an hour that closes
+     unsealed puts it out; a day going badly leaves it grim; a full day, exultant. */
+  var MOODS={
+    calm:    {sq:1.00, ir:1.00, gl:1.0, pup:1.00, dwell:[1.0,2.6], range:1.00, speed:13, down:0},
+    excited: {sq:1.14, ir:1.20, gl:2.0, pup:1.45, dwell:[0.18,0.45], range:1.18, speed:24, down:-2},
+    pleased: {sq:1.06, ir:1.08, gl:1.4, pup:1.15, dwell:[1.4,3.2], range:0.90, speed:11, down:-1},
+    upset:   {sq:0.52, ir:0.84, gl:0.45,pup:0.65, dwell:[1.6,3.6], range:0.50, speed:7,  down:5},
+    grim:    {sq:0.74, ir:0.92, gl:0.65,pup:0.80, dwell:[1.4,3.2], range:0.72, speed:9,  down:3},
+    triumph: {sq:1.20, ir:1.24, gl:2.4, pup:1.5,  dwell:[0.45,1.1], range:1.28, speed:19, down:-3}
+  };
+  var WAS=null;
+  var EYE={god:null, x:0, y:0, tx:0, ty:0, next:0, hold:false, sweep:false,
+           base:"calm", temp:null, until:0, sq:1, ir:1, gl:1, pup:1,
+           lockA:0, lockR:1, lockUntil:0};
+  function feel(mood,secs){ EYE.temp=mood; EYE.until=FIRE.t+secs; }
+  /* touch a rite and the eye turns to that chunk and holds it */
+  function stareAt(god,i,secs){
+    EYE.lockA=(god.a0+god.a1)/2;
+    EYE.lockR=i?1.18:1;
+    EYE.lockUntil=FIRE.t+secs;
+  }
+  function mood(){
+    if(EYE.temp && FIRE.t<EYE.until) return MOODS[EYE.temp];
+    EYE.temp=null;
+    return MOODS[EYE.base];
+  }
+  function hex(v){
+    var m=/var\((--[\w-]+)\)/.exec(v);
+    if(!m) return v;
+    return (getComputedStyle(document.documentElement).getPropertyValue(m[1])||"").trim()||v;
+  }
+  function shade(h,f){
+    var m=/^#?([0-9a-f]{6})$/i.exec(h.trim());
+    if(!m) return h;
+    var n=parseInt(m[1],16);
+    return "#"+[16,8,0].map(function(sh){
+      return Math.round(((n>>sh)&255)*f).toString(16).padStart(2,"0");
+    }).join("");
+  }
+  function setEye(god){
+    if(EYE.god===god) return;
+    EYE.god=god;
+    var e=EYES[god.key], hue=hex(god.hue), hot=hex(god.hot);
+    document.getElementById("eyeClipPath").setAttribute("d",e.lid);
+    var lid=document.getElementById("eyeLid");
+    lid.setAttribute("d",e.lid);
+    lid.setAttribute("stroke",hue);
+    lid.setAttribute("stroke-width","1.5");
+    lid.setAttribute("stroke-opacity",".55");
+    document.getElementById("gs1").setAttribute("stop-color",hot);
+    document.getElementById("gs2").setAttribute("stop-color",shade(hue,.8));
+    document.getElementById("gs3").setAttribute("stop-color",shade(hue,.3));
+    document.getElementById("eyeAura").setAttribute("fill",hue);
+    var br=document.getElementById("eyeBrow");
+    br.setAttribute("d",e.brow||""); br.setAttribute("stroke",hue);
+    EYE.pr=e.pr; EYE.iris=e.iris;
+  }
+
+  function eyeStep(dt,t,puff){
+    var m=mood();
+    /* ease the bearing so a change of feeling is a movement, not a jump */
+    var e=Math.min(1,dt*6);
+    EYE.sq+=(m.sq-EYE.sq)*e; EYE.ir+=(m.ir-EYE.ir)*e;
+    EYE.gl+=(m.gl-EYE.gl)*e; EYE.pup+=(m.pup-EYE.pup)*e;
+
+    var locked=t<EYE.lockUntil;
+    if(locked){
+      var la=EYE.lockA*Math.PI/180;
+      EYE.tx=Math.sin(la)*19*EYE.lockR+Math.sin(t*1.7)*1.2;
+      EYE.ty=-Math.cos(la)*12*EYE.lockR+Math.sin(t*2.3)*.8;
+      EYE.sweep=false; EYE.hold=false; EYE.next=t+.2;
+    }
+    else if(t>EYE.next){
+      var r=Math.random(), a=hourAngle()*Math.PI/180;
+      var ax=Math.sin(a)*18*m.range, ay=(-Math.cos(a)*9+m.down)*m.range;
+      EYE.sweep=false; EYE.hold=false;
+      if(r<0.50){                       /* back to the open hour */
+        EYE.tx=ax+(Math.random()-.5)*3; EYE.ty=ay*1.6+(Math.random()-.5)*2;
+      } else if(r<0.62){                /* straight at whoever is watching */
+        EYE.tx=(Math.random()-.5)*3; EYE.ty=(Math.random()-.5)*2+m.down*.4;
+      } else if(r<0.76){                /* a quick flick aside */
+        EYE.tx=ax*0.3+(Math.random()-.5)*22; EYE.ty=ay*0.3+(Math.random()-.5)*9;
+      } else if(r<0.86){                /* a slow sweep across the dial */
+        EYE.tx=-ax*0.9+(Math.random()-.5)*6; EYE.ty=-ay*0.5; EYE.sweep=true;
+      } else {                          /* hold the stare */
+        EYE.hold=true;
+      }
+      var d=m.dwell;
+      EYE.next=t+d[0]+Math.random()*(d[1]-d[0])*(EYE.hold?2.4:1)*(EYE.sweep?1.6:1);
+    }
+    var k=Math.min(1,dt*(locked?26:(EYE.sweep?3.2:m.speed)));
+    EYE.x+=(EYE.tx-EYE.x)*k; EYE.y+=(EYE.ty-EYE.y)*k;
+    var jx=Math.sin(t*2.7)*.45+Math.sin(t*6.1)*.25+Math.sin(t*11.3)*.12;
+    var jy=Math.sin(t*3.9+1)*.3+Math.sin(t*8.7)*.12;
+    document.getElementById("gaze").setAttribute("transform",
+      "translate("+(EYE.x+jx).toFixed(2)+","+(EYE.y+jy).toFixed(2)+")");
+    document.getElementById("eyeMood").setAttribute("transform",
+      "scale("+(1+(EYE.ir-1)*.18).toFixed(3)+","+EYE.sq.toFixed(3)+")");
+
+    if(EYE.pr){
+      var dil=1+.12*Math.sin(t*1.9)+.07*Math.sin(t*4.3+2)+.04*(Math.random()-.5);
+      var pu=document.getElementById("pupil");
+      pu.setAttribute("ry",(EYE.pr[1]*dil).toFixed(2));
+      pu.setAttribute("rx",(EYE.pr[0]*(2-dil)*EYE.pup).toFixed(2));
+      var ir=document.getElementById("iris");
+      ir.setAttribute("rx",(EYE.iris*EYE.ir).toFixed(2));
+      ir.setAttribute("ry",(EYE.iris*1.1*EYE.ir).toFixed(2));
+    }
+    var aura=document.getElementById("eyeAura");
+    aura.setAttribute("opacity",Math.min(.85,(.3+.3*puff)*EYE.gl).toFixed(3));
+    aura.setAttribute("rx",((24+4*puff)*EYE.ir).toFixed(1));
+    aura.setAttribute("ry",((22+3*puff)*EYE.ir).toFixed(1));
+    aura.setAttribute("cx",(EYE.x*.6).toFixed(2));
+    aura.setAttribute("cy",(EYE.y*.6).toFixed(2));
+  }
+
   function placeFlame(god,i){
     var f=document.getElementById("flame");
     if(!god || i===null){ f.setAttribute("opacity","0"); douse(); return; }
@@ -445,10 +612,17 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       FIRE.nodes=LAYERS.map(function(L){ return document.getElementById(L.id); });
       LAYERS.forEach(function(L,k){ FIRE.nodes[k].setAttribute("opacity",L.op); });
     }
-    FIRE.hue=god.hue;
-    LAYERS.forEach(function(L,k){ FIRE.nodes[k].setAttribute("fill", L.white?"#fff":god.hue); });
+    var sealed=!!state.day.checks[god.key][i];
+    FIRE.hue=sealed?god.hot:god.hue;
+    LAYERS.forEach(function(L,k){ FIRE.nodes[k].setAttribute("fill", L.white?"#fff":(sealed?god.hot:god.hue)); });
+    /* over a sealed chunk the ring is already the god's colour, so the fire takes
+       the lighter tint and a dark edge instead of vanishing into it */
+    FIRE.nodes[0].setAttribute("stroke", sealed?"var(--bg)":"none");
+    FIRE.nodes[0].setAttribute("stroke-width", sealed?"1.6":"0");
+    FIRE.nodes[0].setAttribute("stroke-opacity", sealed?".9":"0");
+    setEye(god);
     var r=(RINGS[i][0]+RINGS[i][1])/2;
-    var now=new Date(), a=((now.getHours()%12)+now.getMinutes()/60)*30, p=pt(r,a);
+    var p=pt(r,hourAngle());
     f.setAttribute("opacity","1");
     f.setAttribute("transform","translate("+p[0].toFixed(2)+","+(p[1]+11).toFixed(2)+")");
     if(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches){
@@ -465,9 +639,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     },180);
   });
 
+  function hourAngle(){ var n=new Date(); return ((n.getHours()%12)+n.getMinutes()/60)*30; }
   function renderClock(){
-    var now=new Date(), a=((now.getHours()%12)+now.getMinutes()/60)*30;
-    document.getElementById("needle").setAttribute("transform","rotate("+a.toFixed(2)+" "+CX+" "+CY+")");
+    var now=new Date();
     document.getElementById("stamp").textContent=
       now.toLocaleDateString(undefined,{day:"numeric",month:"short"})+"  "+
       now.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:false});
