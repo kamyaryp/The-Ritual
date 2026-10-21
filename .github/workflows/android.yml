@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -19,6 +22,25 @@ jobs:
       - uses: gradle/actions/setup-gradle@v4
         with:
           gradle-version: '8.9'
+
+      # The first run mints the signing key and commits it; every later run
+      # reuses it, so each APK installs over the one before it.
+      - name: Ensure a stable signing key
+        run: |
+          if [ -f android/debug.keystore.b64 ]; then
+            base64 -d android/debug.keystore.b64 > android/debug.keystore
+          else
+            keytool -genkeypair -v -keystore android/debug.keystore \
+              -storepass android -keypass android -alias androiddebugkey \
+              -keyalg RSA -keysize 2048 -validity 20000 \
+              -dname "CN=The Ritual, O=The Ritual, C=US"
+            base64 -w 76 android/debug.keystore > android/debug.keystore.b64
+            git config user.name "github-actions[bot]"
+            git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+            git add android/debug.keystore.b64
+            git commit -m "Add the app's signing key [skip ci]"
+            git push
+          fi
 
       - name: Sync the page into the app's assets
         run: |
