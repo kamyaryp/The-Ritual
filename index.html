@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Eight rites across the day, each sealed only in its own hour.">
+<meta name="description" content="The day's rites and the day's tally.">
 <meta name="theme-color" content="#0d0d0c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -18,7 +18,7 @@ body{margin:0;font:14px system-ui,sans-serif}
 img{max-width:100%}
 [hidden]{display:none!important}
 </style>
-<title>The Ritual</title>
+<title>Golden Path</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="icon" href="data:image/svg+xml,%3Csvg width='2000' height='2000' viewBox='0 0 2000 2000' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Crect width='2000' height='2000' fill='black'/%3E %3Crect x='900' y='1100' width='200' height='400' fill='white'/%3E %3Crect x='1100' y='1100' width='200' height='400' transform='rotate(-90 1100 1100)' fill='white'/%3E %3Crect x='500' y='1100' width='200' height='400' transform='rotate(-90 500 1100)' fill='white'/%3E %3Crect x='900' y='500' width='200' height='400' fill='white'/%3E %3C/svg%3E">
 <style>
@@ -33,11 +33,12 @@ img{max-width:100%}
 :root{
   --bg:#0d0d0c; --panel:#151413; --panel-2:#1a1917; --line:#272523; --line-2:#1f1e1c;
   --ink:#edebe5; --ink-2:#9d9890; --ink-3:#6b6760;
-  --well:#121110; --lapsed:#232220;
+  --well:#121110; --lapsed:#232220; --box:#4a4740;
   --xeron:#FF000A;   --xeron-dim:#420a0c;   --xeron-hot:#ff666c;
   --arurael:#1D4ED8; --arurael-dim:#111b39; --arurael-hot:#7795e8;
   --xenlil:#FDC500;  --xenlil-dim:#423509;  --xenlil-hot:#fedc66;
   --arexia:#0DAF0B;  --arexia-dim:#0d310c;  --arexia-hot:#6dcf6d;
+  --c-water:#22B8CF; --c-gym:#F97316; --c-supp:#A855F7; --c-care:#EC4899; --c-core:#84CC16; --c-maint:#94A3B8;
   --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --rune:"Noto Sans Runic","Segoe UI Symbol","Segoe UI Historic",serif;
@@ -50,6 +51,7 @@ html::-webkit-scrollbar,body::-webkit-scrollbar,.chartbox::-webkit-scrollbar{wid
 body,svg{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
 body{
+  padding-bottom:70px;
   background:var(--bg); color:var(--ink);
   font-family:var(--font); font-size:15px; line-height:1.5; letter-spacing:-.005em;
   padding-left:max(16px,env(safe-area-inset-left,0px));
@@ -93,13 +95,17 @@ svg.dial{width:100%;max-width:400px;height:auto}
 .ghours{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
 
 .rite{display:flex;align-items:center;gap:10px;min-width:0}
-.box{flex:0 0 auto;width:18px;height:18px;border:1.5px solid var(--line);border-radius:4px;background:transparent;cursor:pointer;display:grid;place-items:center;padding:0;transition:background .15s,border-color .15s,box-shadow .15s}
-.box:hover:not(:disabled){border-color:var(--hue)}
+.box{position:relative;flex:0 0 auto;width:18px;height:18px;border:1.5px solid var(--box);border-radius:4px;background:transparent;cursor:pointer;display:grid;place-items:center;padding:0;transition:background .15s,border-color .15s,box-shadow .15s}
+.box:hover:not([aria-disabled="true"]){border-color:var(--hue)}
 .box svg{width:11px;height:11px;opacity:0;transition:opacity .15s}
 .box[aria-checked="true"]{background:var(--hue);border-color:var(--hue)}
 .box[aria-checked="true"] svg{opacity:1}
 .box svg path{stroke:var(--bg)}
-.box:disabled{cursor:not-allowed;border-style:dashed;opacity:.5}
+.box[aria-disabled="true"]{cursor:not-allowed;border-style:dashed;border-color:var(--ink-3)}
+.box[aria-disabled="true"][aria-checked="true"]{border-style:solid;border-color:var(--hue);opacity:.75}
+/* an hour that closed unkept is crossed out */
+.rite[data-state="lapsed"]:not([data-done="1"]) .box::after{content:"";position:absolute;left:50%;top:50%;
+  width:11px;height:1.6px;background:var(--ink-3);transform:translate(-50%,-50%) rotate(-45deg);border-radius:1px}
 .rite[data-state="open"] .box:not([aria-checked="true"]){border-color:var(--hue)}
 .rite[data-done="1"] .rnum{text-decoration:line-through}
 .rite[data-state="lapsed"]:not([data-done="1"]) .rnum,.rite[data-state="lapsed"]:not([data-done="1"]) .win{opacity:.5}
@@ -111,7 +117,11 @@ svg.dial{width:100%;max-width:400px;height:auto}
 .rite[data-state="open"] .rnum,.rite[data-done="1"] .rnum{color:var(--hue)}
 .win{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 
-.chron{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:16px}
+.chron{display:flex;flex-direction:column;gap:12px}
+#viewDial,#viewXen{display:flex;flex-direction:column;gap:28px}
+#viewDial[hidden],#viewXen[hidden]{display:none}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--ink-3)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 .sec-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px}
 h2{font-weight:500;font-size:14px;margin:0;color:var(--ink-2);letter-spacing:-.01em}
 .stats{display:flex;gap:20px;font-family:var(--mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
@@ -139,6 +149,83 @@ svg.chart{display:block;width:100%;min-width:420px;height:auto;aspect-ratio:700/
 .empty{padding:34px 10px;text-align:center;color:var(--ink-3);font-size:13px}
 
 footer{display:flex;gap:8px;justify-content:flex-end}
+.nav{position:fixed;left:50%;transform:translateX(-50%);z-index:15;display:flex;gap:4px;padding:4px;
+  bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  background:var(--panel-2);border:1px solid var(--line);border-radius:999px;box-shadow:0 8px 28px rgba(0,0,0,.5)}
+.tab{font:inherit;font-size:12.5px;color:var(--ink-3);background:transparent;border:none;border-radius:999px;
+  padding:7px 16px;cursor:pointer;line-height:1}
+.tab.on{background:var(--panel);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.tab:hover:not(.on):not(.off){color:var(--ink-2)}
+.tab.off{cursor:default;opacity:.3;padding:7px 12px}
+.pips{display:grid;grid-template-columns:repeat(7,26px);gap:8px 7px}
+.pip{width:26px;height:32px;border:1.5px solid var(--line);border-radius:3px 3px 6px 6px;background:transparent;
+  cursor:pointer;padding:0;transition:background .15s,border-color .15s}
+.pip.full{background:var(--hue);border-color:var(--hue)}
+.pip:hover{border-color:var(--hue)}
+.gymdot{fill:var(--ink)}
+#viewXen .card{container-type:inline-size}
+@container (min-width:430px){
+  .pips{grid-template-columns:repeat(14,22px);gap:6px}
+  .pip{width:22px;height:32px}
+}
+.rest{display:flex;align-items:center;gap:10px;min-height:22px;color:var(--ink-3)}
+.rest .rname{color:var(--ink-3)}
+.rest-dash{flex:0 0 auto;width:18px;height:18px;border:1.5px dashed var(--ink-3);border-radius:4px;opacity:.6}
+#viewXen .cards{align-items:stretch;grid-template-columns:repeat(6,1fr)}
+#gymCard,#maintCard,#waterCard{grid-column:span 2}
+#suppCard,#careCard{grid-column:span 3}
+#coreCard{grid-column:1/-1}
+@media (max-width:860px){
+  #viewXen .cards{grid-template-columns:1fr 1fr}
+  #gymCard,#maintCard,#suppCard,#careCard{grid-column:span 1}
+  #waterCard{grid-column:1/-1}
+}
+@media (max-width:560px){
+  #viewXen .cards{grid-template-columns:1fr}
+  #gymCard,#maintCard,#waterCard,#suppCard,#careCard{grid-column:auto}
+}
+#viewXen .card{gap:12px}
+#viewXen .card-head{min-height:22px;align-items:center}
+#viewXen .rite{min-height:30px}
+.card.wide{grid-column:1/-1}
+.core-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.core-type{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.core-round{position:relative;height:18px;background:var(--well);border:1px solid var(--box);overflow:hidden}
+.core-round:first-child{border-radius:6px 2px 2px 6px}
+.core-round:last-child{border-radius:2px 6px 6px 2px}
+.core-round.now{border-color:var(--c-core)}
+@media (prefers-reduced-motion:no-preference){ .core-round.next{animation:nextUp .5s ease-in-out infinite alternate} }
+@keyframes nextUp{from{border-color:var(--box)}to{border-color:var(--c-core)}}
+#coreCard.brk .core-hold b{color:var(--ink)}
+.core-round .f{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--c-core)}
+.core-round i{position:absolute;top:4px;bottom:4px;width:1px;background:var(--ink-3);opacity:.35}
+.core-round .f ~ i{mix-blend-mode:normal}
+.core-types{display:grid;grid-template-columns:repeat(3,1fr);gap:12px;text-align:center;color:var(--ink-3);margin-top:-4px;font-family:var(--mono);font-size:10.5px}
+.core-row{display:flex;align-items:center;gap:16px}
+.core-hold{display:flex;align-items:baseline;gap:2px;min-width:54px;font-family:var(--mono)}
+.core-hold b{font-size:34px;font-weight:500;color:var(--c-core);line-height:1;font-variant-numeric:tabular-nums}
+.core-hold span{font-size:13px;color:var(--ink-3)}
+.core-where{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--ink-2)}
+.core-time{font-family:var(--mono);font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.core-ctl{display:flex;gap:8px}
+.ctl{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);
+  display:grid;place-items:center;cursor:pointer;padding:0}
+.ctl svg{width:16px;height:16px;fill:currentColor}
+.ctl:hover{border-color:var(--ink-3)}
+#corePlay{background:var(--c-core);border-color:var(--c-core);color:var(--bg)}
+.chartbox{position:relative}
+svg.chart{cursor:pointer}
+.colsel{fill:var(--line);opacity:.55}
+.tip{position:absolute;top:8px;z-index:6;min-width:168px;padding:9px 11px 8px;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:6px;box-shadow:0 10px 26px rgba(0,0,0,.45);
+  font-size:12px;pointer-events:none;display:flex;flex-direction:column;gap:5px}
+.tip[hidden]{display:none}
+.tip .th{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-bottom:2px}
+.tip .tr{display:flex;justify-content:space-between;align-items:center;gap:14px;color:var(--ink-2)}
+.tip .tr.muted{color:var(--ink-3)}
+.tip .tr b{font-weight:500;color:var(--ink);font-family:var(--mono);font-size:11.5px}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:7px}
+.rn{font-family:var(--rune);font-size:14px;line-height:1}
 button.act{font:inherit;font-size:12px;color:var(--ink-3);background:transparent;border:1px solid var(--line);border-radius:4px;padding:5px 10px;cursor:pointer}
 button.act:hover{border-color:var(--ink-3);color:var(--ink)}
 button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
@@ -167,12 +254,13 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 <div class="wrap">
   <header>
     <div>
-      <h1>The Ritual</h1>
+      <h1 id="viewName">Arexia</h1>
       <p class="holder" id="holder">—</p>
     </div>
     <span class="stamp" id="stamp">—</span>
   </header>
 
+  <div id="viewDial">
   <div class="stage">
     <div class="dialbox">
       <svg class="dial" viewBox="0 0 380 380" role="img" aria-label="The dial of the four gods">
@@ -226,6 +314,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     </div>
     <div class="chartbox">
       <svg class="chart" id="chart" viewBox="0 0 700 190" aria-label="Rites fulfilled, last fourteen days"></svg>
+      <div class="tip" id="rTip" hidden></div>
       <div class="empty" id="chartEmpty" hidden>Nothing inscribed yet. This day is entered at midnight.</div>
     </div>
     <footer>
@@ -233,7 +322,93 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       <button class="act danger" id="btnClearAll" type="button">Clear data</button>
     </footer>
   </section>
+  </div>
+
+  <div id="viewXen" hidden>
+    <div class="cards">
+      <div class="card" id="waterCard" style="--hue:var(--c-water)">
+        <div class="card-head"><span class="gname">Water</span><span class="ghours"><b id="waterNow">0</b>/14</span></div>
+        <div class="pips" id="pips"></div>
+      </div>
+      <div class="card" id="gymCard" style="--hue:var(--c-gym)">
+        <div class="card-head"><span class="gname">Gym</span><span class="ghours">Mon · Wed · Thu</span></div>
+        <div class="rite" id="gymRow">
+          <button type="button" class="box" id="gymBox" role="checkbox" aria-checked="false" aria-label="Gym today">
+            <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="rname" id="gymLabel">Session</span>
+        </div>
+        <div class="rest" id="gymRest" hidden>
+          <span class="rest-dash" aria-hidden="true"></span>
+          <span class="rname">Rest day</span>
+          <span class="win" id="gymNext"></span>
+        </div>
+      </div>
+      <div class="card" id="maintCard" style="--hue:var(--c-maint)">
+        <div class="card-head"><span class="gname">Maintenance</span><span class="ghours">Thu · Sat · Sun</span></div>
+        <div class="rest" id="maintRest" hidden>
+          <span class="rest-dash" aria-hidden="true"></span>
+          <span class="rname">Nothing due</span>
+          <span class="win" id="maintNext"></span>
+        </div>
+      </div>
+      <div class="card" id="suppCard" style="--hue:var(--c-supp)">
+        <div class="card-head"><span class="gname">Supplements</span></div>
+      </div>
+      <div class="card" id="careCard" style="--hue:var(--c-care)">
+        <div class="card-head"><span class="gname">Rest &amp; care</span></div>
+      </div>
+      <div class="card wide" id="coreCard" style="--hue:var(--c-core)">
+        <div class="card-head"><span class="gname">Core</span></div>
+        <div class="core-bar" id="coreBar"></div>
+        <div class="core-types"><span>Type 1</span><span>Type 2</span><span>Type 3</span></div>
+        <div class="core-row">
+          <div class="core-hold"><b id="coreHold">0</b><span id="coreHoldOf">/6</span></div>
+          <div class="core-where">
+            <span id="corePos">Ready</span>
+          </div>
+          <div class="core-ctl">
+            <button type="button" class="ctl" id="corePlay" aria-label="Play">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path id="corePlayIcon" d="M5 3.5v9l7.5-4.5z"/></svg>
+            </button>
+            <button type="button" class="ctl" id="coreReset" aria-label="Reset">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="chron">
+      <div class="sec-head">
+        <h2>Record</h2>
+        <div class="stats">
+          <span><b id="xToday">0%</b> today</span>
+          <span><b id="xGlasses">0</b> glasses</span>
+          <span><b id="xGym">0</b> gym</span>
+          <span><b id="xCore">0</b> core</span>
+        </div>
+      </div>
+      <div class="chartbox">
+        <svg class="chart" id="xchart" viewBox="0 0 700 190" aria-label="Share of the day's record kept"></svg>
+        <div class="tip" id="xTip" hidden></div>
+        <div class="empty" id="xEmpty" hidden>Nothing recorded yet.</div>
+      </div>
+      <div class="legend" id="xLegend"></div>
+      <footer>
+        <button class="act" id="xClearToday" type="button">Clear day</button>
+        <button class="act danger" id="xClearAll" type="button">Clear data</button>
+      </footer>
+    </section>
+  </div>
 </div>
+
+<nav class="nav" id="nav">
+  <button type="button" class="tab on" data-view="dial">Arexia</button>
+  <button type="button" class="tab" data-view="xen">Xenlil</button>
+  <span class="tab off">·</span>
+  <span class="tab off">·</span>
+</nav>
 
 <script>
 (function(){
@@ -280,8 +455,74 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   }
   function blankChecks(){ var c={}; GODS.forEach(function(g){c[g.key]=[false,false];}); return c; }
-  function fresh(){
-    return {day:{date:dayKey(), checks:blankChecks()}, history:[]};
+  var WATER_TARGET=14, GYM_DAYS=[1,3,4];           /* Mon, Wed, Thu */
+  var HABITS=[
+    {k:"mv",   card:"supp", name:"Multivitamin",     when:"after lunch"},
+    {k:"om",   card:"supp", name:"Omega 3",          when:"after lunch"},
+    {k:"fin",  card:"supp", name:"Finasteride",      when:"16:00"},
+    {k:"cre",  card:"supp", name:"Creatine & whey",  when:"evening"},
+    {k:"d3",   card:"supp", name:"D3 50,000",        when:"1st",  monthly:true},
+    {k:"skin", card:"care", name:"Skin routine",     when:"once a day"},
+    {k:"nose", card:"care", name:"Nasal rinse",      when:"Tue · Fri · Sun", days:[2,5,0]},
+    {k:"bed",  card:"care", name:"To bed",           when:"23:30"},
+    {k:"wake", card:"care", name:"Awake",            when:"08:00"},
+    {k:"room", card:"maint",name:"Room & appliances",when:"Sat", days:[6]},
+    {k:"shoe", card:"maint",name:"Shoe care",        when:"Sun", days:[0]},
+    {k:"car",  card:"maint",name:"Car care",         when:"Thu", days:[4]}
+  ];
+  var GYM_NAMES=["Quads","Upper body","Hamstrings & glutes"];   /* Mon · Wed · Thu */
+  function wday(k){ return (k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date()).getDay(); }
+  function isDue(h,k){
+    if(h.monthly) return isFirst(k);
+    if(h.days) return h.days.indexOf(wday(k))>=0;
+    return true;
+  }
+  function gymName(n){ return (n+1)+' · '+GYM_NAMES[n]; }
+  function gymNo(k){                          /* Mon ᚠ · Wed ᚢ · Thu ᚦ */
+    var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date();
+    var n=GYM_DAYS.indexOf(d.getDay());
+    return n<0?null:n;
+  }
+  function isFirst(k){ return (k||dayKey()).slice(8,10)==="01"; }
+  /* everything owed on a given date, so a day is scored against its own list */
+  function dayItems(k){
+    var out=["water","core"];
+    if(isGymDay(k)) out.push("gym");
+    HABITS.forEach(function(h){ if(isDue(h,k)) out.push(h.k); });
+    return out;
+  }
+  var SECTIONS=[
+    {k:"water", name:"Water",        color:"var(--c-water)"},
+    {k:"gym",   name:"Gym",          color:"var(--c-gym)"},
+    {k:"supp",  name:"Supplements",  color:"var(--c-supp)"},
+    {k:"care",  name:"Rest & care",  color:"var(--c-care)"},
+    {k:"maint", name:"Maintenance",  color:"var(--c-maint)"},
+    {k:"core",  name:"Core",         color:"var(--c-core)"}
+  ];
+  function sectionOf(it){
+    if(it==="water"||it==="gym"||it==="core") return it;
+    for(var i=0;i<HABITS.length;i++) if(HABITS[i].k===it) return HABITS[i].card;
+    return "care";
+  }
+  function score(k,r){
+    if(!r || r.xen===false || (r.water===undefined && !r.habits && r.gym===undefined && r.core===undefined)) return null;
+    var items=dayItems(k), done=0, parts={water:0,gym:0,supp:0,care:0,core:0,maint:0};
+    /* days recorded before the routine existed aren't marked down for it */
+    if(r.core===undefined) items=items.filter(function(it){ return it!=="core"; });
+    items.forEach(function(it){
+      var v = it==="water" ? Math.min(1,(r.water||0)/WATER_TARGET)
+            : it==="gym"   ? (r.gym?1:0)
+            : it==="core"  ? (r.core?1:0)
+            : ((r.habits&&r.habits[it])?1:0);
+      done+=v; parts[sectionOf(it)]+=v;
+    });
+    return {done:done, total:items.length, parts:parts};
+  }
+  function freshDay(){ return {date:dayKey(), checks:blankChecks(), water:0, gym:false, habits:{}, core:false}; }
+  function fresh(){ return {day:freshDay(), history:[]}; }
+  function isGymDay(k){
+    var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date();
+    return GYM_DAYS.indexOf(d.getDay())>=0;
   }
   var state;
   function load(){
@@ -290,6 +531,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var s=JSON.parse(raw); if(!s||!s.day) return fresh();
       delete s.missions;
       s.day.checks=s.day.checks||{};
+      if(typeof s.day.water!=="number") s.day.water=0;
+      if(typeof s.day.gym!=="boolean") s.day.gym=false;
+      if(!s.day.habits) s.day.habits={};
+      if(typeof s.day.core!=="boolean") s.day.core=false;
       GODS.forEach(function(g){
         if(!s.day.checks[g.key]) s.day.checks[g.key]=[false,false];
       });
@@ -305,7 +550,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(state.day.date===today) return false;
     state.history.push({date:state.day.date, checks:state.day.checks});
     state.history=state.history.slice(-400);
-    state.day={date:today, checks:blankChecks()};
+    state.day=freshDay();
     save(); return true;
   }
 
@@ -414,7 +659,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         row.dataset.done=on?"1":"0"; row.dataset.state=st;
         var box=row.querySelector(".box");
         box.setAttribute("aria-checked", on?"true":"false");
-        box.disabled=(st!=="open");
+        box.setAttribute("aria-disabled", st!=="open" ? "true" : "false");
       });
       card.dataset.active=active?"1":"0";
       if(active) openGod=god;
@@ -644,15 +889,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     clearTimeout(rsz);
     rsz=setTimeout(function(){
       var wide=window.innerWidth>=620;
-      if(wide!==wasWide){ wasWide=wide; drawChart(); }
+      if(wide!==wasWide){ wasWide=wide; drawChart(); drawXenChart(); }
     },180);
   });
 
   function hourAngle(){ var n=new Date(); return ((n.getHours()%12)+n.getMinutes()/60)*30; }
   function renderClock(){
     var now=new Date(), who=null, wi=0;
+    if(VIEW==="xen") xenSubtitle();
     GODS.forEach(function(g){ [0,1].forEach(function(i){ if(riteState(g,i)==="open"){ who=g; wi=i; } }); });
-    if(who){
+    if(VIEW!=="xen" && who){
       var w=windowOf(who,wi);
       document.getElementById("holder").innerHTML='<b style="color:'+who.hue+'">'+who.name+
         '</b> holds the hour · '+RUNE[riteNo(who,wi)-1]+' '+fmt(w[0])+'–'+fmt(w[1]);
@@ -705,15 +951,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         var c=(rec[g.key]||[]).filter(Boolean).length; if(!c) return;
         var h=(c/8)*plotH; y-=h;
         var r=el("rect",{x:x.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:g.hue,rx:"1"});
-        var ti=el("title",{}); ti.textContent=dk+" · "+g.name+" "+c+"/2"; r.appendChild(ti);
         svg.appendChild(r);
       });
     });
+    chartDone("chart",svg,{W:W,padL:padL,padT:padT,plotH:plotH,step:step,days:days,info:infoRites});
     updateStats();
   }
   function updateStats(){
     var sum=0,count=0;
-    state.history.forEach(function(rec){ sum+=total(rec.checks); count++; });
+    state.history.forEach(function(rec){ if(!rec.checks) return; sum+=total(rec.checks); count++; });
     document.getElementById("statAvg").textContent=count?(sum/count).toFixed(1):"\u2014";
     var streak=0, d=new Date(), r0=recordFor(dayKey(d));
     if(!(r0 && total(r0)===8)) d.setDate(d.getDate()-1);
@@ -722,6 +968,376 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       if(rr && total(rr)===8){ streak++; d.setDate(d.getDate()-1); } else break;
     }
     document.getElementById("statStreak").textContent=streak;
+  }
+
+  /* ---------- Xenlil: the day's own tally ---------- */
+  function buildPips(){
+    var host=document.getElementById("pips");
+    for(var i=0;i<WATER_TARGET;i++){
+      (function(n){
+        var b=document.createElement("button");
+        b.type="button"; b.className="pip"; b.setAttribute("aria-label","Glass "+(n+1));
+        b.addEventListener("click",function(){
+          state.day.water = (state.day.water===n+1) ? n : n+1;
+          save(); renderXen();
+        });
+        host.appendChild(b);
+      })(i);
+    }
+  }
+  function buildHabits(){
+    HABITS.forEach(function(h){
+      var card=document.getElementById({supp:"suppCard",care:"careCard",maint:"maintCard"}[h.card]);
+      var row=document.createElement("div");
+      row.className="rite"; row.id="h-"+h.k;
+      var b=document.createElement("button");
+      b.type="button"; b.className="box"; b.setAttribute("role","checkbox");
+      b.setAttribute("aria-checked","false"); b.setAttribute("aria-label",h.name);
+      b.innerHTML='<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      var nm=document.createElement("span"); nm.className="rname"; nm.textContent=h.name;
+      var wh=document.createElement("span"); wh.className="win"; wh.textContent=h.when;
+      row.appendChild(b); row.appendChild(nm); row.appendChild(wh);
+      row.addEventListener("click",function(){
+        state.day.habits[h.k]=!state.day.habits[h.k]; save(); renderXen();
+      });
+      b.addEventListener("click",function(ev){
+        ev.stopPropagation();
+        state.day.habits[h.k]=!state.day.habits[h.k]; save(); renderXen();
+      });
+      card.appendChild(row);
+    });
+  }
+  /* only what isn't owed every day: gym, D3, nasal rinse, maintenance */
+  function xenSubtitle(){
+    var ev=[], order={gym:0, maint:1, supp:2, care:3};
+    if(isGymDay()) ev.push({card:"gym", name:"Gym"});
+    HABITS.forEach(function(h){
+      if((h.days||h.monthly) && isDue(h)) ev.push({card:h.card, name:h.monthly?"D3":h.name});
+    });
+    ev.sort(function(a,b){ return order[a.card]-order[b.card]; });
+    document.getElementById("holder").innerHTML = ev.length
+      ? ev.map(function(e){ return '<b style="color:var(--c-'+e.card+')">'+e.name.replace("&","&amp;")+'</b>'; }).join(" · ")
+      : "Only the daily items today";
+  }
+  function renderXen(){
+    if(VIEW==="xen") xenSubtitle();
+    var gymToday=isGymDay();
+    document.getElementById("gymRow").hidden=!gymToday;
+    document.getElementById("gymRest").hidden=gymToday;
+    if(gymToday) document.getElementById("gymLabel").innerHTML=gymName(gymNo());
+    else {
+      for(var i=1;i<=7;i++){
+        var nd=new Date(); nd.setDate(nd.getDate()+i);
+        var n=GYM_DAYS.indexOf(nd.getDay());
+        if(n>=0){
+          document.getElementById("gymNext").innerHTML='next · '+
+            nd.toLocaleDateString(undefined,{weekday:"short"})+' · '+GYM_NAMES[n];
+          break;
+        }
+      }
+    }
+    document.getElementById("gymBox").setAttribute("aria-checked", state.day.gym?"true":"false");
+    document.getElementById("gymRow").dataset.done=state.day.gym?"1":"0";
+    document.getElementById("waterNow").textContent=state.day.water;
+    var pips=document.querySelectorAll(".pip");
+    for(var i=0;i<pips.length;i++) pips[i].className="pip"+(i<state.day.water?" full":"");
+    HABITS.forEach(function(h){
+      var row=document.getElementById("h-"+h.k), on=!!state.day.habits[h.k];
+      row.hidden = !isDue(h);
+      row.dataset.done=on?"1":"0";
+      row.querySelector(".box").setAttribute("aria-checked", on?"true":"false");
+    });
+    var dueM=HABITS.filter(function(x){ return x.card==="maint" && isDue(x); });
+    document.getElementById("maintRest").hidden=dueM.length>0;
+    if(!dueM.length){
+      for(var j=1;j<=7;j++){
+        var md=new Date(); md.setDate(md.getDate()+j);
+        var hit=HABITS.filter(function(x){ return x.card==="maint" && x.days && x.days.indexOf(md.getDay())>=0; })[0];
+        if(hit){ document.getElementById("maintNext").textContent='next · '+md.toLocaleDateString(undefined,{weekday:"short"})+' · '+hit.name; break; }
+      }
+    }
+    var sc=score(state.day.date,state.day);
+    document.getElementById("xToday").textContent=Math.round(sc.done/sc.total*100)+"%";
+    var glasses=state.day.water, gyms=state.day.gym?1:0, cores=state.day.core?1:0;
+    state.history.forEach(function(r){ glasses+=r.water||0; if(r.gym) gyms++; if(r.core) cores++; });
+    document.getElementById("xCore").textContent=cores;
+    renderCore();
+    document.getElementById("xGlasses").textContent=glasses;
+    document.getElementById("xGym").textContent=gyms;
+    drawXenChart();
+  }
+  function drawXenChart(){
+    var svg=document.getElementById("xchart");
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    var days=lastDays(SPAN), today=dayKey();
+    var any=days.some(function(k){ var sc=score(k,rec(k)); return sc && sc.done>0; });
+    document.getElementById("xEmpty").hidden=any;
+    svg.style.display=any?"block":"none";
+    if(!any) return;
+    var narrow=window.innerWidth<620;
+    var W=(narrow?430:700),H=190,padL=28,padR=8,padT=14,padB=22;
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);
+    var plotW=W-padL-padR, plotH=H-padT-padB, step=plotW/days.length;
+    var bw=Math.max(3.5,Math.min(14,step*0.6)), every=narrow?8:4;
+    [0,50,100].forEach(function(v){
+      var y=padT+plotH-(v/100)*plotH;
+      svg.appendChild(el("line",{x1:padL,y1:y.toFixed(1),x2:W-padR,y2:y.toFixed(1),class:"gridline"}));
+      var t=el("text",{x:padL-7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"end"});
+      t.textContent=v; svg.appendChild(t);
+    });
+    days.forEach(function(k,i){
+      var cx=padL+step*(i+0.5), x=cx-bw/2, r=rec(k), sc=score(k,r), last=i===days.length-1;
+      if(last || (days.length-1-i)%every===0){
+        var lab=el("text",{x:cx.toFixed(1),y:(H-6).toFixed(1),class:"daylabel"+(last?" today":""),"text-anchor":"middle"});
+        lab.textContent=Number(k.slice(8,10)); svg.appendChild(lab);
+      }
+      if(!sc || sc.done<=0){
+        svg.appendChild(el("rect",{x:x.toFixed(1),y:(padT+plotH-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"}));
+        return;
+      }
+      var y=padT+plotH;
+      SECTIONS.forEach(function(sec){
+        var v=sc.parts[sec.k]; if(!v) return;
+        var h=(v/sc.total)*plotH; y-=h;
+        var seg=el("rect",{x:x.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:sec.color});
+        svg.appendChild(seg);
+      });
+    });
+    chartDone("xchart",svg,{W:W,padL:padL,padT:padT,plotH:plotH,step:step,days:days,info:infoXen});
+  }
+  function rec(k){
+    if(k===state.day.date) return state.day;
+    for(var i=state.history.length-1;i>=0;i--) if(state.history[i].date===k) return state.history[i];
+    return null;
+  }
+
+  /* ---------- Core: 3 types × 2 rounds × 10 holds × 6 s = 360 s of holding,
+     with 2 s between types to change posture, so 364 s on the clock ---------- */
+  var CORE={total:364, ex:360, type:120, brk:2, hold:6, el:0, run:false, t0:0, last:-1, ctx:null, wl:null, iv:0};
+  /* where a moment on the clock falls: holding (and how far in), or between types */
+  function phase(w){
+    for(var ty=0;ty<3;ty++){
+      var start=ty*(CORE.type+CORE.brk);
+      if(w<start+CORE.type || ty===2) return {brk:false, ty:ty, ex:Math.min(CORE.ex, ty*CORE.type+Math.max(0,w-start))};
+      if(w<start+CORE.type+CORE.brk) return {brk:true, ty:ty, ex:(ty+1)*CORE.type, left:start+CORE.type+CORE.brk-w};
+    }
+  }
+  function coreNow(){ return Math.min(CORE.total, CORE.run ? CORE.el+(performance.now()-CORE.t0)/1000 : CORE.el); }
+  function audio(){
+    try{
+      if(!CORE.ctx){
+        var c=new (window.AudioContext||window.webkitAudioContext)();
+        CORE.ctx=c; CORE.out=null;
+        try{
+        var comp=c.createDynamicsCompressor();
+        comp.threshold.value=-20; comp.knee.value=8; comp.ratio.value=8;
+        comp.attack.value=0.002; comp.release.value=0.12;
+        var master=c.createGain(); master.gain.value=1.6;
+        /* a hard limiter last, so the loudest chord still stops just short of full scale */
+        var lim=c.createDynamicsCompressor();
+        lim.threshold.value=-2; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.06;
+        comp.connect(master); master.connect(lim); lim.connect(c.destination);
+        CORE.out=comp;
+        }catch(e2){ CORE.out=null; }     /* no chain: tones go straight out */
+      }
+      if(CORE.ctx.state==="suspended") CORE.ctx.resume();
+    }catch(e){}
+  }
+  function tone(f,dur,gain,at){
+    var c=CORE.ctx; if(!c) return;
+    try{
+      var o=c.createOscillator(), g=c.createGain(), t=c.currentTime+(at||0);
+      o.type = dur<.2 ? "square" : "triangle";   /* short alerts cut through a phone speaker; chimes stay round */
+      o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(gain,t+0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.connect(g); g.connect(CORE.out||c.destination); o.start(t); o.stop(t+dur+0.03);
+    }catch(e){}
+  }
+  /* a tick each second; a brighter double at each change of hold; a chime at
+     each round; a longer one as a type ends, low beats through the change,
+     a go tone as the next type begins; a chord at the end */
+  function sound(sec){
+    if(sec>=CORE.total){ tone(880,.7,.8); tone(1110,.7,.7,.02); tone(1320,.9,.7,.04); tone(1760,1,.6,.32); return; }
+    var P=phase(sec), was=CORE.inBrk;
+    CORE.inBrk=P.brk;
+    if(P.brk){
+      if(!was){ tone(880,.22,.85); tone(1175,.22,.8,.2); tone(1568,.38,.75,.4); }
+      else tone(784,.12,.75);
+      return;
+    }
+    if(was){ tone(1320,.16,.9); tone(1760,.2,.8,.14); return; }
+    var e=Math.round(P.ex);
+    if(e%60===0){ tone(988,.2,.85); tone(1480,.3,.8,.18); return; }
+    if(e%CORE.hold===0){ tone(1400,.12,.9); tone(1870,.16,.8,.12); return; }
+    tone(1050,.07,.6);
+  }
+  function awake(on){
+    try{ if(window.RitualHost && RitualHost.keepAwake) RitualHost.keepAwake(!!on); }catch(e){}
+    try{
+      if(on && navigator.wakeLock) navigator.wakeLock.request("screen").then(function(l){ CORE.wl=l; }).catch(function(){});
+      if(!on && CORE.wl){ CORE.wl.release(); CORE.wl=null; }
+    }catch(e){}
+  }
+  function corePlay(){
+    if(CORE.run){ corePause(); return; }
+    audio();
+    if(CORE.el>=CORE.total){ CORE.el=0; CORE.last=-1; }
+    CORE.inBrk=phase(CORE.el).brk;
+    CORE.t0=performance.now(); CORE.run=true;
+    if(CORE.el===0){ CORE.last=0; tone(1320,.16,.9); }
+    awake(true);
+    clearInterval(CORE.iv); CORE.iv=setInterval(coreTick,50);
+    renderCore();
+  }
+  function corePause(){
+    if(!CORE.run) return;
+    CORE.el=coreNow(); CORE.run=false; clearInterval(CORE.iv); awake(false); renderCore();
+  }
+  function coreReset(){
+    CORE.run=false; CORE.el=0; CORE.last=-1; CORE.inBrk=false; clearInterval(CORE.iv); awake(false); renderCore();
+  }
+  function coreTick(){
+    var t=coreNow(), sec=Math.floor(t+1e-6);
+    if(sec!==CORE.last){ CORE.last=sec; if(sec>0) sound(sec); }
+    if(t>=CORE.total){
+      CORE.el=CORE.total; CORE.run=false; clearInterval(CORE.iv); awake(false);
+      if(!state.day.core){ state.day.core=true; save(); renderXen(); toast("Core session recorded."); }
+      else toast("Done. Today's session was already recorded.");
+    }
+    renderCore();
+  }
+  function buildCore(){
+    var bar=document.getElementById("coreBar");
+    CORE.rounds=[];
+    for(var ty=0;ty<3;ty++){
+      var g=document.createElement("div"); g.className="core-type";
+      for(var r=0;r<2;r++){
+        var cell=document.createElement("div"); cell.className="core-round";
+        var f=document.createElement("div"); f.className="f"; cell.appendChild(f);
+        for(var h=1;h<10;h++){ var d=document.createElement("i"); d.style.left=(h*10)+"%"; cell.appendChild(d); }
+        g.appendChild(cell); CORE.rounds.push({cell:cell, fill:f});
+      }
+      bar.appendChild(g);
+    }
+    document.getElementById("corePlay").addEventListener("click",corePlay);
+    document.getElementById("coreReset").addEventListener("click",coreReset);
+  }
+  function renderCore(){
+    var w=coreNow(), P=phase(w), t=P.ex, done=w>=CORE.total;
+    var cur = P.brk ? (P.ty+1)*2 : Math.min(5,Math.floor(t/60));
+    CORE.rounds.forEach(function(rd,k){
+      var f=Math.max(0,Math.min(1,(t-k*60)/60));
+      rd.fill.style.width=(f*100).toFixed(2)+"%";
+      rd.cell.classList.toggle("now", CORE.run && k===cur);
+      rd.cell.classList.toggle("next", CORE.run && P.brk && k===cur);
+    });
+    var i=Math.min(59,Math.floor(t/CORE.hold));
+    var hold = P.brk ? Math.max(1,Math.ceil(P.left)) : (t===0 ? 0 : (done ? 6 : Math.floor(t%CORE.hold)+1));
+    var card=document.getElementById("coreCard");
+    card.classList.toggle("brk", CORE.run && P.brk);
+    document.getElementById("coreHold").textContent=hold;
+    document.getElementById("coreHoldOf").textContent=P.brk?"s":"/6";
+    document.getElementById("corePos").innerHTML = (w===0 && !CORE.run) ? (state.day.core?"Recorded today":"Ready")
+      : done ? "Complete"
+      : P.brk ? "Change posture · Type "+(P.ty+2)+" next"
+      : 'Type '+(Math.floor(i/20)+1)+' · Round '+(Math.floor((i%20)/10)+1)+' · '+(i%10+1)+'/10';
+    document.getElementById("corePlayIcon").setAttribute("d", CORE.run ? "M4.5 3h2.5v10H4.5zM9 3h2.5v10H9z" : "M5 3.5v9l7.5-4.5z");
+    document.getElementById("corePlay").setAttribute("aria-label", CORE.run?"Pause":"Play");
+    card.dataset.done=state.day.core?"1":"0";
+  }
+  document.addEventListener("visibilitychange",function(){ if(document.hidden) corePause(); });
+
+  /* ---------- tapping a day on either chart ---------- */
+  var CH={}, SEL=null;
+  function fmtDay(k){
+    return new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10))
+      .toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
+  }
+  function tr(color,name,val){
+    return '<div class="tr"><span><i style="background:'+color+'"></i>'+name+'</span><b>'+val+'</b></div>';
+  }
+  function infoRites(k){
+    var r=recordFor(k);
+    if(!r) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
+    var h='<div class="th">'+fmtDay(k)+' · '+total(r)+'/8</div>';
+    GODS.forEach(function(g){
+      var runes=[0,1].map(function(i){
+        var on=r[g.key]&&r[g.key][i];
+        return '<span class="rn" style="color:'+(on?g.hue:'var(--ink-3)')+';opacity:'+(on?1:.45)+'">'+RUNE[riteNo(g,i)-1]+'</span>';
+      }).join(" ");
+      h+=tr(g.hue,g.name,runes);
+    });
+    return h;
+  }
+  function infoXen(k){
+    var r=rec(k), sc=score(k,r);
+    if(!r || !sc) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
+    var h='<div class="th">'+fmtDay(k)+' · '+Math.round(sc.done/sc.total*100)+'%</div>';
+    h+=tr("var(--c-water)","Water",(r.water||0)+"/"+WATER_TARGET);
+    var gn=gymNo(k);
+    if(gn!==null) h+=tr("var(--c-gym)",gymName(gn), r.gym?"✓":"—");
+    if(r.core!==undefined) h+=tr("var(--c-core)","Core", r.core?"✓":"—");
+    [["supp","Supplements"],["care","Rest &amp; care"],["maint","Maintenance"]].forEach(function(c){
+      var owed=HABITS.filter(function(x){ return x.card===c[0] && isDue(x,k); });
+      if(!owed.length) return;
+      var kept=owed.filter(function(x){ return r.habits&&r.habits[x.k]; }).length;
+      h+=tr("var(--c-"+c[0]+")", c[1], kept+"/"+owed.length);
+    });
+    return h;
+  }
+  function chartDone(id,svg,m){
+    m.svg=svg; m.tip=document.getElementById(id==="chart"?"rTip":"xTip"); CH[id]=m;
+    if(SEL && SEL.id===id){
+      var i=m.days.indexOf(SEL.day);
+      if(i<0){ hideTip(); return; }
+      svg.insertBefore(el("rect",{x:(m.padL+m.step*i).toFixed(1),y:(m.padT-6).toFixed(1),
+        width:m.step.toFixed(1),height:(m.plotH+10).toFixed(1),class:"colsel",rx:"2"}),svg.firstChild);
+      m.tip.innerHTML=m.info(SEL.day);
+      m.tip.hidden=false;
+      var box=m.tip.parentNode, br=box.getBoundingClientRect(), sr=svg.getBoundingClientRect();
+      var cx=sr.left-br.left+box.scrollLeft+((m.padL+m.step*(i+.5))/m.W)*sr.width;
+      /* sit beside the chosen day, never on top of it */
+      var tw=m.tip.offsetWidth, half=box.scrollLeft+box.clientWidth/2;
+      var left = cx>half ? cx-tw-12 : cx+12;
+      left=Math.max(6+box.scrollLeft, Math.min(left, box.scrollLeft+box.clientWidth-tw-6));
+      m.tip.style.left=left.toFixed(0)+"px";
+    }
+  }
+  function hideTip(){
+    if(!SEL) return;
+    SEL=null;
+    ["rTip","xTip"].forEach(function(id){ document.getElementById(id).hidden=true; });
+    drawChart(); drawXenChart();
+  }
+  function pickDay(id,ev){
+    ev.stopPropagation();
+    var m=CH[id]; if(!m) return;
+    var r=m.svg.getBoundingClientRect(), xs=(ev.clientX-r.left)*(m.W/r.width);
+    var i=Math.floor((xs-m.padL)/m.step);
+    if(i<0||i>=m.days.length){ hideTip(); return; }
+    if(SEL && SEL.id===id && SEL.day===m.days[i]){ hideTip(); return; }
+    var other=SEL && SEL.id!==id;
+    SEL={id:id, day:m.days[i]};
+    if(other) ["rTip","xTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
+    if(id==="chart") drawChart(); else drawXenChart();
+  }
+
+  /* ---------- tabs ---------- */
+  var VIEW="dial";
+  function setView(v){
+    VIEW=v;
+    document.getElementById("viewDial").hidden=(v!=="dial");
+    document.getElementById("viewXen").hidden=(v!=="xen");
+    document.getElementById("viewName").textContent=(v==="dial")?"Arexia":"Xenlil";
+
+    Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"),function(t){
+      t.classList.toggle("on", t.dataset.view===v);
+    });
+    SEL=null; ["rTip","xTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
+    if(v==="dial"){ kindle(); render(); } else { douse(); renderXen(); }
+    try{ localStorage.setItem("dial.view",v); }catch(e){}
   }
 
   var toastTimer=null;
@@ -735,7 +1351,22 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   state=load();
   rollover();
-  buildDial(); buildCards(); render();
+  document.getElementById("xLegend").innerHTML=SECTIONS.map(function(sc){
+    return '<span><i style="background:'+sc.color+'"></i>'+sc.name+'</span>';
+  }).join("");
+  buildDial(); buildCards(); buildPips(); buildHabits(); buildCore(); render(); renderXen();
+  document.getElementById("chart").addEventListener("click",function(ev){ pickDay("chart",ev); });
+  document.getElementById("xchart").addEventListener("click",function(ev){ pickDay("xchart",ev); });
+  document.addEventListener("click",function(ev){
+    if(!ev.target.closest || !ev.target.closest(".chartbox")) hideTip();
+  });
+  function toggleGym(ev){ if(ev) ev.stopPropagation(); state.day.gym=!state.day.gym; save(); renderXen(); }
+  document.getElementById("gymBox").addEventListener("click",toggleGym);
+  document.getElementById("gymRow").addEventListener("click",toggleGym);
+  Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"),function(t){
+    t.addEventListener("click",function(){ setView(t.dataset.view); });
+  });
+  try{ if(localStorage.getItem("dial.view")==="xen") setView("xen"); }catch(e){}
 
   var modal=document.getElementById("modal"), pending=null;
   function closeModal(){ modal.hidden=true; pending=null; }
@@ -752,20 +1383,40 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var fn=pending; closeModal(); if(fn) fn();
   });
 
+  /* a past day with neither rites nor tally left is dropped */
+  function prune(){
+    state.history=state.history.filter(function(r){ return r.checks!==null || r.xen!==false; });
+  }
   document.getElementById("btnClearToday").addEventListener("click",function(){
-    ask("Unseal this day?","The eight rites of today return to unsealed. The chronicle is untouched.","Unseal",function(){
+    ask("Unseal this day?","Today's eight rites return to unsealed. Xenlil's tally is untouched.","Unseal",function(){
       state.day.checks=blankChecks(); save(); render(); toast("The day stands empty.");
     });
   });
   document.getElementById("btnClearAll").addEventListener("click",function(){
-    ask("Erase every record?","This day and the whole chronicle. It cannot be undone.","Erase",function(){
-      state={day:{date:dayKey(), checks:blankChecks()}, history:[]};
-      try{ localStorage.removeItem(KEY); }catch(e){}
-      render(); toast("All records erased.");
+    ask("Erase Arexia's chronicle?","Every rite on every day. Xenlil's tally is kept. It cannot be undone.","Erase",function(){
+      state.day.checks=blankChecks();
+      state.history.forEach(function(r){ r.checks=null; });
+      prune(); save(); render(); toast("The chronicle is erased.");
+    });
+  });
+  document.getElementById("xClearToday").addEventListener("click",function(){
+    ask("Clear today's tally?","Water, gym, supplements and sleep & skin for today return to empty. Arexia is untouched.","Clear",function(){
+      state.day.water=0; state.day.gym=false; state.day.habits={}; state.day.core=false;
+      save(); renderXen(); toast("Today's tally is empty.");
+    });
+  });
+  document.getElementById("xClearAll").addEventListener("click",function(){
+    ask("Erase Xenlil's record?","Every day of water, gym, supplements and sleep & skin. Arexia's rites are kept. It cannot be undone.","Erase",function(){
+      state.day.water=0; state.day.gym=false; state.day.habits={}; state.day.core=false;
+      state.history.forEach(function(r){ delete r.water; delete r.gym; delete r.habits; delete r.core; r.xen=false; });
+      prune(); save(); renderXen(); toast("Xenlil's record is erased.");
     });
   });
 
-  setInterval(function(){ rollover(); render(); }, 20000);
+  setInterval(function(){
+    if(rollover()) renderXen();
+    if(VIEW==="dial") render(); else renderXen();
+  }, 20000);
 })();
 </script>
 
