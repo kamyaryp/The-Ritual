@@ -62,10 +62,13 @@ body{
   padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-block:30px calc(108px + env(safe-area-inset-bottom,0px));
 }
-.wrap{max-width:1020px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+.wrap{max-width:1020px;margin:0 auto;display:flex;flex-direction:column;gap:28px;position:relative}
+.peer{position:absolute;left:0;right:0}
 header{display:flex;flex-wrap:nowrap;align-items:flex-start;justify-content:space-between;gap:12px;
   position:sticky;top:env(safe-area-inset-top,0px);z-index:12;background:var(--bg);
   padding-block:14px 12px;margin-block:-14px -12px}
+/* the bar's ground runs edge to edge, so a page sliding through the side gutters passes under it */
+header::before{content:"";position:absolute;top:0;bottom:0;left:-100vw;right:-100vw;background:var(--bg);z-index:-1}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:13;background:var(--bg)}
 h1{font-weight:500;font-size:clamp(20px,3vw,25px);margin:0;letter-spacing:-.02em}
 .holder{margin:3px 0 0;font-size:12.5px;color:var(--ink-3)}
@@ -138,8 +141,8 @@ svg.dial{width:100%;max-width:450px;height:auto}
 
 .chron{display:flex;flex-direction:column;gap:12px}
 #viewDial,#viewXen,#viewXr,#viewAr{display:flex;flex-direction:column;gap:28px}
-@keyframes inR{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:none}}
-@keyframes inL{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:none}}
+@keyframes inR{from{opacity:.35;transform:translateX(32px)}to{opacity:1;transform:none}}
+@keyframes inL{from{opacity:.35;transform:translateX(-32px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:no-preference){
   .in-r{animation:inR .26s cubic-bezier(.2,.7,.2,1)}
   .in-l{animation:inL .26s cubic-bezier(.2,.7,.2,1)}
@@ -1868,65 +1871,90 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   render(); renderXen(); renderXr(); renderAr(); arTick();
   document.getElementById("achart").addEventListener("click",function(ev){ pickDay("achart",ev); });
   document.getElementById("zchart").addEventListener("click",function(ev){ pickDay("zchart",ev); });
-  /* swipe sideways to move between tabs: the page follows the finger, then
-     either carries on to the next tab or settles back */
-  var sw=null, GEN=0, EASE="cubic-bezier(.2,.8,.2,1)";
+  /* swipe sideways to move between tabs. The next tab is laid beside the current
+     one, at its own remembered scroll, and both follow the finger like pages of a
+     strip; on release they either carry on or settle back. Nothing is ever blank. */
+  var sw=null, BUSY=false, GAP=24;
   var calm=window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-  function curEl(){ return document.getElementById(VIEW_EL[VIEW]); }
-  function slide(el,x,o,ms,ease){
-    el.style.transition = ms ? "transform "+ms+"ms "+ease+", opacity "+ms+"ms "+ease : "none";
-    el.style.transform = x ? "translate3d("+x+"px,0,0)" : "";
-    el.style.opacity = o===1 ? "" : String(o);
+  function vEl(v){ return document.getElementById(VIEW_EL[v]); }
+  function renderOf(v){ if(v==="dial") render(); else ({xen:renderXen, xr:renderXr, ar:renderAr})[v](); }
+  function put(el,x,ms,ease){
+    el.style.transition = ms ? "transform "+ms+"ms "+ease : "none";
+    el.style.transform = "translate3d("+x+"px,0,0)";
   }
-  function unslide(el){ el.style.transition=""; el.style.transform=""; el.style.opacity=""; el.style.willChange=""; }
+  function bare(el){ el.style.transition=""; el.style.transform=""; el.style.willChange=""; el.style.top=""; el.classList.remove("peer"); }
   function scrollsSideways(n){
     for(; n && n!==document.body; n=n.parentElement)
       if(n.scrollWidth>n.clientWidth+1 && /auto|scroll/.test(getComputedStyle(n).overflowX)) return true;
     return false;
   }
+  function dropPeer(){ if(sw && sw.peer){ var e=vEl(sw.peer); bare(e); e.hidden=true; sw.peer=null; } }
+  function takePeer(v){
+    var cur=sw.el, docH=document.documentElement.scrollHeight, nb=vEl(v);
+    nb.classList.remove("in-l","in-r");
+    nb.classList.add("peer"); nb.hidden=false; nb.style.willChange="transform";
+    renderOf(v);
+    /* where this tab would sit once it is the page, clamped to how far it can scroll */
+    var maxY=Math.max(0, docH-cur.offsetHeight+nb.offsetHeight-window.innerHeight);
+    var y=Math.min(SCROLL[v]||0, maxY);
+    nb.style.top=(cur.offsetTop+window.scrollY-y)+"px";
+    sw.peer=v; sw.peerY=y;
+  }
   document.addEventListener("touchstart",function(e){
-    if(e.touches.length!==1 || !document.getElementById("modal").hidden || scrollsSideways(e.target)){ sw=null; return; }
-    var t=e.touches[0]; sw={x:t.clientX, y:t.clientY, lock:null, dx:0, track:[[t.clientX,Date.now()]]};
+    if(BUSY || e.touches.length!==1 || !document.getElementById("modal").hidden || scrollsSideways(e.target)){ sw=null; return; }
+    var t=e.touches[0]; sw={x:t.clientX, y:t.clientY, lock:null, dx:0, peer:null, track:[[t.clientX,Date.now()]]};
   },{passive:true});
   document.addEventListener("touchmove",function(e){
     if(!sw || sw.lock==="y") return;
-    if(e.touches.length!==1){ sw=null; return; }
+    if(e.touches.length!==1){ dropPeer(); if(sw.el) bare(sw.el); sw=null; return; }
     var t=e.touches[0], dx=t.clientX-sw.x, dy=t.clientY-sw.y;
     if(!sw.lock){
-      if(Math.abs(dx)>8 && Math.abs(dx)>Math.abs(dy)*1.2 && e.cancelable){ sw.lock="x"; GEN++; sw.x=t.clientX; dx=0; sw.el=curEl(); sw.el.style.willChange="transform,opacity"; sw.el.classList.remove("in-l","in-r"); }
+      if(Math.abs(dx)>8 && Math.abs(dx)>Math.abs(dy)*1.2 && e.cancelable){
+        sw.lock="x"; sw.x=t.clientX; dx=0; sw.el=vEl(VIEW); sw.el.classList.remove("in-l","in-r"); sw.el.style.willChange="transform";
+        if(calm) sw.lock="calm";
+      }
       else if(Math.abs(dy)>8){ sw.lock="y"; return; }
       else return;
     }
     e.preventDefault();
-    var W=window.innerWidth, i=ORDER.indexOf(VIEW)+(dx<0?1:-1);
-    if(i<0 || i>=ORDER.length) dx=dx/(1+Math.abs(dx)/(W*0.12));          /* nothing there: rubber band */
-    sw.dx=dx;
     sw.track.push([t.clientX,Date.now()]); if(sw.track.length>6) sw.track.shift();
-    if(!calm) slide(sw.el, dx, 1-Math.min(.45,Math.abs(dx)/W*.6), 0);
+    sw.dx=dx;
+    if(sw.lock==="calm") return;
+    var W=window.innerWidth+GAP, dir=dx<0?1:-1, i=ORDER.indexOf(VIEW)+dir, v=ORDER[i];
+    if(dx===0) return;
+    if(!v){ dropPeer(); put(sw.el, dx/(1+Math.abs(dx)/(W*0.12)), 0); return; }   /* nothing there: rubber band */
+    if(sw.peer!==v){ dropPeer(); takePeer(v); }
+    put(sw.el, dx, 0);
+    put(vEl(v), dx+dir*W, 0);
   },{passive:false});
   function swipeEnd(){
     var s0=sw; sw=null;
-    if(!s0 || s0.lock!=="x") return;
-    var el=s0.el, W=window.innerWidth, dx=s0.dx, a=s0.track[0], z=s0.track[s0.track.length-1];
+    if(!s0 || (s0.lock!=="x" && s0.lock!=="calm")) return;
+    var W=window.innerWidth+GAP, dx=s0.dx, a=s0.track[0], z=s0.track[s0.track.length-1];
     var v=(z[1]-a[1])>0 ? (z[0]-a[0])/(z[1]-a[1]) : 0;                       /* px per ms */
-    var dir=dx<0?1:-1, i=ORDER.indexOf(VIEW)+dir;
-    var go=i>=0 && i<ORDER.length && (Math.abs(dx)>W*0.22 || (Math.abs(v)>0.35 && (v<0?1:-1)===dir && Math.abs(dx)>24));
-    if(calm){ unslide(el); if(go) setView(ORDER[i],0); return; }
-    var g=GEN;
-    if(!go){ slide(el,0,1,260,EASE); setTimeout(function(){ if(g===GEN) unslide(el); },280); return; }
-    /* leave in the direction of travel, at roughly the finger's speed */
-    var ms=Math.max(90, Math.min(170, (W*0.45-Math.abs(dx))/Math.max(0.6,Math.abs(v))));
-    slide(el, -dir*W*0.45, 0, ms, "cubic-bezier(.4,0,1,1)");
-    setTimeout(function(){
-      unslide(el);
-      if(g!==GEN) return;
-      setView(ORDER[i],0);
-      var nu=curEl(); nu.style.willChange="transform,opacity";
-      slide(nu, dir*W*0.22, 0, 0);
-      void nu.offsetWidth;
-      slide(nu, 0, 1, 300, EASE);
-      setTimeout(function(){ if(g===GEN) unslide(nu); },320);
-    }, ms);
+    var dir=dx<0?1:-1, i=ORDER.indexOf(VIEW)+dir, to=ORDER[i];
+    var go=!!to && (Math.abs(dx)>W*0.22 || (Math.abs(v)>0.3 && (v<0?1:-1)===dir && Math.abs(dx)>20));
+    if(s0.lock==="calm"){ bare(s0.el); if(go) setView(to,0); return; }
+    var cur=s0.el, nb=s0.peer?vEl(s0.peer):null;
+    if(go && s0.peer===to){
+      /* carry on, at about the speed the finger left with */
+      var rest=W-Math.abs(dx), ms=Math.round(Math.max(160, Math.min(320, rest/Math.max(0.9,Math.abs(v)))));
+      var ease="cubic-bezier(.25,.75,.35,1)";
+      BUSY=true;
+      put(cur, -dir*W, ms, ease); put(nb, 0, ms, ease);
+      setTimeout(function(){
+        SCROLL[to]=s0.peerY;
+        bare(cur); bare(nb);
+        setView(to,0);                       /* same frame: old page hidden, new one in flow, scroll set */
+        BUSY=false;
+      }, ms+16);
+      return;
+    }
+    /* settle back */
+    var ms2=240, ease2="cubic-bezier(.2,.8,.2,1)";
+    BUSY=true;
+    put(cur, 0, ms2, ease2); if(nb) put(nb, dir*W, ms2, ease2);
+    setTimeout(function(){ bare(cur); if(nb){ bare(nb); nb.hidden=true; } BUSY=false; }, ms2+16);
   }
   document.addEventListener("touchend",swipeEnd,{passive:true});
   document.addEventListener("touchcancel",swipeEnd,{passive:true});
