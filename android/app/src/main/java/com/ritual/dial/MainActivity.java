@@ -2,8 +2,13 @@ package com.ritual.dial;
 
 import android.app.Activity;
 import android.graphics.Color;
+import android.os.Build;
+import android.os.VibrationEffect;
+import android.os.Vibrator;
 import android.os.Bundle;
 import android.view.View;
+import android.view.WindowManager;
+import android.webkit.JavascriptInterface;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -15,6 +20,34 @@ import android.webkit.WebViewClient;
 public class MainActivity extends Activity {
 
     private WebView web;
+
+    /** What the page may ask of the phone: keep the screen on, and buzz. */
+    public class Host {
+        @JavascriptInterface
+        public void vibrate(String pattern) {
+            try {
+                Vibrator v = (Vibrator) getSystemService(VIBRATOR_SERVICE);
+                if (v == null || !v.hasVibrator()) return;
+                String[] parts = pattern.split(",");
+                long[] wave = new long[parts.length + 1];        // [delay, on, off, on, ...]
+                wave[0] = 0;
+                for (int i = 0; i < parts.length; i++) wave[i + 1] = Long.parseLong(parts[i].trim());
+                if (Build.VERSION.SDK_INT >= 26) v.vibrate(VibrationEffect.createWaveform(wave, -1));
+                else v.vibrate(wave, -1);
+            } catch (Exception ignored) { }
+        }
+
+        @JavascriptInterface
+        public void keepAwake(final boolean on) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    if (on) getWindow().addFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                    else getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
+                }
+            });
+        }
+    }
 
     @Override
     protected void onCreate(Bundle saved) {
@@ -34,7 +67,9 @@ public class MainActivity extends Activity {
         s.setAllowContentAccess(false);
         s.setBlockNetworkLoads(true);      // nothing may be fetched, ever
         s.setTextZoom(100);                // ignore the system font scale
+        s.setMediaPlaybackRequiresUserGesture(false);  // the timer's ticks
 
+        web.addJavascriptInterface(new Host(), "RitualHost");
         web.setWebViewClient(new WebViewClient());
         setContentView(web);
         web.loadUrl("file:///android_asset/index.html");
@@ -44,6 +79,7 @@ public class MainActivity extends Activity {
     protected void onPause() {
         super.onPause();
         web.onPause();
+        getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
 
     @Override
