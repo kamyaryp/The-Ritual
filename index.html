@@ -1288,23 +1288,67 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       o.connect(g); g.connect(CORE.out||c.destination); o.start(t); o.stop(t+dur+0.03);
     }catch(e){}
   }
+  /* ---- sound design: pure tones, few and quiet, all in E ----
+     Each sound is a sine with a soft overtone or two that fade faster than
+     the fundamental, so it rings clean and short, like glass or a wooden key. */
+  var GLASS=[[1,1,1],[2,.22,.55],[3,.06,.3]];      /* [ratio, level, decay] */
+  var WOOD =[[1,1,1],[2.76,.18,.35]];
+  function note(o){
+    var c=CORE.ctx; if(!c) return;
+    try{
+      var t=c.currentTime+(o.at||0);
+      var lp=c.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=o.lp||7000; lp.Q.value=.5;
+      lp.connect(CORE.out||c.destination);
+      (o.tone||GLASS).forEach(function(p){
+        var osc=c.createOscillator(), g=c.createGain(), d=o.dur*p[2];
+        osc.type="sine"; osc.frequency.setValueAtTime(o.f*p[0],t);
+        if(o.drop) osc.frequency.exponentialRampToValueAtTime(o.f*p[0]*(1-o.drop),t+Math.min(d,.06));
+        g.gain.setValueAtTime(.0001,t);
+        g.gain.exponentialRampToValueAtTime(o.gain*p[1],t+(o.a||.005));
+        g.gain.exponentialRampToValueAtTime(.0001,t+d);
+        osc.connect(g); g.connect(lp); osc.start(t); osc.stop(t+d+.05);
+      });
+    }catch(e){}
+  }
+  var E4=329.63, B4=493.88, E5=659.26, Gs5=830.61, B5=987.77, Ds6=1244.51, E6=1318.51, Fs6=1479.98, B6=1975.53, A6=1760;
+  function sfx(kind){
+    if(window.__sfxlog) window.__sfxlog.push(kind);
+    switch(kind){
+      /* interface */
+      case "tap":  note({f:E6,dur:.05,gain:.3,tone:WOOD,drop:.08}); break;
+      case "on":   note({f:E5,dur:.2,gain:.11}); note({f:B5,dur:.26,gain:.1,at:.06}); break;
+      case "off":  note({f:B5,dur:.16,gain:.1}); note({f:E5,dur:.22,gain:.09,at:.06}); break;
+      case "deny": note({f:B4/2,dur:.2,gain:.22,tone:WOOD,drop:.12}); note({f:B4/2,dur:.18,gain:.15,tone:WOOD,drop:.12,at:.12}); break;
+      /* a mission complete: E major 9, rolled upward */
+      case "done": [E5,B5,Ds6,Fs6].forEach(function(f,i){ note({f:f,dur:1.4,gain:.17,at:i*.09,a:.008}); }); break;
+      /* the core timer */
+      case "tick": note({f:A6,dur:.05,gain:.9,tone:WOOD,drop:.05}); break;
+      case "hold": note({f:E6,dur:.16,gain:.7}); note({f:B6,dur:.22,gain:.55,at:.05}); break;
+      case "round":note({f:E5,dur:.6,gain:.7}); note({f:E6,dur:.7,gain:.55,at:.12}); break;
+      case "typeEnd": [E6,B5,E5].forEach(function(f,i){ note({f:f,dur:.6,gain:.62,at:i*.13}); }); break;
+      case "beat": note({f:B4,dur:.16,gain:.6,tone:WOOD}); break;
+      case "go":   [E5,B5,E6].forEach(function(f,i){ note({f:f,dur:.3,gain:.62,at:i*.07}); }); break;
+      case "start":note({f:B5,dur:.2,gain:.55}); note({f:E6,dur:.28,gain:.5,at:.06}); break;
+      case "finish": sfx("done"); note({f:E4,dur:1.8,gain:.42,a:.01}); break;
+    }
+  }
   /* a tick each second; a brighter double at each change of hold; a chime at
      each round; a longer one as a type ends, low beats through the change,
      a go tone as the next type begins; a chord at the end */
   function sound(sec){
-    if(sec>=CORE.total){ tone(880,.7,.8); tone(1110,.7,.7,.02); tone(1320,.9,.7,.04); tone(1760,1,.6,.32); return; }
+    if(sec>=CORE.total){ sfx("finish"); return; }
     var P=phase(sec), was=CORE.inBrk;
     CORE.inBrk=P.brk;
     if(P.brk){
-      if(!was){ tone(880,.22,.85); tone(1175,.22,.8,.2); tone(1568,.38,.75,.4); buzz([60,40,60]); }
-      else tone(784,.12,.75);
+      if(!was){ sfx("typeEnd"); buzz([60,40,60]); }
+      else sfx("beat");
       return;
     }
-    if(was){ tone(1320,.16,.9); tone(1760,.2,.8,.14); return; }
+    if(was){ sfx("go"); return; }
     var e=Math.round(P.ex);
-    if(e%60===0){ tone(988,.2,.85); tone(1480,.3,.8,.18); buzz(45); return; }
-    if(e%CORE.hold===0){ tone(1400,.12,.9); tone(1870,.16,.8,.12); return; }
-    tone(1050,.07,.6);
+    if(e%60===0){ sfx("round"); buzz(45); return; }
+    if(e%CORE.hold===0){ sfx("hold"); return; }
+    sfx("tick");
   }
   /* vibration: through the app's own bridge when it's the APK, the browser's otherwise */
   function buzz(p){
@@ -1316,11 +1360,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
      tap: a control · done: a mission finished */
   function fb(kind){
     audio();
-    if(kind==="on"){   tone(880,.05,.32,0,"triangle"); tone(1320,.08,.3,.045,"triangle"); buzz(14); }
-    if(kind==="off"){  tone(1050,.05,.28,0,"triangle"); tone(700,.08,.26,.045,"triangle"); buzz(9); }
-    if(kind==="deny"){ tone(185,.13,.38,0,"square"); buzz([18,50,18]); }
-    if(kind==="tap"){  tone(1250,.035,.22,0,"triangle"); buzz(6); }
-    if(kind==="done"){ buzz([70,50,70,50,140]); }
+    if(kind!=="done") sfx(kind);
+    if(kind==="on")   buzz(14);
+    if(kind==="off")  buzz(9);
+    if(kind==="deny") buzz([18,50,18]);
+    if(kind==="tap")  buzz(6);
+    if(kind==="done") buzz([70,50,70,50,140]);
   }
   function awake(on){
     try{ if(window.RitualHost && RitualHost.keepAwake) RitualHost.keepAwake(!!on); }catch(e){}
@@ -1335,7 +1380,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(CORE.el>=CORE.total){ CORE.el=0; CORE.last=-1; }
     CORE.inBrk=phase(CORE.el).brk;
     CORE.t0=performance.now(); CORE.run=true;
-    if(CORE.el===0){ CORE.last=0; tone(1320,.16,.9); }
+    if(CORE.el===0){ CORE.last=0; sfx("start"); }
     awake(true);
     clearInterval(CORE.iv); CORE.iv=setInterval(coreTick,50);
     renderCore();
@@ -1615,7 +1660,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var id=ART.blk, m=arMission(id), i=+id.slice(m.k.length);
       ART.blk=null; delete ART.left[id]; arSave(); awake(false);
       state.day.ar[m.k][i]=true; save();
-      tone(784,.26,.8); tone(988,.26,.75,.24); tone(1319,.55,.7,.48);
+      sfx("done");
       toast(m.name+" division done."); fb("done");
       renderAr(); return;
     }
