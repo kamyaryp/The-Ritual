@@ -70,7 +70,7 @@ h1{font-weight:500;font-size:clamp(20px,3vw,25px);margin:0;letter-spacing:-.02em
 .holder{margin:3px 0 0;font-size:12.5px;color:var(--ink-3)}
 .brand{display:flex;align-items:center;gap:16px;min-width:0;flex:1 1 auto}
 .stamp{flex:0 0 auto;padding-top:7px;white-space:nowrap}
-@media (max-width:620px){ .stamp .sd{display:none} }
+@media (max-width:620px){ .stamp .tm{display:none} }
 .brand-text{min-width:0}
 /* the mark is exactly as tall as title + subtitle together (sized from the text in script) */
 .mark{flex:0 0 auto;display:block;width:42px;height:42px;overflow:visible}
@@ -755,6 +755,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function attempt(god,i){
     var st=riteState(god,i);
     if(st!=="open"){
+      fb("deny");
       stareAt(god,i,2.4);
       if(st==="lapsed"){ feel("upset",2.2); toast("The hour has passed."); }
       else toast("The hour has not come.");
@@ -762,6 +763,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     }
     var now=!state.day.checks[god.key][i];
     state.day.checks[god.key][i]=now;
+    fb(now?"on":"off");
     stareAt(god,i, now?3.0:2.2);
     feel(now?"excited":"upset", now?3.2:2.0);
     save(); render();
@@ -1034,7 +1036,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     }
     document.getElementById("stamp").innerHTML=
       '<span class="sd">'+now.toLocaleDateString(undefined,{day:"numeric",month:"short"})+'</span> '+
-      now.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:false});
+      '<span class="tm">'+now.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:false})+'</span>';
   }
 
   var SPAN=32;
@@ -1107,7 +1109,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         var b=document.createElement("button");
         b.type="button"; b.className="pip"; b.setAttribute("aria-label","Glass "+(n+1));
         b.addEventListener("click",function(){
+          var was=state.day.water;
           state.day.water = (state.day.water===n+1) ? n : n+1;
+          fb(state.day.water>was?"on":"off");
           save(); renderXen();
         });
         host.appendChild(b);
@@ -1127,11 +1131,11 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var wh=document.createElement("span"); wh.className="win"; wh.textContent=h.when;
       row.appendChild(b); row.appendChild(nm); row.appendChild(wh);
       row.addEventListener("click",function(){
-        state.day.habits[h.k]=!state.day.habits[h.k]; save(); renderXen();
+        state.day.habits[h.k]=!state.day.habits[h.k]; fb(state.day.habits[h.k]?"on":"off"); save(); renderXen();
       });
       b.addEventListener("click",function(ev){
         ev.stopPropagation();
-        state.day.habits[h.k]=!state.day.habits[h.k]; save(); renderXen();
+        state.day.habits[h.k]=!state.day.habits[h.k]; fb(state.day.habits[h.k]?"on":"off"); save(); renderXen();
       });
       card.appendChild(row);
     });
@@ -1272,11 +1276,11 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       if(CORE.ctx.state==="suspended") CORE.ctx.resume();
     }catch(e){}
   }
-  function tone(f,dur,gain,at){
+  function tone(f,dur,gain,at,wave){
     var c=CORE.ctx; if(!c) return;
     try{
       var o=c.createOscillator(), g=c.createGain(), t=c.currentTime+(at||0);
-      o.type = dur<.2 ? "square" : "triangle";   /* short alerts cut through a phone speaker; chimes stay round */
+      o.type = wave || (dur<.2 ? "square" : "triangle");   /* short alerts cut through a phone speaker; chimes stay round */
       o.frequency.value=f;
       g.gain.setValueAtTime(0.0001,t);
       g.gain.exponentialRampToValueAtTime(gain,t+0.006);
@@ -1292,15 +1296,31 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var P=phase(sec), was=CORE.inBrk;
     CORE.inBrk=P.brk;
     if(P.brk){
-      if(!was){ tone(880,.22,.85); tone(1175,.22,.8,.2); tone(1568,.38,.75,.4); }
+      if(!was){ tone(880,.22,.85); tone(1175,.22,.8,.2); tone(1568,.38,.75,.4); buzz([60,40,60]); }
       else tone(784,.12,.75);
       return;
     }
     if(was){ tone(1320,.16,.9); tone(1760,.2,.8,.14); return; }
     var e=Math.round(P.ex);
-    if(e%60===0){ tone(988,.2,.85); tone(1480,.3,.8,.18); return; }
+    if(e%60===0){ tone(988,.2,.85); tone(1480,.3,.8,.18); buzz(45); return; }
     if(e%CORE.hold===0){ tone(1400,.12,.9); tone(1870,.16,.8,.12); return; }
     tone(1050,.07,.6);
+  }
+  /* vibration: through the app's own bridge when it's the APK, the browser's otherwise */
+  function buzz(p){
+    var pat=[].concat(p);
+    try{ if(window.RitualHost && RitualHost.vibrate){ RitualHost.vibrate(pat.join(",")); return; } }catch(e){}
+    try{ if(navigator.vibrate) navigator.vibrate(pat); }catch(e){}
+  }
+  /* on: something added · off: something taken back · deny: not allowed now
+     tap: a control · done: a mission finished */
+  function fb(kind){
+    audio();
+    if(kind==="on"){   tone(880,.05,.32,0,"triangle"); tone(1320,.08,.3,.045,"triangle"); buzz(14); }
+    if(kind==="off"){  tone(1050,.05,.28,0,"triangle"); tone(700,.08,.26,.045,"triangle"); buzz(9); }
+    if(kind==="deny"){ tone(185,.13,.38,0,"square"); buzz([18,50,18]); }
+    if(kind==="tap"){  tone(1250,.035,.22,0,"triangle"); buzz(6); }
+    if(kind==="done"){ buzz([70,50,70,50,140]); }
   }
   function awake(on){
     try{ if(window.RitualHost && RitualHost.keepAwake) RitualHost.keepAwake(!!on); }catch(e){}
@@ -1332,6 +1352,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(sec!==CORE.last){ CORE.last=sec; if(sec>0) sound(sec); }
     if(t>=CORE.total){
       CORE.el=CORE.total; CORE.run=false; clearInterval(CORE.iv); awake(false);
+      fb("done");
       if(!state.day.core){ state.day.core=true; save(); renderXen(); toast("Core session recorded."); }
       else toast("Done. Today's session was already recorded.");
     }
@@ -1350,8 +1371,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       }
       bar.appendChild(g);
     }
-    document.getElementById("corePlay").addEventListener("click",corePlay);
-    document.getElementById("coreReset").addEventListener("click",coreReset);
+    document.getElementById("corePlay").addEventListener("click",function(){ fb("tap"); corePlay(); });
+    document.getElementById("coreReset").addEventListener("click",function(){ fb("off"); coreReset(); });
   }
   function renderCore(){
     var w=coreNow(), P=phase(w), t=P.ex, done=w>=CORE.total;
@@ -1446,6 +1467,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var r=m.svg.getBoundingClientRect(), xs=(ev.clientX-r.left)*(m.W/r.width);
     var i=Math.floor((xs-m.padL)/m.step);
     if(i<0||i>=m.days.length){ hideTip(); return; }
+    fb("tap");
     if(SEL && SEL.id===id && SEL.day===m.days[i]){ hideTip(); return; }
     var other=SEL && SEL.id!==id;
     SEL={id:id, day:m.days[i]};
@@ -1488,8 +1510,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         '<b class="cnt" id="c-'+x.k+'">0</b>'+
         '<button type="button" class="step plus" aria-label="One more">+</button>';
       var b=row.querySelectorAll(".step");
-      b[0].addEventListener("click",function(){ if(state.day.xr[x.k]>0){ state.day.xr[x.k]--; save(); renderXr(); } });
-      b[1].addEventListener("click",function(){ state.day.xr[x.k]++; save(); renderXr(); });
+      b[0].addEventListener("click",function(){ if(state.day.xr[x.k]>0){ state.day.xr[x.k]--; fb("off"); save(); renderXr(); } });
+      b[1].addEventListener("click",function(){ state.day.xr[x.k]++; fb("on"); save(); renderXr(); });
       document.getElementById(x.grp==="dep"?"depCard":"thrCard").appendChild(row);
     });
   }
@@ -1594,7 +1616,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       ART.blk=null; delete ART.left[id]; arSave(); awake(false);
       state.day.ar[m.k][i]=true; save();
       tone(784,.26,.8); tone(988,.26,.75,.24); tone(1319,.55,.7,.48);
-      toast(m.name+" division done.");
+      toast(m.name+" division done."); fb("done");
       renderAr(); return;
     }
     arTimes();
@@ -1614,8 +1636,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
             '<button type="button" class="ctl sm" aria-label="Reset"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
             '</div><div class="blk-bar"><i></i></div>';
           var bt=b.querySelectorAll(".ctl");
-          bt[0].addEventListener("click",function(){ arStart(id); });
-          bt[1].addEventListener("click",function(){ arReset(id); });
+          bt[0].addEventListener("click",function(){ fb("tap"); arStart(id); });
+          bt[1].addEventListener("click",function(){ fb("off"); arReset(id); });
           card.appendChild(b);
         })(m.k+i, m.blocks>1 ? "Division "+(i+1) : "Division");
       }
@@ -1752,11 +1774,11 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   document.addEventListener("click",function(ev){
     if(!ev.target.closest || !ev.target.closest(".chartbox")) hideTip();
   });
-  function toggleGym(ev){ if(ev) ev.stopPropagation(); state.day.gym=!state.day.gym; save(); renderXen(); }
+  function toggleGym(ev){ if(ev) ev.stopPropagation(); state.day.gym=!state.day.gym; fb(state.day.gym?"on":"off"); save(); renderXen(); }
   document.getElementById("gymBox").addEventListener("click",toggleGym);
   document.getElementById("gymRow").addEventListener("click",toggleGym);
   Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"),function(t){
-    t.addEventListener("click",function(){ setView(t.dataset.view); });
+    t.addEventListener("click",function(){ if(t.dataset.view!==VIEW) fb("tap"); setView(t.dataset.view); });
   });
   function sizeMark(){
     var h=document.querySelector(".brand-text").offsetHeight, m=document.getElementById("mark");
@@ -1776,10 +1798,11 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     document.getElementById("mYes").textContent=label;
     pending=fn; modal.hidden=false;
   }
-  document.getElementById("mNo").addEventListener("click",closeModal);
+  document.getElementById("mNo").addEventListener("click",function(){ fb("tap"); closeModal(); });
   modal.addEventListener("click",function(ev){ if(ev.target===modal) closeModal(); });
   document.addEventListener("keydown",function(ev){ if(ev.key==="Escape") closeModal(); });
   document.getElementById("mYes").addEventListener("click",function(){
+    fb("off");
     var fn=pending; closeModal(); if(fn) fn();
   });
 
