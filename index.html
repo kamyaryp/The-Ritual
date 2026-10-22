@@ -137,6 +137,12 @@ svg.dial{width:100%;max-width:450px;height:auto}
 
 .chron{display:flex;flex-direction:column;gap:12px}
 #viewDial,#viewXen,#viewXr,#viewAr{display:flex;flex-direction:column;gap:28px}
+@keyframes inR{from{opacity:0;transform:translateX(32px)}to{opacity:1;transform:none}}
+@keyframes inL{from{opacity:0;transform:translateX(-32px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){
+  .in-r{animation:inR .26s cubic-bezier(.2,.7,.2,1)}
+  .in-l{animation:inL .26s cubic-bezier(.2,.7,.2,1)}
+}
 #viewDial[hidden],#viewXen[hidden],#viewXr[hidden],#viewAr[hidden]{display:none}
 .ar-cards{grid-template-columns:repeat(3,1fr)}
 @media (max-width:860px){ .ar-cards{grid-template-columns:1fr 1fr} .ar-cards .card:first-child{grid-column:1/-1} }
@@ -1779,7 +1785,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       a.classList.toggle("lit", a.getAttribute("data-v")===v);
     });
   }
-  function setView(v){
+  var ORDER=["xr","ar","xen","dial"];                 /* the nav, left to right */
+  var VIEW_EL={dial:"viewDial", xen:"viewXen", xr:"viewXr", ar:"viewAr"};
+  function setView(v,dir){
+    if(dir===undefined) dir=ORDER.indexOf(v)-ORDER.indexOf(VIEW);
     VIEW=v;
     document.getElementById("viewDial").hidden=(v!=="dial");
     document.getElementById("viewXen").hidden=(v!=="xen");
@@ -1794,6 +1803,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     SEL=null; ["rTip","xTip","zTip","aTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
     if(v==="dial"){ kindle(); render(); } else { douse(); ({xen:renderXen, xr:renderXr, ar:renderAr})[v](); }
     window.scrollTo(0,0);
+    /* the new tab slides in from the side it lives on */
+    var el=document.getElementById(VIEW_EL[v]);
+    el.classList.remove("in-l","in-r");
+    if(dir){ void el.offsetWidth; el.classList.add(dir>0?"in-r":"in-l"); }
     try{ localStorage.setItem("dial.view",v); }catch(e){}
   }
 
@@ -1812,6 +1825,20 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   render(); renderXen(); renderXr(); renderAr(); arTick();
   document.getElementById("achart").addEventListener("click",function(ev){ pickDay("achart",ev); });
   document.getElementById("zchart").addEventListener("click",function(ev){ pickDay("zchart",ev); });
+  /* swipe sideways to move between tabs */
+  var sw=null;
+  document.addEventListener("touchstart",function(e){
+    if(e.touches.length!==1 || !document.getElementById("modal").hidden){ sw=null; return; }
+    var t=e.touches[0]; sw={x:t.clientX, y:t.clientY, t:Date.now()};
+  },{passive:true});
+  document.addEventListener("touchend",function(e){
+    if(!sw) return;
+    var t=e.changedTouches[0], dx=t.clientX-sw.x, dy=t.clientY-sw.y, dt=Date.now()-sw.t; sw=null;
+    if(Math.abs(dx)<60 || Math.abs(dx)<Math.abs(dy)*1.6 || dt>700) return;
+    var i=ORDER.indexOf(VIEW)+(dx<0?1:-1);
+    if(i<0 || i>=ORDER.length) return;
+    fb("tap"); setView(ORDER[i], dx<0?1:-1);
+  },{passive:true});
   var hdr=document.querySelector("header");
   window.addEventListener("scroll",function(){ hdr.classList.toggle("stuck", window.scrollY>4); },{passive:true});
   document.getElementById("chart").addEventListener("click",function(ev){ pickDay("chart",ev); });
@@ -1823,7 +1850,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   document.getElementById("gymBox").addEventListener("click",toggleGym);
   document.getElementById("gymRow").addEventListener("click",toggleGym);
   Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"),function(t){
-    t.addEventListener("click",function(){ if(t.dataset.view!==VIEW) fb("tap"); setView(t.dataset.view); });
+    t.addEventListener("click",function(){ if(t.dataset.view!==VIEW){ fb("tap"); setView(t.dataset.view); } });
   });
   function sizeMark(){
     var h=document.querySelector(".brand-text").offsetHeight, m=document.getElementById("mark");
