@@ -1,7 +1,7 @@
 {
-  "name": "The Ritual",
-  "short_name": "Ritual",
-  "description": "Eight rites across the day, each sealed only in its own hour.",
+  "name": "Golden Path",
+  "short_name": "Golden Path",
+  "description": "The day's rites and the day's tally.",
   "start_url": "./",
   "scope": "./",
   "display": "standalone",
