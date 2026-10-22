@@ -59,6 +59,8 @@ body{
 .wrap{max-width:1020px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
 header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px}
 h1{font-weight:500;font-size:clamp(20px,3vw,25px);margin:0;letter-spacing:-.02em}
+.holder{margin:3px 0 0;font-size:12.5px;color:var(--ink-3)}
+.holder b{font-weight:600}
 .stamp{font-family:var(--mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 
 .stage{display:grid;grid-template-columns:minmax(290px,1fr) minmax(320px,1.05fr);gap:30px;align-items:center}
@@ -67,9 +69,10 @@ h1{font-weight:500;font-size:clamp(20px,3vw,25px);margin:0;letter-spacing:-.02em
 svg.dial{width:100%;max-width:400px;height:auto}
 
 .band{transition:fill .25s ease,stroke-opacity .25s ease}
-.band.open,.band.sealed{cursor:pointer}
+.band.open{cursor:pointer}
+.band.awaiting,.band.lapsed{cursor:not-allowed}
 .band.lapsed{cursor:not-allowed}
-.band.open:hover,.band.sealed:hover{fill-opacity:.85}
+.band.open:hover{fill-opacity:.85}
 .band:focus,.band:focus-visible{outline:none}
 @media (prefers-reduced-motion:no-preference){
   .band.open{animation:breathe 2.8s ease-in-out infinite}
@@ -102,8 +105,8 @@ svg.dial{width:100%;max-width:400px;height:auto}
 .rite[data-state="lapsed"]:not([data-done="1"]) .rnum,.rite[data-state="lapsed"]:not([data-done="1"]) .win{opacity:.5}
 .rite{cursor:pointer;border-radius:4px;padding:1px 2px;margin:0 -2px}
 .rite:hover{background:var(--panel-2)}
-.rite[data-state="lapsed"]{cursor:not-allowed}
-.rite[data-state="lapsed"]:hover{background:transparent}
+.rite[data-state="lapsed"],.rite[data-state="awaiting"]{cursor:not-allowed}
+.rite[data-state="lapsed"]:hover,.rite[data-state="awaiting"]:hover{background:transparent}
 .rnum{flex:0 0 auto;width:18px;text-align:center;font-family:var(--rune);font-size:16px;line-height:1;color:var(--ink-2)}
 .rite[data-state="open"] .rnum,.rite[data-done="1"] .rnum{color:var(--hue)}
 .win{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
@@ -163,7 +166,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
 <div class="wrap">
   <header>
-    <h1>The Ritual</h1>
+    <div>
+      <h1>The Ritual</h1>
+      <p class="holder" id="holder">—</p>
+    </div>
     <span class="stamp" id="stamp">—</span>
   </header>
 
@@ -196,8 +202,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
                 <ellipse id="pupil" cx="0" cy="0" rx="3" ry="10" fill="#000"></ellipse>
               </g>
             </g>
-            <path id="eyeBrow" d="" fill="none" stroke-width="2.2" stroke-linecap="round" opacity=".8"></path>
-          </g>
+            </g>
         </g>
         </g>
         <g class="flame" id="flame" opacity="0">
@@ -245,13 +250,14 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   /* Each god looks out of the dial differently, not only in colour.
      Arexia's eye is upswept and lashed; Xeron's is cut hard under a heavy brow;
      Arurael's is wide with a round pupil; Xenlil's is hooded. */
-  var EYES={
-    arexia: {lid:"M-44 0 Q0 -37 44 0 Q0 37 -44 0 Z", iris:18, pr:[4.2,15]},
-    xeron:  {lid:"M-46 0 L-20 -22 L20 -22 L46 0 L20 24 L-20 24 Z", iris:17, pr:[2.8,18],
-             brow:"M-37 -30 Q0 -40 37 -30"},
-    arurael:{lid:"M-41 0 Q0 -43 41 0 Q0 43 -41 0 Z", iris:20.5, pr:[7.5,15.5]},
-    xenlil: {lid:"M-44 2 Q0 -31 44 2 Q0 35 -44 2 Z", iris:18, pr:[3.8,16],
-             brow:"M-39 -22 Q0 -40 39 -22"}
+  /* One eye, four tempers. The shape is shared; what differs is how each god
+     uses it — how often it moves, how far, how hard, how often it meets you. */
+  var EYE_SHAPE={lid:"M-43 0 Q0 -37 43 0 Q0 37 -43 0 Z", iris:18, pr:[3.6,15]};
+  var BEHAV={
+    arexia: {dwell:1.6, speed:0.80, jit:0.6, front:0.20, flick:0.06, sweep:0.16, hold:0.20, dil:0.8},
+    xeron:  {dwell:0.45,speed:1.75, jit:1.7, front:0.04, flick:0.34, sweep:0.04, hold:0.04, dil:1.7},
+    arurael:{dwell:1.25,speed:1.00, jit:0.5, front:0.32, flick:0.07, sweep:0.22, hold:0.18, dil:0.7},
+    xenlil: {dwell:0.8, speed:1.25, jit:1.2, front:0.10, flick:0.26, sweep:0.08, hold:0.14, dil:1.2}
   };
   var CX=190, CY=190, GAP=2.2, RINGS=[[94,116],[120,148]], svgNS="http://www.w3.org/2000/svg";
   /* the eight rites of the day, in order from midnight */
@@ -374,9 +380,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
 
   function attempt(god,i){
-    if(riteState(god,i)==="lapsed"){
-      stareAt(god,i,2.4); feel("upset",2.2);
-      toast("The hour has passed."); return;
+    var st=riteState(god,i);
+    if(st!=="open"){
+      stareAt(god,i,2.4);
+      if(st==="lapsed"){ feel("upset",2.2); toast("The hour has passed."); }
+      else toast("The hour has not come.");
+      return;
     }
     var now=!state.day.checks[god.key][i];
     state.day.checks[god.key][i]=now;
@@ -405,7 +414,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         row.dataset.done=on?"1":"0"; row.dataset.state=st;
         var box=row.querySelector(".box");
         box.setAttribute("aria-checked", on?"true":"false");
-        box.disabled=(st==="lapsed");
+        box.disabled=(st!=="open");
       });
       card.dataset.active=active?"1":"0";
       if(active) openGod=god;
@@ -531,7 +540,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function setEye(god){
     if(EYE.god===god) return;
     EYE.god=god;
-    var e=EYES[god.key], hue=hex(god.hue), hot=hex(god.hot);
+    var e=EYE_SHAPE, hue=hex(god.hue), hot=hex(god.hot);
     document.getElementById("eyeClipPath").setAttribute("d",e.lid);
     var lid=document.getElementById("eyeLid");
     lid.setAttribute("d",e.lid);
@@ -542,13 +551,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     document.getElementById("gs2").setAttribute("stop-color",shade(hue,.8));
     document.getElementById("gs3").setAttribute("stop-color",shade(hue,.3));
     document.getElementById("eyeAura").setAttribute("fill",hue);
-    var br=document.getElementById("eyeBrow");
-    br.setAttribute("d",e.brow||""); br.setAttribute("stroke",hue);
-    EYE.pr=e.pr; EYE.iris=e.iris;
+    EYE.pr=e.pr; EYE.iris=e.iris; EYE.b=BEHAV[god.key]||BEHAV.arexia;
   }
 
   function eyeStep(dt,t,puff){
-    var m=mood();
+    var m=mood(), b=EYE.b||BEHAV.arexia;
+    if(b.rangeM===undefined) b.rangeM=b.dil>1.3?1.2:(b.dil<0.75?0.85:1);
     /* ease the bearing so a change of feeling is a movement, not a jump */
     var e=Math.min(1,dt*6);
     EYE.sq+=(m.sq-EYE.sq)*e; EYE.ir+=(m.ir-EYE.ir)*e;
@@ -563,33 +571,34 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     }
     else if(t>EYE.next){
       var r=Math.random(), a=hourAngle()*Math.PI/180;
-      var ax=Math.sin(a)*18*m.range, ay=(-Math.cos(a)*9+m.down)*m.range;
+      var ax=Math.sin(a)*18*m.range*b.rangeM, ay=(-Math.cos(a)*9+m.down)*m.range*b.rangeM;
       EYE.sweep=false; EYE.hold=false;
-      if(r<0.50){                       /* back to the open hour */
-        EYE.tx=ax+(Math.random()-.5)*3; EYE.ty=ay*1.6+(Math.random()-.5)*2;
-      } else if(r<0.62){                /* straight at whoever is watching */
+      var p1=b.front, p2=p1+b.flick, p3=p2+b.sweep, p4=p3+b.hold;
+      if(r<p1){                         /* straight at whoever is watching */
         EYE.tx=(Math.random()-.5)*3; EYE.ty=(Math.random()-.5)*2+m.down*.4;
-      } else if(r<0.76){                /* a quick flick aside */
-        EYE.tx=ax*0.3+(Math.random()-.5)*22; EYE.ty=ay*0.3+(Math.random()-.5)*9;
-      } else if(r<0.86){                /* a slow sweep across the dial */
+      } else if(r<p2){                  /* a quick flick aside */
+        EYE.tx=ax*0.3+(Math.random()-.5)*24; EYE.ty=ay*0.3+(Math.random()-.5)*11;
+      } else if(r<p3){                  /* a slow sweep across the dial */
         EYE.tx=-ax*0.9+(Math.random()-.5)*6; EYE.ty=-ay*0.5; EYE.sweep=true;
-      } else {                          /* hold the stare */
+      } else if(r<p4){                  /* hold the stare */
         EYE.hold=true;
+      } else {                          /* back to the open hour */
+        EYE.tx=ax+(Math.random()-.5)*3; EYE.ty=ay*1.6+(Math.random()-.5)*2;
       }
       var d=m.dwell;
-      EYE.next=t+d[0]+Math.random()*(d[1]-d[0])*(EYE.hold?2.4:1)*(EYE.sweep?1.6:1);
+      EYE.next=t+(d[0]+Math.random()*(d[1]-d[0]))*b.dwell*(EYE.hold?2.4:1)*(EYE.sweep?1.6:1);
     }
-    var k=Math.min(1,dt*(locked?26:(EYE.sweep?3.2:m.speed)));
+    var k=Math.min(1,dt*(locked?26:(EYE.sweep?3.2:m.speed*b.speed)));
     EYE.x+=(EYE.tx-EYE.x)*k; EYE.y+=(EYE.ty-EYE.y)*k;
-    var jx=Math.sin(t*2.7)*.45+Math.sin(t*6.1)*.25+Math.sin(t*11.3)*.12;
-    var jy=Math.sin(t*3.9+1)*.3+Math.sin(t*8.7)*.12;
+    var jx=(Math.sin(t*2.7)*.45+Math.sin(t*6.1)*.25+Math.sin(t*11.3)*.12)*b.jit;
+    var jy=(Math.sin(t*3.9+1)*.3+Math.sin(t*8.7)*.12)*b.jit;
     document.getElementById("gaze").setAttribute("transform",
       "translate("+(EYE.x+jx).toFixed(2)+","+(EYE.y+jy).toFixed(2)+")");
     document.getElementById("eyeMood").setAttribute("transform",
       "scale("+(1+(EYE.ir-1)*.18).toFixed(3)+","+EYE.sq.toFixed(3)+")");
 
     if(EYE.pr){
-      var dil=1+.12*Math.sin(t*1.9)+.07*Math.sin(t*4.3+2)+.04*(Math.random()-.5);
+      var dil=1+(.12*Math.sin(t*1.9)+.07*Math.sin(t*4.3+2)+.04*(Math.random()-.5))*b.dil;
       var pu=document.getElementById("pupil");
       pu.setAttribute("ry",(EYE.pr[1]*dil).toFixed(2));
       pu.setAttribute("rx",(EYE.pr[0]*(2-dil)*EYE.pup).toFixed(2));
@@ -641,7 +650,13 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   function hourAngle(){ var n=new Date(); return ((n.getHours()%12)+n.getMinutes()/60)*30; }
   function renderClock(){
-    var now=new Date();
+    var now=new Date(), who=null, wi=0;
+    GODS.forEach(function(g){ [0,1].forEach(function(i){ if(riteState(g,i)==="open"){ who=g; wi=i; } }); });
+    if(who){
+      var w=windowOf(who,wi);
+      document.getElementById("holder").innerHTML='<b style="color:'+who.hue+'">'+who.name+
+        '</b> holds the hour · '+RUNE[riteNo(who,wi)-1]+' '+fmt(w[0])+'–'+fmt(w[1]);
+    }
     document.getElementById("stamp").textContent=
       now.toLocaleDateString(undefined,{day:"numeric",month:"short"})+"  "+
       now.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:false});
