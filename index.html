@@ -688,6 +688,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function save(){
     try{ localStorage.setItem(KEY, JSON.stringify(state)); saveWarned=false; }
     catch(e){ if(!saveWarned){ saveWarned=true; try{ toast("Could not save \u2014 storage is full or blocked."); }catch(_){} } }
+    planNotes();
   }
   function total(c){ var n=0; GODS.forEach(function(g){ (c[g.key]||[]).forEach(function(v){ if(v) n++; }); }); return n; }
   function nextKey(k){ var d=new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)+1); return dayKey(d); }
@@ -1674,7 +1675,47 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
      through a locked screen or another app, and lands when you come back. */
   var ART={date:dayKey(), blk:null, endsAt:0, left:{}};
   try{ var _t=JSON.parse(localStorage.getItem("dial.ar")||"null"); if(_t && _t.date) ART=_t; }catch(e){}
-  function arSave(){ try{ localStorage.setItem("dial.ar",JSON.stringify(ART)); }catch(e){} }
+  function arSave(){ try{ localStorage.setItem("dial.ar",JSON.stringify(ART)); }catch(e){} planNotes(); }
+
+  /* ---------- notifications (the Android app only) ----------
+     The page hands the phone a plan of what to say and when, two weeks ahead;
+     the phone keeps it through restarts and rings even with the app closed.
+     Whenever something changes - a pill taken, a countdown started - the plan
+     is redrawn, so nothing is announced that is already done. */
+  var PLAN_SENT="", HEX={arexia:"#0DAF0B", xeron:"#FF000A", arurael:"#1D4ED8", xenlil:"#FDC500"};
+  function planNotes(){
+    var H=window.RitualHost; if(!H || !H.setPlan || !state) return;
+    var out=[], base=new Date(), today=dayKey();
+    base=new Date(base.getFullYear(), base.getMonth(), base.getDate());
+    function at(day,h,m){ var d=new Date(day); d.setHours(h,m||0,0,0); return d.getTime(); }
+    for(var n=0;n<14;n++){
+      var day=new Date(base.getFullYear(), base.getMonth(), base.getDate()+n), k=dayKey(day), isToday=(k===today);
+      GODS.forEach(function(g){
+        [0,1].forEach(function(i){
+          var w=windowOf(g,i);
+          out.push({id:"g"+k+"-"+w[0], at:at(day,w[0]), color:HEX[g.key],
+            ch: w[0]<8 ? "quiet" : "hours",                /* 00, 03 and 06 come silently */
+            title:g.name+" holds the hour",
+            body:(i?"Second":"First")+" rite · "+fmt(w[0])+"–"+fmt(w[1])});
+        });
+      });
+      var hb=isToday ? (state.day.habits||{}) : {};
+      if(!hb.fin) out.push({id:"fin"+k, at:at(day,16), ch:"remind", color:"#A855F7", title:"Finasteride", body:"16:00 · time to take it"});
+      if(!hb.bed) out.push({id:"bed"+k, at:at(day,23,30), ch:"remind", color:"#EC4899", title:"To bed", body:"23:30 · the day is done"});
+      var engDone=isToday && state.day.ar && state.day.ar.eng && state.day.ar.eng[0];
+      var engRun=isToday && typeof ART!=="undefined" && ART && ART.blk==="eng0";
+      if(!engDone && !engRun) out.push({id:"eng"+k, at:at(day,23), ch:"remind", color:"#A5B4FC", title:"English", body:"10 minutes before the day closes"});
+    }
+    if(typeof ART!=="undefined" && ART && ART.blk){
+      var m=arMission(ART.blk), i=+ART.blk.slice(m.k.length);
+      out.push({id:"ar-"+ART.blk+"-"+ART.endsAt, at:ART.endsAt, ch:"remind", color:"#2563EB", fg:true,
+        title:m.name+" · "+(m.blocks>1 ? "Division "+(i+1) : "Division")+" done",
+        body:m.min+" minutes of focus, sealed"});
+    }
+    var js=JSON.stringify(out);
+    if(js===PLAN_SENT) return;
+    try{ H.setPlan(js); PLAN_SENT=js; }catch(e){}
+  }
   function arMission(id){ for(var i=0;i<AR.length;i++) if(id.indexOf(AR[i].k)===0) return AR[i]; }
   function arLeft(id){
     var m=arMission(id), full=m.min*60000;
@@ -1869,6 +1910,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   rollover();
   buildDial(); buildCards(); buildPips(); buildHabits(); buildCore(); buildXr(); buildAr();
   render(); renderXen(); renderXr(); renderAr(); arTick();
+  planNotes();
   document.getElementById("achart").addEventListener("click",function(ev){ pickDay("achart",ev); });
   document.getElementById("zchart").addEventListener("click",function(ev){ pickDay("zchart",ev); });
   /* swipe sideways to move between tabs. The next tab is laid beside the current

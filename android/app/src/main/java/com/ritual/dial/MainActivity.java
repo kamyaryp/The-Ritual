@@ -1,6 +1,7 @@
 package com.ritual.dial;
 
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
 import android.os.VibrationEffect;
@@ -21,7 +22,10 @@ public class MainActivity extends Activity {
 
     private WebView web;
 
-    /** What the page may ask of the phone: keep the screen on, and buzz. */
+    /** Whether the app is on screen, so a countdown it already announced isn't announced twice. */
+    static volatile boolean foreground = false;
+
+    /** What the page may ask of the phone: keep the screen on, buzz, and plan notifications. */
     public class Host {
         @JavascriptInterface
         public void vibrate(String pattern) {
@@ -35,6 +39,11 @@ public class MainActivity extends Activity {
                 if (Build.VERSION.SDK_INT >= 26) v.vibrate(VibrationEffect.createWaveform(wave, -1));
                 else v.vibrate(wave, -1);
             } catch (Exception ignored) { }
+        }
+
+        @JavascriptInterface
+        public void setPlan(String json) {
+            Notes.setPlan(getApplicationContext(), json);
         }
 
         @JavascriptInterface
@@ -73,11 +82,18 @@ public class MainActivity extends Activity {
         web.setWebViewClient(new WebViewClient());
         setContentView(web);
         web.loadUrl("file:///android_asset/index.html");
+
+        Notes.channels(this);
+        if (Build.VERSION.SDK_INT >= 33
+                && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
+            requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1);
+        }
     }
 
     @Override
     protected void onPause() {
         super.onPause();
+        foreground = false;
         web.onPause();
         getWindow().clearFlags(WindowManager.LayoutParams.FLAG_KEEP_SCREEN_ON);
     }
@@ -85,6 +101,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onResume() {
         super.onResume();
+        foreground = true;
         web.onResume();
     }
 }

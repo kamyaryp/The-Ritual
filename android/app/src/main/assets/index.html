@@ -3,12 +3,11 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<meta name="description" content="Eight rites across the day, each sealed only in its own hour.">
+<meta name="description" content="The day's rites and the day's tally.">
 <meta name="theme-color" content="#0d0d0c">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <link rel="icon" href="data:image/svg+xml,%3Csvg width='2000' height='2000' viewBox='0 0 2000 2000' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Crect width='2000' height='2000' fill='black'/%3E %3Crect x='900' y='1100' width='200' height='400' fill='white'/%3E %3Crect x='1100' y='1100' width='200' height='400' transform='rotate(-90 1100 1100)' fill='white'/%3E %3Crect x='500' y='1100' width='200' height='400' transform='rotate(-90 500 1100)' fill='white'/%3E %3Crect x='900' y='500' width='200' height='400' fill='white'/%3E %3C/svg%3E">
-<link rel="icon" type="image/png" href="icon-192.png">
 <style>
 html{-webkit-text-size-adjust:100%;color-scheme:dark;background:#0d0d0c}
 :root{padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
@@ -16,7 +15,7 @@ body{margin:0;font:14px system-ui,sans-serif}
 img{max-width:100%}
 [hidden]{display:none!important}
 </style>
-<title>The Ritual</title>
+<title>Golden Path</title>
 <meta name="claude:viewport-fit-sides" content="cover">
 <link rel="icon" href="data:image/svg+xml,%3Csvg width='2000' height='2000' viewBox='0 0 2000 2000' fill='none' xmlns='http://www.w3.org/2000/svg'%3E %3Crect width='2000' height='2000' fill='black'/%3E %3Crect x='900' y='1100' width='200' height='400' fill='white'/%3E %3Crect x='1100' y='1100' width='200' height='400' transform='rotate(-90 1100 1100)' fill='white'/%3E %3Crect x='500' y='1100' width='200' height='400' transform='rotate(-90 500 1100)' fill='white'/%3E %3Crect x='900' y='500' width='200' height='400' fill='white'/%3E %3C/svg%3E">
 <style>
@@ -31,50 +30,79 @@ img{max-width:100%}
 :root{
   --bg:#0d0d0c; --panel:#151413; --panel-2:#1a1917; --line:#272523; --line-2:#1f1e1c;
   --ink:#edebe5; --ink-2:#9d9890; --ink-3:#6b6760;
-  --well:#121110; --lapsed:#232220;
-  --xeron:#e0514e;   --xeron-dim:#3a1d1c;
-  --arurael:#5a8de6; --arurael-dim:#1b2940;
-  --xenlil:#dfa838;  --xenlil-dim:#382b11;
-  --arexia:#3cb886;  --arexia-dim:#113128;
+  --well:#121110; --lapsed:#232220; --box:#4a4740;
+  --xeron:#FF000A;   --xeron-dim:#420a0c;   --xeron-hot:#ff666c;
+  --arurael:#1D4ED8; --arurael-dim:#111b39; --arurael-hot:#7795e8;
+  --xenlil:#FDC500;  --xenlil-dim:#423509;  --xenlil-hot:#fedc66;
+  --arexia:#0DAF0B;  --arexia-dim:#0d310c;  --arexia-hot:#6dcf6d;
+  --c-water:#22B8CF; --c-gym:#F97316; --c-supp:#A855F7; --c-care:#EC4899; --c-core:#84CC16; --c-maint:#94A3B8;
+  --x-exo:#FF2A2A; --x-endoin:#B3101B; --x-endo:#FF8A7A;
+  --x-texo:#7E3A3D; --x-tendoin:#5B2629; --x-tendo:#A2615F;
+  --a-exe:#2563EB; --a-sci:#60A5FA; --a-eng:#A5B4FC;
   --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
   --rune:"Noto Sans Runic","Segoe UI Symbol","Segoe UI Historic",serif;
   color-scheme:dark;
 }
 *{box-sizing:border-box}
+html{scrollbar-width:none;-ms-overflow-style:none}
+html::-webkit-scrollbar,body::-webkit-scrollbar,.chartbox::-webkit-scrollbar{width:0;height:0;display:none}
+.chartbox{scrollbar-width:none;-ms-overflow-style:none}
 body,svg{-webkit-user-select:none;-moz-user-select:none;user-select:none;-webkit-tap-highlight-color:transparent}
 html,body{margin:0}
+html{overflow-x:hidden;overscroll-behavior-x:none}
+body{overflow-x:clip}
 body{
   background:var(--bg); color:var(--ink);
   font-family:var(--font); font-size:15px; line-height:1.5; letter-spacing:-.005em;
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px));
-  padding-block:30px 44px;
+  padding-block:30px calc(108px + env(safe-area-inset-bottom,0px));
 }
-.wrap{max-width:1020px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
-header{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px}
+.wrap{max-width:1020px;margin:0 auto;display:flex;flex-direction:column;gap:28px;position:relative}
+.peer{position:absolute;left:0;right:0}
+header{display:flex;flex-wrap:nowrap;align-items:flex-start;justify-content:space-between;gap:12px;
+  position:sticky;top:env(safe-area-inset-top,0px);z-index:12;background:var(--bg);
+  padding-block:14px 12px;margin-block:-14px -12px}
+/* the bar's ground runs edge to edge, so a page sliding through the side gutters passes under it */
+header::before{content:"";position:absolute;top:0;bottom:0;left:-100vw;right:-100vw;background:var(--bg);z-index:-1}
+body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:13;background:var(--bg)}
 h1{font-weight:500;font-size:clamp(20px,3vw,25px);margin:0;letter-spacing:-.02em}
+.holder{margin:3px 0 0;font-size:12.5px;color:var(--ink-3)}
+.brand{display:flex;align-items:center;gap:16px;min-width:0;flex:1 1 auto}
+.stamp{flex:0 0 auto;padding-top:7px;white-space:nowrap}
+@media (max-width:620px){ .stamp .tm{display:none} }
+.brand-text{min-width:0}
+/* the mark is exactly as tall as title + subtitle together (sized from the text in script) */
+.mark{flex:0 0 auto;display:block;width:42px;height:42px;overflow:visible}
+.mark .arm{fill:#3a3a3a}
+.mark .arm.lit[data-v="xr"]{fill:var(--xeron)}
+.mark .arm.lit[data-v="ar"]{fill:var(--arurael)}
+.mark .arm.lit[data-v="xen"]{fill:var(--xenlil)}
+.mark .arm.lit[data-v="dial"]{fill:var(--arexia)}
+@media (prefers-reduced-motion:no-preference){ .mark .arm{transition:fill .45s ease} }
+.holder b{font-weight:600}
 .stamp{font-family:var(--mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 
 .stage{display:grid;grid-template-columns:minmax(290px,1fr) minmax(320px,1.05fr);gap:30px;align-items:center}
 @media (max-width:880px){.stage{grid-template-columns:1fr}}
 .dialbox{display:flex;justify-content:center}
-svg.dial{width:100%;max-width:400px;height:auto}
+svg.dial{width:100%;max-width:450px;height:auto}
 
 .band{transition:fill .25s ease,stroke-opacity .25s ease}
-.band.open,.band.sealed{cursor:pointer}
+.band.open{cursor:pointer}
+.band.awaiting,.band.lapsed{cursor:not-allowed}
 .band.lapsed{cursor:not-allowed}
-.band.open:hover,.band.sealed:hover{fill-opacity:.85}
+.band.open:hover{fill-opacity:.85}
 .band:focus,.band:focus-visible{outline:none}
 @media (prefers-reduced-motion:no-preference){
   .band.open{animation:breathe 2.8s ease-in-out infinite}
-  .needle{transition:transform .6s cubic-bezier(.33,1,.68,1)}
 }
 @keyframes breathe{0%,100%{stroke-opacity:1}50%{stroke-opacity:.28}}
 .tick{stroke:var(--ink-3)}
 .numeral{font-size:14px;fill:var(--ink-3)}
 .flame{pointer-events:none}
-.count{font-family:var(--mono);font-weight:500;font-size:30px;fill:var(--ink);font-variant-numeric:tabular-nums}
+#eye{pointer-events:none}
 .godname{font-size:13px;font-weight:500;letter-spacing:.04em}
 
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
@@ -86,25 +114,70 @@ svg.dial{width:100%;max-width:400px;height:auto}
 .ghours{margin-left:auto;font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
 
 .rite{display:flex;align-items:center;gap:10px;min-width:0}
-.box{flex:0 0 auto;width:18px;height:18px;border:1.5px solid var(--line);border-radius:4px;background:transparent;cursor:pointer;display:grid;place-items:center;padding:0;transition:background .15s,border-color .15s,box-shadow .15s}
-.box:hover:not(:disabled){border-color:var(--hue)}
+.box{position:relative;flex:0 0 auto;width:18px;height:18px;border:1.5px solid var(--box);border-radius:4px;background:transparent;cursor:pointer;display:grid;place-items:center;padding:0;transition:background .15s,border-color .15s,box-shadow .15s}
+.box:hover:not([aria-disabled="true"]){border-color:var(--hue)}
 .box svg{width:11px;height:11px;opacity:0;transition:opacity .15s}
 .box[aria-checked="true"]{background:var(--hue);border-color:var(--hue)}
 .box[aria-checked="true"] svg{opacity:1}
 .box svg path{stroke:var(--bg)}
-.box:disabled{cursor:not-allowed;border-style:dashed;opacity:.5}
+.box[aria-disabled="true"]{cursor:not-allowed;border-style:dashed;border-color:var(--ink-3)}
+.box[aria-disabled="true"][aria-checked="true"]{border-style:solid;border-color:var(--hue);opacity:.75}
+/* an hour that closed unkept is crossed out */
+.rite[data-state="lapsed"]:not([data-done="1"]) .box::after{content:"";position:absolute;left:50%;top:50%;
+  width:11px;height:1.6px;background:var(--ink-3);transform:translate(-50%,-50%) rotate(-45deg);border-radius:1px}
 .rite[data-state="open"] .box:not([aria-checked="true"]){border-color:var(--hue)}
 .rite[data-done="1"] .rnum{text-decoration:line-through}
 .rite[data-state="lapsed"]:not([data-done="1"]) .rnum,.rite[data-state="lapsed"]:not([data-done="1"]) .win{opacity:.5}
 .rite{cursor:pointer;border-radius:4px;padding:1px 2px;margin:0 -2px}
 .rite:hover{background:var(--panel-2)}
-.rite[data-state="lapsed"]{cursor:not-allowed}
-.rite[data-state="lapsed"]:hover{background:transparent}
+.rite[data-state="lapsed"],.rite[data-state="awaiting"]{cursor:not-allowed}
+.rite[data-state="lapsed"]:hover,.rite[data-state="awaiting"]:hover{background:transparent}
 .rnum{flex:0 0 auto;width:18px;text-align:center;font-family:var(--rune);font-size:16px;line-height:1;color:var(--ink-2)}
 .rite[data-state="open"] .rnum,.rite[data-done="1"] .rnum{color:var(--hue)}
 .win{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 
-.chron{display:flex;flex-direction:column;gap:12px;border-top:1px solid var(--line);padding-top:16px}
+.chron{display:flex;flex-direction:column;gap:12px}
+#viewDial,#viewXen,#viewXr,#viewAr{display:flex;flex-direction:column;gap:28px}
+@keyframes inR{from{opacity:.35;transform:translateX(32px)}to{opacity:1;transform:none}}
+@keyframes inL{from{opacity:.35;transform:translateX(-32px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:no-preference){
+  .in-r{animation:inR .26s cubic-bezier(.2,.7,.2,1)}
+  .in-l{animation:inL .26s cubic-bezier(.2,.7,.2,1)}
+}
+#viewDial[hidden],#viewXen[hidden],#viewXr[hidden],#viewAr[hidden]{display:none}
+.ar-cards{grid-template-columns:repeat(3,1fr)}
+@media (max-width:860px){ .ar-cards{grid-template-columns:1fr 1fr} .ar-cards .card:first-child{grid-column:1/-1} }
+@media (max-width:560px){ .ar-cards{grid-template-columns:1fr} }
+.blk{display:flex;flex-direction:column;gap:9px;padding-top:2px}
+.blk + .blk{padding-top:10px}
+.blk-row{display:flex;align-items:center;gap:12px}
+.blk-name{flex:1 1 auto;font-size:13.5px;color:var(--ink-2)}
+.blk-time{font-family:var(--mono);font-size:26px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.blk[data-run="1"] .blk-time{color:var(--hue)}
+.blk[data-done="1"] .blk-time{font-size:15px;color:var(--hue)}
+.blk-bar{height:5px;border-radius:3px;background:var(--well);border:1px solid var(--line-2);overflow:hidden}
+.blk-bar i{display:block;height:100%;width:0;background:var(--hue)}
+.ctl.sm{width:38px;height:38px}
+.ctl.sm.go{background:var(--hue);border-color:var(--hue);color:var(--bg)}
+.ctl:disabled{opacity:.3;cursor:default}
+.perf-row{display:flex;align-items:center;gap:22px;flex-wrap:wrap}
+.perf-big{display:flex;flex-direction:column;gap:2px;min-width:120px}
+.perf-big b{font-family:var(--mono);font-size:44px;font-weight:500;line-height:1;color:var(--xeron);font-variant-numeric:tabular-nums}
+.perf-big span{font-size:12.5px;color:var(--ink-3)}
+.perf-curve{flex:1 1 260px;min-width:0;max-width:520px;height:auto}
+.ctr{display:flex;align-items:center;gap:10px;min-height:38px}
+.ctr .rname{flex:1 1 auto;display:flex;align-items:center;gap:9px}
+.ctr .sw{width:9px;height:9px;border-radius:2px;flex:0 0 auto}
+.xr-legend{flex-direction:column;gap:6px}
+.xr-legend div{display:flex;flex-wrap:wrap;gap:14px;align-items:center}
+.xr-legend em{font-style:normal;color:var(--ink-2);min-width:74px}
+.step{width:34px;height:34px;border-radius:50%;border:1px solid var(--box);background:transparent;color:var(--ink-2);
+  font:inherit;font-size:18px;line-height:1;cursor:pointer;display:grid;place-items:center;padding:0}
+.step.plus{border-color:var(--hue);color:var(--hue)}
+.step:disabled{opacity:.3;cursor:default}
+.cnt{min-width:26px;text-align:center;font-family:var(--mono);font-size:16px;color:var(--ink);font-variant-numeric:tabular-nums}
+.legend{display:flex;flex-wrap:wrap;gap:14px;font-size:11.5px;color:var(--ink-3)}
+.legend i{display:inline-block;width:9px;height:9px;border-radius:2px;margin-right:6px;vertical-align:-1px}
 .sec-head{display:flex;flex-wrap:wrap;align-items:baseline;justify-content:space-between;gap:12px}
 h2{font-weight:500;font-size:14px;margin:0;color:var(--ink-2);letter-spacing:-.01em}
 .stats{display:flex;gap:20px;font-family:var(--mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
@@ -112,10 +185,10 @@ h2{font-weight:500;font-size:14px;margin:0;color:var(--ink-2);letter-spacing:-.0
 .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 12px 8px;overflow-x:auto}
 svg.chart{display:block;width:100%;min-width:420px;height:auto;aspect-ratio:700/190}
 @media (max-width:620px){
-  body{padding-block:22px 36px}
+  body{padding-block:22px calc(104px + env(safe-area-inset-bottom,0px))}
   .wrap{gap:22px}
   .stage{gap:22px}
-  svg.dial{max-width:330px}
+  svg.dial{max-width:370px}
   .chartbox{padding:12px 10px 6px;overflow-x:visible}
   svg.chart{min-width:0;aspect-ratio:420/190}
   .stats{gap:14px;font-size:11.5px}
@@ -132,6 +205,82 @@ svg.chart{display:block;width:100%;min-width:420px;height:auto;aspect-ratio:700/
 .empty{padding:34px 10px;text-align:center;color:var(--ink-3);font-size:13px}
 
 footer{display:flex;gap:8px;justify-content:flex-end}
+.nav{position:fixed;left:50%;transform:translateX(-50%);z-index:15;display:flex;gap:4px;padding:4px;
+  bottom:calc(14px + env(safe-area-inset-bottom,0px));
+  background:var(--panel-2);border:1px solid var(--line);border-radius:999px;box-shadow:0 8px 28px rgba(0,0,0,.5)}
+.tab{font:inherit;font-size:12.5px;color:var(--ink-3);background:transparent;border:none;border-radius:999px;
+  padding:7px 16px;cursor:pointer;line-height:1}
+.tab.on{background:var(--panel);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
+.tab:hover:not(.on):not(.off){color:var(--ink-2)}
+.tab.off{cursor:default;opacity:.3;padding:7px 12px}
+.pips{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px 7px}
+.pip{width:100%;height:36px;border:1.5px solid var(--line);border-radius:3px 3px 6px 6px;background:transparent;
+  cursor:pointer;padding:0;transition:background .15s,border-color .15s}
+.pip.full{background:var(--hue);border-color:var(--hue)}
+.pip:hover{border-color:var(--hue)}
+.gymdot{fill:var(--ink)}
+#viewXen .card{container-type:inline-size}
+@container (min-width:430px){
+  .pips{grid-template-columns:repeat(14,minmax(0,1fr));gap:6px}
+}
+.rest{display:flex;align-items:center;gap:10px;min-height:22px;color:var(--ink-3)}
+.rest .rname{color:var(--ink-3)}
+.rest-dash{flex:0 0 auto;width:18px;height:18px;border:1.5px dashed var(--ink-3);border-radius:4px;opacity:.6}
+#viewXen .cards{align-items:stretch;grid-template-columns:repeat(6,1fr)}
+#gymCard,#maintCard,#waterCard{grid-column:span 2}
+#suppCard,#careCard{grid-column:span 3}
+#coreCard{grid-column:1/-1}
+@media (max-width:860px){
+  #viewXen .cards{grid-template-columns:1fr 1fr}
+  #gymCard,#maintCard,#suppCard,#careCard{grid-column:span 1}
+  #waterCard{grid-column:1/-1}
+}
+@media (max-width:560px){
+  #viewXen .cards{grid-template-columns:1fr}
+  #gymCard,#maintCard,#waterCard,#suppCard,#careCard{grid-column:auto}
+}
+#viewXen .card{gap:12px}
+#viewXen .card-head{min-height:22px;align-items:center}
+#viewXen .rite{min-height:30px}
+.card.wide{grid-column:1/-1}
+.core-bar{display:grid;grid-template-columns:repeat(3,1fr);gap:3px}
+.core-type{display:grid;grid-template-columns:1fr 1fr;gap:3px}
+.core-round{position:relative;height:18px;background:var(--well);border:1px solid var(--box);overflow:hidden}
+.core-round:first-child{border-radius:6px 2px 2px 6px}
+.core-round:last-child{border-radius:2px 6px 6px 2px}
+.core-round.now{border-color:var(--c-core)}
+@media (prefers-reduced-motion:no-preference){ .core-round.next{animation:nextUp .5s ease-in-out infinite alternate} }
+@keyframes nextUp{from{border-color:var(--box)}to{border-color:var(--c-core)}}
+#coreCard.brk .core-hold b{color:var(--ink)}
+.core-round .f{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--c-core)}
+.core-round i{position:absolute;top:4px;bottom:4px;width:1px;background:var(--ink-3);opacity:.35}
+.core-round .f ~ i{mix-blend-mode:normal}
+.core-types{display:grid;grid-template-columns:repeat(3,1fr);gap:3px;text-align:center;color:var(--ink-3);margin-top:-4px;font-family:var(--mono);font-size:10.5px}
+.core-row{display:flex;align-items:center;gap:16px}
+.core-hold{display:flex;align-items:baseline;gap:2px;min-width:54px;font-family:var(--mono)}
+.core-hold b{font-size:34px;font-weight:500;color:var(--c-core);line-height:1;font-variant-numeric:tabular-nums}
+.core-hold span{font-size:13px;color:var(--ink-3)}
+.core-where{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:3px;font-size:13px;color:var(--ink-2)}
+.core-time{font-family:var(--mono);font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.core-ctl{display:flex;gap:8px}
+.ctl{width:44px;height:44px;border-radius:50%;border:1px solid var(--line);background:var(--panel-2);color:var(--ink);
+  display:grid;place-items:center;cursor:pointer;padding:0}
+.ctl svg{width:16px;height:16px;fill:currentColor}
+.ctl:hover{border-color:var(--ink-3)}
+#corePlay{background:var(--c-core);border-color:var(--c-core);color:var(--bg)}
+.chartbox{position:relative}
+svg.chart{cursor:pointer}
+.colsel{fill:var(--line);opacity:.55}
+.tip{position:absolute;top:8px;z-index:6;min-width:168px;padding:9px 11px 8px;background:var(--panel-2);
+  border:1px solid var(--line);border-radius:6px;box-shadow:0 10px 26px rgba(0,0,0,.45);
+  font-size:12px;pointer-events:none;display:flex;flex-direction:column;gap:5px}
+.tip[hidden]{display:none}
+.tip .th{font-family:var(--mono);font-size:11px;color:var(--ink-2);margin-bottom:2px}
+.tip .tr{display:flex;justify-content:space-between;align-items:center;gap:14px;color:var(--ink-2)}
+.tip .tr.muted{color:var(--ink-3)}
+.tip .tr b{font-weight:500;color:var(--ink);font-family:var(--mono);font-size:11.5px}
+.tip i{display:inline-block;width:8px;height:8px;border-radius:2px;margin-right:7px}
+.rn{font-family:var(--rune);font-size:14px;line-height:1}
 button.act{font:inherit;font-size:12px;color:var(--ink-3);background:transparent;border:1px solid var(--line);border-radius:4px;padding:5px 10px;cursor:pointer}
 button.act:hover{border-color:var(--ink-3);color:var(--ink)}
 button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
@@ -140,7 +289,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 .sheet p{margin:0;font-size:14px}
 .sheet .msub{margin-top:6px;font-size:12.5px;color:var(--ink-3)}
 .mrow{display:flex;gap:8px;justify-content:flex-end;margin-top:16px}
-.toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-size:12.5px;padding:8px 14px;border-radius:5px;z-index:20}
+.toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-size:12.5px;padding:8px 14px;border-radius:5px;z-index:20}
 </style>
 </head>
 <body>
@@ -159,10 +308,22 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
 <div class="wrap">
   <header>
-    <h1>The Ritual</h1>
+    <div class="brand">
+      <svg class="mark" id="mark" viewBox="500 500 1000 1000" aria-hidden="true">
+        <rect class="arm" data-v="xr"   x="900"  y="1100" width="200" height="400"></rect>
+        <rect class="arm" data-v="ar"   x="500"  y="900"  width="400" height="200"></rect>
+        <rect class="arm" data-v="xen"  x="900"  y="500"  width="200" height="400"></rect>
+        <rect class="arm" data-v="dial" x="1100" y="900"  width="400" height="200"></rect>
+      </svg>
+      <div class="brand-text">
+        <h1 id="viewName">Arexia</h1>
+        <p class="holder" id="holder">—</p>
+      </div>
+    </div>
     <span class="stamp" id="stamp">—</span>
   </header>
 
+  <div id="viewDial">
   <div class="stage">
     <div class="dialbox">
       <svg class="dial" viewBox="0 0 380 380" role="img" aria-label="The dial of the four gods">
@@ -170,15 +331,36 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         <g id="bands"></g>
         <g id="ticks"></g>
         <circle cx="190" cy="190" r="88" fill="var(--bg)" stroke="var(--line)"></circle>
-        <g class="needle" id="needle">
-          <line id="hand" x1="190" y1="128" x2="190" y2="103" stroke="var(--ink-2)" stroke-width="2" stroke-linecap="round"></line>
+        <g id="eye" transform="translate(190,190) scale(1.62)">
+          <defs>
+            <clipPath id="eyeClip"><path id="eyeClipPath" d=""></path></clipPath>
+            <radialGradient id="irisGrad" cx="50%" cy="50%" r="52%">
+              <stop offset="0%" stop-color="#ffffff"></stop>
+              <stop id="gs1" offset="14%" stop-color="#ffffff"></stop>
+              <stop id="gs2" offset="64%" stop-color="#000000"></stop>
+              <stop id="gs3" offset="100%" stop-color="#000000"></stop>
+            </radialGradient>
+            <filter id="eyeBlur" x="-80%" y="-160%" width="260%" height="420%">
+              <feGaussianBlur stdDeviation="5.5"></feGaussianBlur>
+            </filter>
+          </defs>
+          <g id="eyeMood">
+            <ellipse id="eyeAura" rx="25" ry="23" filter="url(#eyeBlur)" opacity=".4"></ellipse>
+            <path id="eyeLid" d="" fill="#000"></path>
+            <g clip-path="url(#eyeClip)">
+              <g id="gaze">
+                <ellipse id="iris" cx="0" cy="0" rx="13" ry="14" fill="url(#irisGrad)"></ellipse>
+                <ellipse id="pupil" cx="0" cy="0" rx="3" ry="10" fill="#000"></ellipse>
+              </g>
+            </g>
+            </g>
+        </g>
         </g>
         <g class="flame" id="flame" opacity="0">
           <path id="fl0"></path><path id="fl1"></path><path id="fl2"></path>
           <g id="embers"></g>
           <path id="fl3"></path><path id="fl4"></path>
         </g>
-        <text class="count" id="count" x="190" y="200" text-anchor="middle">0/8</text>
       </svg>
     </div>
     <div class="cards" id="cards"></div>
@@ -195,6 +377,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     </div>
     <div class="chartbox">
       <svg class="chart" id="chart" viewBox="0 0 700 190" aria-label="Rites fulfilled, last fourteen days"></svg>
+      <div class="tip" id="rTip" hidden></div>
       <div class="empty" id="chartEmpty" hidden>Nothing inscribed yet. This day is entered at midnight.</div>
     </div>
     <footer>
@@ -202,7 +385,143 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       <button class="act danger" id="btnClearAll" type="button">Clear data</button>
     </footer>
   </section>
+  </div>
+
+  <div id="viewXen" hidden>
+    <div class="cards">
+      <div class="card" id="waterCard" style="--hue:var(--c-water)">
+        <div class="card-head"><span class="gname">Water</span><span class="ghours"><b id="waterNow">0</b>/14</span></div>
+        <div class="pips" id="pips"></div>
+      </div>
+      <div class="card" id="gymCard" style="--hue:var(--c-gym)">
+        <div class="card-head"><span class="gname">Gym</span><span class="ghours">Mon · Wed · Thu</span></div>
+        <div class="rite" id="gymRow">
+          <button type="button" class="box" id="gymBox" role="checkbox" aria-checked="false" aria-label="Gym today">
+            <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="rname" id="gymLabel">Session</span>
+        </div>
+        <div class="rest" id="gymRest" hidden>
+          <span class="rest-dash" aria-hidden="true"></span>
+          <span class="rname">Rest day</span>
+          <span class="win" id="gymNext"></span>
+        </div>
+      </div>
+      <div class="card" id="maintCard" style="--hue:var(--c-maint)">
+        <div class="card-head"><span class="gname">Maintenance</span><span class="ghours">Thu · Sat · Sun</span></div>
+        <div class="rest" id="maintRest" hidden>
+          <span class="rest-dash" aria-hidden="true"></span>
+          <span class="rname">Nothing due</span>
+          <span class="win" id="maintNext"></span>
+        </div>
+      </div>
+      <div class="card" id="suppCard" style="--hue:var(--c-supp)">
+        <div class="card-head"><span class="gname">Supplements</span></div>
+      </div>
+      <div class="card" id="careCard" style="--hue:var(--c-care)">
+        <div class="card-head"><span class="gname">Rest &amp; care</span></div>
+      </div>
+      <div class="card wide" id="coreCard" style="--hue:var(--c-core)">
+        <div class="card-head"><span class="gname">Core</span></div>
+        <div class="core-bar" id="coreBar"></div>
+        <div class="core-types"><span>Type 1</span><span>Type 2</span><span>Type 3</span></div>
+        <div class="core-row">
+          <div class="core-hold"><b id="coreHold">0</b><span id="coreHoldOf">/6</span></div>
+          <div class="core-where">
+            <span id="corePos">Ready</span>
+          </div>
+          <div class="core-ctl">
+            <button type="button" class="ctl" id="corePlay" aria-label="Play">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path id="corePlayIcon" d="M5 3.5v9l7.5-4.5z"/></svg>
+            </button>
+            <button type="button" class="ctl" id="coreReset" aria-label="Reset">
+              <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <section class="chron">
+      <div class="sec-head">
+        <h2>Record</h2>
+        <div class="stats">
+          <span><b id="xToday">0%</b> today</span>
+          <span><b id="xGlasses">0</b> glasses</span>
+          <span><b id="xGym">0</b> gym</span>
+          <span><b id="xCore">0</b> core</span>
+        </div>
+      </div>
+      <div class="chartbox">
+        <svg class="chart" id="xchart" viewBox="0 0 700 190" aria-label="Share of the day's record kept"></svg>
+        <div class="tip" id="xTip" hidden></div>
+        <div class="empty" id="xEmpty" hidden>Nothing recorded yet.</div>
+      </div>
+      <footer>
+        <button class="act" id="xClearToday" type="button">Clear day</button>
+        <button class="act danger" id="xClearAll" type="button">Clear data</button>
+      </footer>
+    </section>
+  </div>
+  <div id="viewXr" hidden>
+    <div class="cards">
+      <div class="card" id="depCard" style="--hue:var(--xeron)">
+        <div class="card-head"><span class="gname">Depletion</span><span class="ghours" id="depTotal">0</span></div>
+      </div>
+      <div class="card" id="thrCard" style="--hue:var(--x-tendo)">
+        <div class="card-head"><span class="gname">Threshold</span><span class="ghours" id="thrTotal">0</span></div>
+      </div>
+    </div>
+    <section class="chron">
+      <div class="sec-head">
+        <h2>Record</h2>
+        <div class="stats">
+          <span><b id="zToday">0</b> today</span>
+          <span><b id="zDeps">0</b> depletions</span>
+          <span><b id="zThrs">0</b> thresholds</span>
+        </div>
+      </div>
+      <div class="chartbox">
+        <svg class="chart" id="zchart" viewBox="0 0 700 190" aria-label="Depletions and thresholds per day"></svg>
+        <div class="tip" id="zTip" hidden></div>
+        <div class="empty" id="zEmpty" hidden>Nothing recorded yet.</div>
+      </div>
+      <footer>
+        <button class="act" id="zClearToday" type="button">Clear day</button>
+        <button class="act danger" id="zClearAll" type="button">Clear data</button>
+      </footer>
+    </section>
+  </div>
+  <div id="viewAr" hidden>
+    <div class="cards ar-cards" id="arCards"></div>
+    <section class="chron">
+      <div class="sec-head">
+        <h2>Record</h2>
+        <div class="stats">
+          <span><b id="aToday">0</b> min today</span>
+          <span><b id="aHours">0</b> h total</span>
+          <span><b id="aFull">0</b> full days</span>
+        </div>
+      </div>
+      <div class="chartbox">
+        <svg class="chart" id="achart" viewBox="0 0 700 190" aria-label="Minutes of focus per day"></svg>
+        <div class="tip" id="aTip" hidden></div>
+        <div class="empty" id="aEmpty" hidden>Nothing recorded yet.</div>
+      </div>
+      <footer>
+        <button class="act" id="aClearToday" type="button">Clear day</button>
+        <button class="act danger" id="aClearAll" type="button">Clear data</button>
+      </footer>
+    </section>
+  </div>
 </div>
+
+<nav class="nav" id="nav">
+  <button type="button" class="tab" data-view="xr">Xeron</button>
+  <button type="button" class="tab" data-view="ar">Arurael</button>
+  <button type="button" class="tab" data-view="xen">Xenlil</button>
+  <button type="button" class="tab on" data-view="dial">Arexia</button>
+</nav>
 
 <script>
 (function(){
@@ -211,11 +530,23 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   /* Hours of grace after a rite's window closes. 0 = the past is past. */
   var GRACE=0;
   var GODS=[
-    {key:"arexia", name:"Arexia",  face:"12–3", a0:0,   a1:90,  hue:"var(--arexia)",  dim:"var(--arexia-dim)"},
-    {key:"xeron",  name:"Xeron",   face:"3–6",  a0:90,  a1:180, hue:"var(--xeron)",   dim:"var(--xeron-dim)"},
-    {key:"arurael",name:"Arurael", face:"6–9",  a0:180, a1:270, hue:"var(--arurael)", dim:"var(--arurael-dim)"},
-    {key:"xenlil", name:"Xenlil",  face:"9–12", a0:270, a1:360, hue:"var(--xenlil)",  dim:"var(--xenlil-dim)"}
+    {key:"arexia", name:"Arexia",  face:"12–3", a0:0,   a1:90,  hue:"var(--arexia)",  dim:"var(--arexia-dim)",  hot:"var(--arexia-hot)"},
+    {key:"xeron",  name:"Xeron",   face:"3–6",  a0:90,  a1:180, hue:"var(--xeron)",   dim:"var(--xeron-dim)",   hot:"var(--xeron-hot)"},
+    {key:"arurael",name:"Arurael", face:"6–9",  a0:180, a1:270, hue:"var(--arurael)", dim:"var(--arurael-dim)", hot:"var(--arurael-hot)"},
+    {key:"xenlil", name:"Xenlil",  face:"9–12", a0:270, a1:360, hue:"var(--xenlil)",  dim:"var(--xenlil-dim)",  hot:"var(--xenlil-hot)"}
   ];
+  /* Each god looks out of the dial differently, not only in colour.
+     Arexia's eye is upswept and lashed; Xeron's is cut hard under a heavy brow;
+     Arurael's is wide with a round pupil; Xenlil's is hooded. */
+  /* One eye, four tempers. The shape is shared; what differs is how each god
+     uses it — how often it moves, how far, how hard, how often it meets you. */
+  var EYE_SHAPE={lid:"M-43 0 Q0 -37 43 0 Q0 37 -43 0 Z", iris:18, pr:[3.6,15]};
+  var BEHAV={
+    arexia: {dwell:1.6, speed:0.80, jit:0.6, front:0.20, flick:0.06, sweep:0.16, hold:0.20, dil:0.8},
+    xeron:  {dwell:0.45,speed:1.75, jit:1.7, front:0.04, flick:0.34, sweep:0.04, hold:0.04, dil:1.7},
+    arurael:{dwell:1.25,speed:1.00, jit:0.5, front:0.32, flick:0.07, sweep:0.22, hold:0.18, dil:0.7},
+    xenlil: {dwell:0.8, speed:1.25, jit:1.2, front:0.10, flick:0.26, sweep:0.08, hold:0.14, dil:1.2}
+  };
   var CX=190, CY=190, GAP=2.2, RINGS=[[94,116],[120,148]], svgNS="http://www.w3.org/2000/svg";
   /* the eight rites of the day, in order from midnight */
   var RUNE=["\u16A0","\u16A2","\u16A6","\u16A8","\u16B1","\u16B2","\u16B7","\u16B9"];
@@ -237,33 +568,162 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   }
   function blankChecks(){ var c={}; GODS.forEach(function(g){c[g.key]=[false,false];}); return c; }
-  function fresh(){
-    return {day:{date:dayKey(), checks:blankChecks()}, history:[]};
+  var WATER_TARGET=14, GYM_DAYS=[1,3,4];           /* Mon, Wed, Thu */
+  var HABITS=[
+    {k:"mv",   card:"supp", name:"Multivitamin",     when:"after lunch"},
+    {k:"om",   card:"supp", name:"Omega 3",          when:"after lunch"},
+    {k:"fin",  card:"supp", name:"Finasteride",      when:"16:00"},
+    {k:"cre",  card:"supp", name:"Creatine & whey",  when:"evening"},
+    {k:"d3",   card:"supp", name:"D3 50,000",        when:"1st",  monthly:true},
+    {k:"skin", card:"care", name:"Skin routine",     when:"once a day"},
+    {k:"nose", card:"care", name:"Nose pore mask",   when:"Tue · Fri · Sun", days:[2,5,0]},
+    {k:"bed",  card:"care", name:"To bed",           when:"23:30"},
+    {k:"wake", card:"care", name:"Awake",            when:"08:00"},
+    {k:"room", card:"maint",name:"Room & appliances",when:"Sat", days:[6]},
+    {k:"shoe", card:"maint",name:"Shoe care",        when:"Sun", days:[0]},
+    {k:"car",  card:"maint",name:"Car care",         when:"Thu", days:[4]}
+  ];
+  var GYM_NAMES=["Quads","Upper body","Hamstrings & glutes"];   /* Mon · Wed · Thu */
+  function wday(k){ return (k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date()).getDay(); }
+  function isDue(h,k){
+    if(h.monthly) return isFirst(k);
+    if(h.days) return h.days.indexOf(wday(k))>=0;
+    return true;
+  }
+  function gymName(n){ return (n+1)+' · '+GYM_NAMES[n]; }
+  function gymNo(k){                          /* Mon ᚠ · Wed ᚢ · Thu ᚦ */
+    var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date();
+    var n=GYM_DAYS.indexOf(d.getDay());
+    return n<0?null:n;
+  }
+  function isFirst(k){ return (k||dayKey()).slice(8,10)==="01"; }
+  /* everything owed on a given date, so a day is scored against its own list */
+  function dayItems(k){
+    var out=["water","core"];
+    if(isGymDay(k)) out.push("gym");
+    HABITS.forEach(function(h){ if(isDue(h,k)) out.push(h.k); });
+    return out;
+  }
+  var SECTIONS=[
+    {k:"water", name:"Water",        color:"var(--c-water)"},
+    {k:"gym",   name:"Gym",          color:"var(--c-gym)"},
+    {k:"supp",  name:"Supplements",  color:"var(--c-supp)"},
+    {k:"care",  name:"Rest & care",  color:"var(--c-care)"},
+    {k:"maint", name:"Maintenance",  color:"var(--c-maint)"},
+    {k:"core",  name:"Core",         color:"var(--c-core)"}
+  ];
+  function sectionOf(it){
+    if(it==="water"||it==="gym"||it==="core") return it;
+    for(var i=0;i<HABITS.length;i++) if(HABITS[i].k===it) return HABITS[i].card;
+    return "care";
+  }
+  function score(k,r){
+    if(!r || r.xen===false || (r.water===undefined && !r.habits && r.gym===undefined && r.core===undefined)) return null;
+    var items=dayItems(k), done=0, parts={water:0,gym:0,supp:0,care:0,core:0,maint:0};
+    /* days recorded before the routine existed aren't marked down for it */
+    if(r.core===undefined) items=items.filter(function(it){ return it!=="core"; });
+    items.forEach(function(it){
+      var v = it==="water" ? Math.min(1,(r.water||0)/WATER_TARGET)
+            : it==="gym"   ? (r.gym?1:0)
+            : it==="core"  ? (r.core?1:0)
+            : ((r.habits&&r.habits[it])?1:0);
+      done+=v; parts[sectionOf(it)]+=v;
+    });
+    return {done:done, total:items.length, parts:parts};
+  }
+  var XR=[
+    {k:"exo",     grp:"dep", name:"Exo",               color:"var(--x-exo)"},
+    {k:"endoIn",  grp:"dep", name:"Endo · in session", color:"var(--x-endoin)"},
+    {k:"endo",    grp:"dep", name:"Endo",              color:"var(--x-endo)"},
+    {k:"texo",    grp:"thr", name:"Exo",               color:"var(--x-texo)"},
+    {k:"tendoIn", grp:"thr", name:"Endo · in session", color:"var(--x-tendoin)"},
+    {k:"tendo",   grp:"thr", name:"Endo",              color:"var(--x-tendo)"}
+  ];
+  function blankXr(){ var o={}; XR.forEach(function(x){ o[x.k]=0; }); return o; }
+  function deps(x){ return x ? (x.exo||0)+(x.endoIn||0)+(x.endo||0) : 0; }
+  function thrs(x){ return x ? (x.texo||0)+(x.tendoIn||0)+(x.tendo||0) : 0; }
+  var AR=[
+    {k:"exe", name:"Execution & Science", min:25, blocks:2, color:"var(--a-exe)"},
+    {k:"sci", name:"Share",               min:25, blocks:1, color:"var(--a-sci)"},   /* key kept so saved days still read */
+    {k:"eng", name:"English",   min:10, blocks:1, color:"var(--a-eng)"}
+  ];
+  var AR_FULL=AR.reduce(function(n,m){ return n+m.min*m.blocks; },0);   /* 85 min */
+  function blankAr(){ var o={}; AR.forEach(function(m){ o[m.k]=[]; for(var i=0;i<m.blocks;i++) o[m.k].push(false); }); return o; }
+  function arMin(a){ var n=0; if(a) AR.forEach(function(m){ (a[m.k]||[]).forEach(function(d){ if(d) n+=m.min; }); }); return n; }
+  function arBlocks(a){ var n=0; if(a) AR.forEach(function(m){ (a[m.k]||[]).forEach(function(d){ if(d) n++; }); }); return n; }
+  function freshDay(k){ return {date:k||dayKey(), checks:blankChecks(), water:0, gym:false, habits:{}, core:false, xr:blankXr(), ar:blankAr()}; }
+  function fresh(){ return {day:freshDay(), history:[]}; }
+  function isGymDay(k){
+    var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date();
+    return GYM_DAYS.indexOf(d.getDay())>=0;
   }
   var state;
+  function upgrade(d){
+    d.checks=d.checks||{};
+    if(typeof d.water!=="number") d.water=0;
+    if(typeof d.gym!=="boolean") d.gym=false;
+    if(!d.habits) d.habits={};
+    if(typeof d.core!=="boolean") d.core=false;
+    if(!d.xr) d.xr=blankXr();
+    if(!d.ar) d.ar=blankAr();
+    delete d.xen;
+    GODS.forEach(function(g){ if(!d.checks[g.key]) d.checks[g.key]=[false,false]; });
+    return d;
+  }
   function load(){
     try{
       var raw=localStorage.getItem(KEY); if(!raw) return fresh();
       var s=JSON.parse(raw); if(!s||!s.day) return fresh();
       delete s.missions;
-      s.day.checks=s.day.checks||{};
-      GODS.forEach(function(g){
-        if(!s.day.checks[g.key]) s.day.checks[g.key]=[false,false];
-      });
+      s.day=upgrade(s.day);
       if(!Array.isArray(s.history)) s.history=[];
       if(s.sample){ s.history=[]; delete s.sample; }
       return s;
     }catch(e){ return fresh(); }
   }
-  function save(){ try{ localStorage.setItem(KEY, JSON.stringify(state)); }catch(e){} }
+  var saveWarned=false;
+  function save(){
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); saveWarned=false; }
+    catch(e){ if(!saveWarned){ saveWarned=true; try{ toast("Could not save \u2014 storage is full or blocked."); }catch(_){} } }
+    planNotes();
+  }
   function total(c){ var n=0; GODS.forEach(function(g){ (c[g.key]||[]).forEach(function(v){ if(v) n++; }); }); return n; }
+  function nextKey(k){ var d=new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)+1); return dayKey(d); }
+  function isBlank(r){
+    return !(r.checks && total(r.checks)) && !r.water && !r.gym && !r.core &&
+      !(r.habits && Object.keys(r.habits).some(function(k){ return r.habits[k]; })) &&
+      !(deps(r.xr)+thrs(r.xr)) && !arBlocks(r.ar);
+  }
+  /* At midnight the whole day - rites, tally, Xeron's counts, Arurael's divisions -
+     goes into the chronicle. Days the app was never opened are written in as empty
+     days, so averages and streaks count them. */
   function rollover(){
-    var today=dayKey();
-    if(state.day.date===today) return false;
-    state.history.push({date:state.day.date, checks:state.day.checks});
-    state.history=state.history.slice(-400);
-    state.day={date:today, checks:blankChecks()};
+    var today=dayKey(), cur=state.day.date;
+    if(cur===today) return false;
+    if(today<cur){
+      /* the clock went backwards: take up today's record again rather than lose it */
+      var keep=state.day;
+      state.history=state.history.filter(function(r){ return r.date<today || (r.date>today && !isBlank(r)) || r.date===today; });
+      var i=findIdx(today);
+      if(i>=0){ state.day=upgrade(state.history.splice(i,1)[0]); }
+      else state.day=freshDay(today);
+      if(!isBlank(keep)) state.history.push(keep);
+      state.history.sort(function(a,b){ return a.date<b.date?-1:a.date>b.date?1:0; });
+      save(); return true;
+    }
+    state.history.push(state.day);
+    var k=nextKey(cur), n=0;
+    while(k<today && n<3660){ state.history.push(freshDay(k)); k=nextKey(k); n++; }
+    state.day=freshDay(today);
     save(); return true;
+  }
+  /* a past day, found by date */
+  var IDX={arr:null, n:-1, m:{}};
+  function findIdx(k){ for(var i=state.history.length-1;i>=0;i--) if(state.history[i].date===k) return i; return -1; }
+  function past(k){
+    var h=state.history;
+    if(IDX.arr!==h || IDX.n!==h.length){ IDX={arr:h, n:h.length, m:{}}; for(var i=0;i<h.length;i++) IDX.m[h[i].date]=h[i]; }
+    return IDX.m[k]||null;
   }
 
   function pt(r,a){ var t=(a-90)*Math.PI/180; return [CX+r*Math.cos(t), CY+r*Math.sin(t)]; }
@@ -337,14 +797,24 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
 
   function attempt(god,i){
-    if(riteState(god,i)==="lapsed"){ toast("The hour has passed."); return; }
-    state.day.checks[god.key][i]=!state.day.checks[god.key][i];
+    var st=riteState(god,i);
+    if(st!=="open"){
+      fb("deny");
+      stareAt(god,i,2.4);
+      if(st==="lapsed"){ feel("upset",2.2); toast("The hour has passed."); }
+      else toast("The hour has not come.");
+      return;
+    }
+    var now=!state.day.checks[god.key][i];
+    state.day.checks[god.key][i]=now;
+    fb(now?"on":"off");
+    stareAt(god,i, now?3.0:2.2);
+    feel(now?"excited":"upset", now?3.2:2.0);
     save(); render();
   }
 
   function render(){
     var done=total(state.day.checks);
-    document.getElementById("count").textContent=done+"/8";
     document.getElementById("statToday").textContent=done+"/8";
     var openIdx=null, openGod=null;
 
@@ -363,11 +833,21 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         row.dataset.done=on?"1":"0"; row.dataset.state=st;
         var box=row.querySelector(".box");
         box.setAttribute("aria-checked", on?"true":"false");
-        box.disabled=(st==="lapsed");
+        box.setAttribute("aria-disabled", st!=="open" ? "true" : "false");
       });
       card.dataset.active=active?"1":"0";
       if(active) openGod=god;
     });
+    /* an hour that just closed: kept, or missed */
+    var lapsed=0, seen={};
+    GODS.forEach(function(god){ [0,1].forEach(function(i){
+      var key=god.key+i, st=riteState(god,i), on=!!state.day.checks[god.key][i];
+      seen[key]=st;
+      if(st==="lapsed" && !on) lapsed++;
+      if(WAS && WAS[key]==="open" && st==="lapsed") feel(on?"pleased":"upset", on?4:7);
+    }); });
+    WAS=seen;
+    EYE.base = done===8 ? "triumph" : lapsed>=2 ? "grim" : (done>=3 && lapsed===0) ? "pleased" : "calm";
     placeFlame(openGod,openIdx);
     drawChart();
     renderClock();
@@ -427,6 +907,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
             '" fill="'+FIRE.hue+'" opacity="'+(f*.85).toFixed(2)+'"/>';
     }
     box.innerHTML=html;
+    eyeStep(dt,t,puff);
     FIRE.raf=requestAnimationFrame(frame);
   }
   function kindle(){
@@ -436,6 +917,122 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   function douse(){ FIRE.on=false; if(FIRE.raf) cancelAnimationFrame(FIRE.raf); FIRE.raf=0; }
 
+  /* How the eye carries itself. Sealing a rite excites it; an hour that closes
+     unsealed puts it out; a day going badly leaves it grim; a full day, exultant. */
+  var MOODS={
+    calm:    {sq:1.00, ir:1.00, gl:1.0, pup:1.00, dwell:[1.0,2.6], range:1.00, speed:13, down:0},
+    excited: {sq:1.14, ir:1.20, gl:2.0, pup:1.45, dwell:[0.18,0.45], range:1.18, speed:24, down:-2},
+    pleased: {sq:1.06, ir:1.08, gl:1.4, pup:1.15, dwell:[1.4,3.2], range:0.90, speed:11, down:-1},
+    upset:   {sq:0.52, ir:0.84, gl:0.45,pup:0.65, dwell:[1.6,3.6], range:0.50, speed:7,  down:5},
+    grim:    {sq:0.74, ir:0.92, gl:0.65,pup:0.80, dwell:[1.4,3.2], range:0.72, speed:9,  down:3},
+    triumph: {sq:1.20, ir:1.24, gl:2.4, pup:1.5,  dwell:[0.45,1.1], range:1.28, speed:19, down:-3}
+  };
+  var WAS=null;
+  var EYE={god:null, x:0, y:0, tx:0, ty:0, next:0, hold:false, sweep:false,
+           base:"calm", temp:null, until:0, sq:1, ir:1, gl:1, pup:1,
+           lockA:0, lockR:1, lockUntil:0};
+  function feel(mood,secs){ EYE.temp=mood; EYE.until=FIRE.t+secs; }
+  /* touch a rite and the eye turns to that chunk and holds it */
+  function stareAt(god,i,secs){
+    EYE.lockA=(god.a0+god.a1)/2;
+    EYE.lockR=i?1.18:1;
+    EYE.lockUntil=FIRE.t+secs;
+  }
+  function mood(){
+    if(EYE.temp && FIRE.t<EYE.until) return MOODS[EYE.temp];
+    EYE.temp=null;
+    return MOODS[EYE.base];
+  }
+  function hex(v){
+    var m=/var\((--[\w-]+)\)/.exec(v);
+    if(!m) return v;
+    return (getComputedStyle(document.documentElement).getPropertyValue(m[1])||"").trim()||v;
+  }
+  function shade(h,f){
+    var m=/^#?([0-9a-f]{6})$/i.exec(h.trim());
+    if(!m) return h;
+    var n=parseInt(m[1],16);
+    return "#"+[16,8,0].map(function(sh){
+      return Math.round(((n>>sh)&255)*f).toString(16).padStart(2,"0");
+    }).join("");
+  }
+  function setEye(god){
+    if(EYE.god===god) return;
+    EYE.god=god;
+    var e=EYE_SHAPE, hue=hex(god.hue), hot=hex(god.hot);
+    document.getElementById("eyeClipPath").setAttribute("d",e.lid);
+    var lid=document.getElementById("eyeLid");
+    lid.setAttribute("d",e.lid);
+    lid.setAttribute("stroke",hue);
+    lid.setAttribute("stroke-width","1.5");
+    lid.setAttribute("stroke-opacity",".55");
+    document.getElementById("gs1").setAttribute("stop-color",hot);
+    document.getElementById("gs2").setAttribute("stop-color",shade(hue,.8));
+    document.getElementById("gs3").setAttribute("stop-color",shade(hue,.3));
+    document.getElementById("eyeAura").setAttribute("fill",hue);
+    EYE.pr=e.pr; EYE.iris=e.iris; EYE.b=BEHAV[god.key]||BEHAV.arexia;
+  }
+
+  function eyeStep(dt,t,puff){
+    var m=mood(), b=EYE.b||BEHAV.arexia;
+    if(b.rangeM===undefined) b.rangeM=b.dil>1.3?1.2:(b.dil<0.75?0.85:1);
+    /* ease the bearing so a change of feeling is a movement, not a jump */
+    var e=Math.min(1,dt*6);
+    EYE.sq+=(m.sq-EYE.sq)*e; EYE.ir+=(m.ir-EYE.ir)*e;
+    EYE.gl+=(m.gl-EYE.gl)*e; EYE.pup+=(m.pup-EYE.pup)*e;
+
+    var locked=t<EYE.lockUntil;
+    if(locked){
+      var la=EYE.lockA*Math.PI/180;
+      EYE.tx=Math.sin(la)*19*EYE.lockR+Math.sin(t*1.7)*1.2;
+      EYE.ty=-Math.cos(la)*12*EYE.lockR+Math.sin(t*2.3)*.8;
+      EYE.sweep=false; EYE.hold=false; EYE.next=t+.2;
+    }
+    else if(t>EYE.next){
+      var r=Math.random(), a=hourAngle()*Math.PI/180;
+      var ax=Math.sin(a)*18*m.range*b.rangeM, ay=(-Math.cos(a)*9+m.down)*m.range*b.rangeM;
+      EYE.sweep=false; EYE.hold=false;
+      var p1=b.front, p2=p1+b.flick, p3=p2+b.sweep, p4=p3+b.hold;
+      if(r<p1){                         /* straight at whoever is watching */
+        EYE.tx=(Math.random()-.5)*3; EYE.ty=(Math.random()-.5)*2+m.down*.4;
+      } else if(r<p2){                  /* a quick flick aside */
+        EYE.tx=ax*0.3+(Math.random()-.5)*24; EYE.ty=ay*0.3+(Math.random()-.5)*11;
+      } else if(r<p3){                  /* a slow sweep across the dial */
+        EYE.tx=-ax*0.9+(Math.random()-.5)*6; EYE.ty=-ay*0.5; EYE.sweep=true;
+      } else if(r<p4){                  /* hold the stare */
+        EYE.hold=true;
+      } else {                          /* back to the open hour */
+        EYE.tx=ax+(Math.random()-.5)*3; EYE.ty=ay*1.6+(Math.random()-.5)*2;
+      }
+      var d=m.dwell;
+      EYE.next=t+(d[0]+Math.random()*(d[1]-d[0]))*b.dwell*(EYE.hold?2.4:1)*(EYE.sweep?1.6:1);
+    }
+    var k=Math.min(1,dt*(locked?26:(EYE.sweep?3.2:m.speed*b.speed)));
+    EYE.x+=(EYE.tx-EYE.x)*k; EYE.y+=(EYE.ty-EYE.y)*k;
+    var jx=(Math.sin(t*2.7)*.45+Math.sin(t*6.1)*.25+Math.sin(t*11.3)*.12)*b.jit;
+    var jy=(Math.sin(t*3.9+1)*.3+Math.sin(t*8.7)*.12)*b.jit;
+    document.getElementById("gaze").setAttribute("transform",
+      "translate("+(EYE.x+jx).toFixed(2)+","+(EYE.y+jy).toFixed(2)+")");
+    document.getElementById("eyeMood").setAttribute("transform",
+      "scale("+(1+(EYE.ir-1)*.18).toFixed(3)+","+EYE.sq.toFixed(3)+")");
+
+    if(EYE.pr){
+      var dil=1+(.12*Math.sin(t*1.9)+.07*Math.sin(t*4.3+2)+.04*(Math.random()-.5))*b.dil;
+      var pu=document.getElementById("pupil");
+      pu.setAttribute("ry",(EYE.pr[1]*dil).toFixed(2));
+      pu.setAttribute("rx",(EYE.pr[0]*(2-dil)*EYE.pup).toFixed(2));
+      var ir=document.getElementById("iris");
+      ir.setAttribute("rx",(EYE.iris*EYE.ir).toFixed(2));
+      ir.setAttribute("ry",(EYE.iris*1.1*EYE.ir).toFixed(2));
+    }
+    var aura=document.getElementById("eyeAura");
+    aura.setAttribute("opacity",Math.min(.85,(.3+.3*puff)*EYE.gl).toFixed(3));
+    aura.setAttribute("rx",((24+4*puff)*EYE.ir).toFixed(1));
+    aura.setAttribute("ry",((22+3*puff)*EYE.ir).toFixed(1));
+    aura.setAttribute("cx",(EYE.x*.6).toFixed(2));
+    aura.setAttribute("cy",(EYE.y*.6).toFixed(2));
+  }
+
   function placeFlame(god,i){
     var f=document.getElementById("flame");
     if(!god || i===null){ f.setAttribute("opacity","0"); douse(); return; }
@@ -443,10 +1040,17 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       FIRE.nodes=LAYERS.map(function(L){ return document.getElementById(L.id); });
       LAYERS.forEach(function(L,k){ FIRE.nodes[k].setAttribute("opacity",L.op); });
     }
-    FIRE.hue=god.hue;
-    LAYERS.forEach(function(L,k){ FIRE.nodes[k].setAttribute("fill", L.white?"#fff":god.hue); });
+    var sealed=!!state.day.checks[god.key][i];
+    FIRE.hue=sealed?god.hot:god.hue;
+    LAYERS.forEach(function(L,k){ FIRE.nodes[k].setAttribute("fill", L.white?"#fff":(sealed?god.hot:god.hue)); });
+    /* over a sealed chunk the ring is already the god's colour, so the fire takes
+       the lighter tint and a dark edge instead of vanishing into it */
+    FIRE.nodes[0].setAttribute("stroke", sealed?"var(--bg)":"none");
+    FIRE.nodes[0].setAttribute("stroke-width", sealed?"1.6":"0");
+    FIRE.nodes[0].setAttribute("stroke-opacity", sealed?".9":"0");
+    setEye(god);
     var r=(RINGS[i][0]+RINGS[i][1])/2;
-    var now=new Date(), a=((now.getHours()%12)+now.getMinutes()/60)*30, p=pt(r,a);
+    var p=pt(r,hourAngle());
     f.setAttribute("opacity","1");
     f.setAttribute("transform","translate("+p[0].toFixed(2)+","+(p[1]+11).toFixed(2)+")");
     if(window.matchMedia && window.matchMedia("(prefers-reduced-motion:reduce)").matches){
@@ -459,16 +1063,24 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     clearTimeout(rsz);
     rsz=setTimeout(function(){
       var wide=window.innerWidth>=620;
-      if(wide!==wasWide){ wasWide=wide; drawChart(); }
+      if(wide!==wasWide){ wasWide=wide; drawChart(); drawXenChart(); drawXrChart(); drawArChart(); }
     },180);
   });
 
+  function hourAngle(){ var n=new Date(); return ((n.getHours()%12)+n.getMinutes()/60)*30; }
   function renderClock(){
-    var now=new Date(), a=((now.getHours()%12)+now.getMinutes()/60)*30;
-    document.getElementById("needle").setAttribute("transform","rotate("+a.toFixed(2)+" "+CX+" "+CY+")");
-    document.getElementById("stamp").textContent=
-      now.toLocaleDateString(undefined,{day:"numeric",month:"short"})+"  "+
-      now.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:false});
+    var now=new Date(), who=null, wi=0;
+    if(VIEW==="xen") xenSubtitle();
+    if(VIEW==="xr") xrSubtitle();
+    if(VIEW==="ar") arSubtitle();
+    GODS.forEach(function(g){ [0,1].forEach(function(i){ if(riteState(g,i)==="open"){ who=g; wi=i; } }); });
+    if(VIEW==="dial" && who){
+      var w=windowOf(who,wi);
+      document.getElementById("holder").textContent=who.name+" holds the hour • "+fmt(w[0])+"–"+fmt(w[1]);
+    }
+    document.getElementById("stamp").innerHTML=
+      '<span class="sd">'+now.toLocaleDateString(undefined,{day:"numeric",month:"short"})+'</span> '+
+      '<span class="tm">'+now.toLocaleTimeString(undefined,{hour:"2-digit",minute:"2-digit",hour12:false})+'</span>';
   }
 
   var SPAN=32;
@@ -477,8 +1089,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   function recordFor(k){
     if(k===state.day.date) return state.day.checks;
-    for(var i=state.history.length-1;i>=0;i--) if(state.history[i].date===k) return state.history[i].checks;
-    return null;
+    var r=past(k); return r ? (r.checks||null) : null;
   }
   function drawChart(){
     var svg=document.getElementById("chart");
@@ -514,23 +1125,773 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         var c=(rec[g.key]||[]).filter(Boolean).length; if(!c) return;
         var h=(c/8)*plotH; y-=h;
         var r=el("rect",{x:x.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:g.hue,rx:"1"});
-        var ti=el("title",{}); ti.textContent=dk+" · "+g.name+" "+c+"/2"; r.appendChild(ti);
         svg.appendChild(r);
       });
     });
+    chartDone("chart",svg,{W:W,padL:padL,padT:padT,plotH:plotH,step:step,days:days,info:infoRites});
     updateStats();
   }
   function updateStats(){
     var sum=0,count=0;
-    state.history.forEach(function(rec){ sum+=total(rec.checks); count++; });
+    state.history.forEach(function(rec){ if(!rec.checks) return; sum+=total(rec.checks); count++; });
     document.getElementById("statAvg").textContent=count?(sum/count).toFixed(1):"\u2014";
     var streak=0, d=new Date(), r0=recordFor(dayKey(d));
     if(!(r0 && total(r0)===8)) d.setDate(d.getDate()-1);
-    for(var i=0;i<400;i++){
+    for(;;){
       var rr=recordFor(dayKey(d));
       if(rr && total(rr)===8){ streak++; d.setDate(d.getDate()-1); } else break;
     }
     document.getElementById("statStreak").textContent=streak;
+  }
+
+  /* ---------- Xenlil: the day's own tally ---------- */
+  function buildPips(){
+    var host=document.getElementById("pips");
+    for(var i=0;i<WATER_TARGET;i++){
+      (function(n){
+        var b=document.createElement("button");
+        b.type="button"; b.className="pip"; b.setAttribute("aria-label","Glass "+(n+1));
+        b.addEventListener("click",function(){
+          var was=state.day.water;
+          state.day.water = (state.day.water===n+1) ? n : n+1;
+          fb(state.day.water>was?"on":"off");
+          save(); renderXen();
+        });
+        host.appendChild(b);
+      })(i);
+    }
+  }
+  function buildHabits(){
+    HABITS.forEach(function(h){
+      var card=document.getElementById({supp:"suppCard",care:"careCard",maint:"maintCard"}[h.card]);
+      var row=document.createElement("div");
+      row.className="rite"; row.id="h-"+h.k;
+      var b=document.createElement("button");
+      b.type="button"; b.className="box"; b.setAttribute("role","checkbox");
+      b.setAttribute("aria-checked","false"); b.setAttribute("aria-label",h.name);
+      b.innerHTML='<svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+      var nm=document.createElement("span"); nm.className="rname"; nm.textContent=h.name;
+      var wh=document.createElement("span"); wh.className="win"; wh.textContent=h.when;
+      row.appendChild(b); row.appendChild(nm); row.appendChild(wh);
+      row.addEventListener("click",function(){
+        state.day.habits[h.k]=!state.day.habits[h.k]; fb(state.day.habits[h.k]?"on":"off"); save(); renderXen();
+      });
+      b.addEventListener("click",function(ev){
+        ev.stopPropagation();
+        state.day.habits[h.k]=!state.day.habits[h.k]; fb(state.day.habits[h.k]?"on":"off"); save(); renderXen();
+      });
+      card.appendChild(row);
+    });
+  }
+  /* only what isn't owed every day: gym, D3, nose pore mask, maintenance */
+  function xenSubtitle(){
+    var ev=[], order={gym:0, maint:1, supp:2, care:3};
+    if(isGymDay()) ev.push({card:"gym", name:"Gym"});
+    HABITS.forEach(function(h){
+      if((h.days||h.monthly) && isDue(h)) ev.push({card:h.card, name:h.monthly?"D3":h.name});
+    });
+    ev.sort(function(a,b){ return order[a.card]-order[b.card]; });
+    document.getElementById("holder").textContent = ev.length
+      ? ev.map(function(e){ return e.name; }).join(" • ")
+      : "Only the daily items today";
+  }
+  function renderXen(){
+    if(VIEW==="xen") xenSubtitle();
+    var gymToday=isGymDay();
+    document.getElementById("gymRow").hidden=!gymToday;
+    document.getElementById("gymRest").hidden=gymToday;
+    if(gymToday) document.getElementById("gymLabel").innerHTML=gymName(gymNo());
+    else {
+      for(var i=1;i<=7;i++){
+        var nd=new Date(); nd.setDate(nd.getDate()+i);
+        var n=GYM_DAYS.indexOf(nd.getDay());
+        if(n>=0){
+          document.getElementById("gymNext").innerHTML='next · '+
+            nd.toLocaleDateString(undefined,{weekday:"short"})+' · '+GYM_NAMES[n];
+          break;
+        }
+      }
+    }
+    document.getElementById("gymBox").setAttribute("aria-checked", state.day.gym?"true":"false");
+    document.getElementById("gymRow").dataset.done=state.day.gym?"1":"0";
+    document.getElementById("waterNow").textContent=state.day.water;
+    var pips=document.querySelectorAll(".pip");
+    for(var i=0;i<pips.length;i++) pips[i].className="pip"+(i<state.day.water?" full":"");
+    HABITS.forEach(function(h){
+      var row=document.getElementById("h-"+h.k), on=!!state.day.habits[h.k];
+      row.hidden = !isDue(h);
+      row.dataset.done=on?"1":"0";
+      row.querySelector(".box").setAttribute("aria-checked", on?"true":"false");
+    });
+    var dueM=HABITS.filter(function(x){ return x.card==="maint" && isDue(x); });
+    document.getElementById("maintRest").hidden=dueM.length>0;
+    if(!dueM.length){
+      for(var j=1;j<=7;j++){
+        var md=new Date(); md.setDate(md.getDate()+j);
+        var hit=HABITS.filter(function(x){ return x.card==="maint" && x.days && x.days.indexOf(md.getDay())>=0; })[0];
+        if(hit){ document.getElementById("maintNext").textContent='next · '+md.toLocaleDateString(undefined,{weekday:"short"})+' · '+hit.name; break; }
+      }
+    }
+    var sc=score(state.day.date,state.day);
+    document.getElementById("xToday").textContent=Math.round(sc.done/sc.total*100)+"%";
+    var glasses=state.day.water, gyms=state.day.gym?1:0, cores=state.day.core?1:0;
+    state.history.forEach(function(r){ glasses+=r.water||0; if(r.gym) gyms++; if(r.core) cores++; });
+    document.getElementById("xCore").textContent=cores;
+    renderCore();
+    document.getElementById("xGlasses").textContent=glasses;
+    document.getElementById("xGym").textContent=gyms;
+    drawXenChart();
+  }
+  function drawXenChart(){
+    var svg=document.getElementById("xchart");
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    var days=lastDays(SPAN), today=dayKey();
+    var any=days.some(function(k){ var sc=score(k,rec(k)); return sc && sc.done>0; });
+    document.getElementById("xEmpty").hidden=any;
+    svg.style.display=any?"block":"none";
+    if(!any) return;
+    var narrow=window.innerWidth<620;
+    var W=(narrow?430:700),H=190,padL=28,padR=8,padT=14,padB=22;
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);
+    var plotW=W-padL-padR, plotH=H-padT-padB, step=plotW/days.length;
+    var bw=Math.max(3.5,Math.min(14,step*0.6)), every=narrow?8:4;
+    [0,50,100].forEach(function(v){
+      var y=padT+plotH-(v/100)*plotH;
+      svg.appendChild(el("line",{x1:padL,y1:y.toFixed(1),x2:W-padR,y2:y.toFixed(1),class:"gridline"}));
+      var t=el("text",{x:padL-7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"end"});
+      t.textContent=v; svg.appendChild(t);
+    });
+    days.forEach(function(k,i){
+      var cx=padL+step*(i+0.5), x=cx-bw/2, r=rec(k), sc=score(k,r), last=i===days.length-1;
+      if(last || (days.length-1-i)%every===0){
+        var lab=el("text",{x:cx.toFixed(1),y:(H-6).toFixed(1),class:"daylabel"+(last?" today":""),"text-anchor":"middle"});
+        lab.textContent=Number(k.slice(8,10)); svg.appendChild(lab);
+      }
+      if(!sc || sc.done<=0){
+        svg.appendChild(el("rect",{x:x.toFixed(1),y:(padT+plotH-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"}));
+        return;
+      }
+      var y=padT+plotH;
+      SECTIONS.forEach(function(sec){
+        var v=sc.parts[sec.k]; if(!v) return;
+        var h=(v/sc.total)*plotH; y-=h;
+        var seg=el("rect",{x:x.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:sec.color});
+        svg.appendChild(seg);
+      });
+    });
+    chartDone("xchart",svg,{W:W,padL:padL,padT:padT,plotH:plotH,step:step,days:days,info:infoXen});
+  }
+  function rec(k){
+    if(k===state.day.date) return state.day;
+    return past(k);
+  }
+
+  /* ---------- Core: 3 types × 2 rounds × 10 holds × 6 s = 360 s of holding,
+     with 2 s between types to change posture, so 364 s on the clock ---------- */
+  var CORE={total:364, ex:360, type:120, brk:2, hold:6, el:0, run:false, t0:0, last:-1, ctx:null, wl:null, iv:0};
+  /* where a moment on the clock falls: holding (and how far in), or between types */
+  function phase(w){
+    for(var ty=0;ty<3;ty++){
+      var start=ty*(CORE.type+CORE.brk);
+      if(w<start+CORE.type || ty===2) return {brk:false, ty:ty, ex:Math.min(CORE.ex, ty*CORE.type+Math.max(0,w-start))};
+      if(w<start+CORE.type+CORE.brk) return {brk:true, ty:ty, ex:(ty+1)*CORE.type, left:start+CORE.type+CORE.brk-w};
+    }
+  }
+  function coreNow(){ return Math.min(CORE.total, CORE.run ? CORE.el+(performance.now()-CORE.t0)/1000 : CORE.el); }
+  function audio(){
+    try{
+      if(!CORE.ctx){
+        var c=new (window.AudioContext||window.webkitAudioContext)();
+        CORE.ctx=c; CORE.out=null;
+        try{
+        var comp=c.createDynamicsCompressor();
+        comp.threshold.value=-20; comp.knee.value=8; comp.ratio.value=8;
+        comp.attack.value=0.002; comp.release.value=0.12;
+        var master=c.createGain(); master.gain.value=1.6;
+        /* a hard limiter last, so the loudest chord still stops just short of full scale */
+        var lim=c.createDynamicsCompressor();
+        lim.threshold.value=-2; lim.knee.value=0; lim.ratio.value=20; lim.attack.value=0.001; lim.release.value=0.06;
+        comp.connect(master); master.connect(lim); lim.connect(c.destination);
+        CORE.out=comp;
+        }catch(e2){ CORE.out=null; }     /* no chain: tones go straight out */
+      }
+      if(CORE.ctx.state==="suspended") CORE.ctx.resume();
+    }catch(e){}
+  }
+  function tone(f,dur,gain,at,wave){
+    var c=CORE.ctx; if(!c) return;
+    try{
+      var o=c.createOscillator(), g=c.createGain(), t=c.currentTime+(at||0);
+      o.type = wave || (dur<.2 ? "square" : "triangle");   /* short alerts cut through a phone speaker; chimes stay round */
+      o.frequency.value=f;
+      g.gain.setValueAtTime(0.0001,t);
+      g.gain.exponentialRampToValueAtTime(gain,t+0.006);
+      g.gain.exponentialRampToValueAtTime(0.0001,t+dur);
+      o.connect(g); g.connect(CORE.out||c.destination); o.start(t); o.stop(t+dur+0.03);
+    }catch(e){}
+  }
+  /* ---- sound design: pure tones, few and quiet, all in E ----
+     Each sound is a sine with a soft overtone or two that fade faster than
+     the fundamental, so it rings clean and short, like glass or a wooden key. */
+  var GLASS=[[1,1,1],[2,.22,.55],[3,.06,.3]];      /* [ratio, level, decay] */
+  var WOOD =[[1,1,1],[2.76,.18,.35]];
+  function note(o){
+    var c=CORE.ctx; if(!c) return;
+    try{
+      var t=c.currentTime+(o.at||0);
+      var lp=c.createBiquadFilter(); lp.type="lowpass"; lp.frequency.value=o.lp||7000; lp.Q.value=.5;
+      lp.connect(CORE.out||c.destination);
+      (o.tone||GLASS).forEach(function(p){
+        var osc=c.createOscillator(), g=c.createGain(), d=o.dur*p[2];
+        osc.type="sine"; osc.frequency.setValueAtTime(o.f*p[0],t);
+        if(o.drop) osc.frequency.exponentialRampToValueAtTime(o.f*p[0]*(1-o.drop),t+Math.min(d,.06));
+        g.gain.setValueAtTime(.0001,t);
+        g.gain.exponentialRampToValueAtTime(o.gain*p[1],t+(o.a||.005));
+        g.gain.exponentialRampToValueAtTime(.0001,t+d);
+        osc.connect(g); g.connect(lp); osc.start(t); osc.stop(t+d+.05);
+      });
+    }catch(e){}
+  }
+  var E4=329.63, B4=493.88, E5=659.26, Gs5=830.61, B5=987.77, Ds6=1244.51, E6=1318.51, Fs6=1479.98, B6=1975.53, A6=1760;
+  function sfx(kind){
+    if(window.__sfxlog) window.__sfxlog.push(kind);
+    switch(kind){
+      /* interface */
+      case "tap":  note({f:E6,dur:.05,gain:.3,tone:WOOD,drop:.08}); break;
+      case "on":   note({f:E5,dur:.2,gain:.11}); note({f:B5,dur:.26,gain:.1,at:.06}); break;
+      case "off":  note({f:B5,dur:.16,gain:.1}); note({f:E5,dur:.22,gain:.09,at:.06}); break;
+      case "deny": note({f:B4/2,dur:.2,gain:.22,tone:WOOD,drop:.12}); note({f:B4/2,dur:.18,gain:.15,tone:WOOD,drop:.12,at:.12}); break;
+      /* a mission complete: E major 9, rolled upward */
+      case "done": [E5,B5,Ds6,Fs6].forEach(function(f,i){ note({f:f,dur:1.4,gain:.17,at:i*.09,a:.008}); }); break;
+      /* the core timer */
+      case "tick": note({f:A6,dur:.05,gain:.9,tone:WOOD,drop:.05}); break;
+      case "hold": note({f:E6,dur:.16,gain:.7}); note({f:B6,dur:.22,gain:.55,at:.05}); break;
+      case "round":note({f:E5,dur:.6,gain:.7}); note({f:E6,dur:.7,gain:.55,at:.12}); break;
+      case "typeEnd": [E6,B5,E5].forEach(function(f,i){ note({f:f,dur:.6,gain:.62,at:i*.13}); }); break;
+      case "beat": note({f:B4,dur:.16,gain:.6,tone:WOOD}); break;
+      case "go":   [E5,B5,E6].forEach(function(f,i){ note({f:f,dur:.3,gain:.62,at:i*.07}); }); break;
+      case "start":note({f:B5,dur:.2,gain:.55}); note({f:E6,dur:.28,gain:.5,at:.06}); break;
+      case "finish": sfx("done"); note({f:E4,dur:1.8,gain:.42,a:.01}); break;
+    }
+  }
+  /* a tick each second; a brighter double at each change of hold; a chime at
+     each round; a longer one as a type ends, low beats through the change,
+     a go tone as the next type begins; a chord at the end */
+  function sound(sec){
+    if(sec>=CORE.total){ sfx("finish"); return; }
+    var P=phase(sec), was=CORE.inBrk;
+    CORE.inBrk=P.brk;
+    if(P.brk){
+      if(!was){ sfx("typeEnd"); buzz([60,40,60]); }
+      else sfx("beat");
+      return;
+    }
+    if(was){ sfx("go"); return; }
+    var e=Math.round(P.ex);
+    if(e%60===0){ sfx("round"); buzz(45); return; }
+    if(e%CORE.hold===0){ sfx("hold"); return; }
+    sfx("tick");
+  }
+  /* vibration: through the app's own bridge when it's the APK, the browser's otherwise */
+  function buzz(p){
+    var pat=[].concat(p);
+    try{ if(window.RitualHost && RitualHost.vibrate){ RitualHost.vibrate(pat.join(",")); return; } }catch(e){}
+    try{ if(navigator.vibrate) navigator.vibrate(pat); }catch(e){}
+  }
+  /* on: something added · off: something taken back · deny: not allowed now
+     tap: a control · done: a mission finished */
+  function fb(kind){
+    audio();
+    if(kind!=="done") sfx(kind);
+    if(kind==="on")   buzz(14);
+    if(kind==="off")  buzz(9);
+    if(kind==="deny") buzz([18,50,18]);
+    if(kind==="tap")  buzz(6);
+    if(kind==="done") buzz([70,50,70,50,140]);
+  }
+  function awake(on){
+    try{ if(window.RitualHost && RitualHost.keepAwake) RitualHost.keepAwake(!!on); }catch(e){}
+    try{
+      if(on && navigator.wakeLock) navigator.wakeLock.request("screen").then(function(l){ CORE.wl=l; }).catch(function(){});
+      if(!on && CORE.wl){ CORE.wl.release(); CORE.wl=null; }
+    }catch(e){}
+  }
+  function corePlay(){
+    if(CORE.run){ corePause(); return; }
+    audio();
+    if(CORE.el>=CORE.total){ CORE.el=0; CORE.last=-1; }
+    CORE.inBrk=phase(CORE.el).brk;
+    CORE.t0=performance.now(); CORE.run=true;
+    if(CORE.el===0){ CORE.last=0; sfx("start"); }
+    awake(true);
+    clearInterval(CORE.iv); CORE.iv=setInterval(coreTick,50);
+    renderCore();
+  }
+  function corePause(){
+    if(!CORE.run) return;
+    CORE.el=coreNow(); CORE.run=false; clearInterval(CORE.iv); awake(false); renderCore();
+  }
+  function coreReset(){
+    CORE.run=false; CORE.el=0; CORE.last=-1; CORE.inBrk=false; clearInterval(CORE.iv); awake(false); renderCore();
+  }
+  function coreTick(){
+    var t=coreNow(), sec=Math.floor(t+1e-6);
+    if(sec!==CORE.last){ CORE.last=sec; if(sec>0) sound(sec); }
+    if(t>=CORE.total){
+      CORE.el=CORE.total; CORE.run=false; clearInterval(CORE.iv); awake(false);
+      fb("done");
+      rollover(); if(!state.day.core){ state.day.core=true; save(); renderXen(); toast("Core session recorded."); }
+      else toast("Done. Today's session was already recorded.");
+    }
+    renderCore();
+  }
+  function buildCore(){
+    var bar=document.getElementById("coreBar");
+    CORE.rounds=[];
+    for(var ty=0;ty<3;ty++){
+      var g=document.createElement("div"); g.className="core-type";
+      for(var r=0;r<2;r++){
+        var cell=document.createElement("div"); cell.className="core-round";
+        var f=document.createElement("div"); f.className="f"; cell.appendChild(f);
+        for(var h=1;h<10;h++){ var d=document.createElement("i"); d.style.left=(h*10)+"%"; cell.appendChild(d); }
+        g.appendChild(cell); CORE.rounds.push({cell:cell, fill:f});
+      }
+      bar.appendChild(g);
+    }
+    document.getElementById("corePlay").addEventListener("click",function(){ fb("tap"); corePlay(); });
+    document.getElementById("coreReset").addEventListener("click",function(){ fb("off"); coreReset(); });
+  }
+  function renderCore(){
+    var w=coreNow(), P=phase(w), t=P.ex, done=w>=CORE.total;
+    var cur = P.brk ? (P.ty+1)*2 : Math.min(5,Math.floor(t/60));
+    CORE.rounds.forEach(function(rd,k){
+      var f=Math.max(0,Math.min(1,(t-k*60)/60));
+      rd.fill.style.width=(f*100).toFixed(2)+"%";
+      rd.cell.classList.toggle("now", CORE.run && k===cur);
+      rd.cell.classList.toggle("next", CORE.run && P.brk && k===cur);
+    });
+    var i=Math.min(59,Math.floor(t/CORE.hold));
+    var hold = P.brk ? Math.max(1,Math.ceil(P.left)) : (t===0 ? 0 : (done ? 6 : Math.floor(t%CORE.hold)+1));
+    var card=document.getElementById("coreCard");
+    card.classList.toggle("brk", CORE.run && P.brk);
+    document.getElementById("coreHold").textContent=hold;
+    document.getElementById("coreHoldOf").textContent=P.brk?"s":"/6";
+    document.getElementById("corePos").innerHTML = (w===0 && !CORE.run) ? (state.day.core?"Recorded today":"Ready")
+      : done ? "Complete"
+      : P.brk ? "Change posture · Type "+(P.ty+2)+" next"
+      : 'Type '+(Math.floor(i/20)+1)+' · Round '+(Math.floor((i%20)/10)+1)+' · '+(i%10+1)+'/10';
+    document.getElementById("corePlayIcon").setAttribute("d", CORE.run ? "M4.5 3h2.5v10H4.5zM9 3h2.5v10H9z" : "M5 3.5v9l7.5-4.5z");
+    document.getElementById("corePlay").setAttribute("aria-label", CORE.run?"Pause":"Play");
+    card.dataset.done=state.day.core?"1":"0";
+  }
+  document.addEventListener("visibilitychange",function(){ if(document.hidden) corePause(); });
+
+  /* ---------- tapping a day on either chart ---------- */
+  var CH={}, SEL=null;
+  function fmtDay(k){
+    return new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10))
+      .toLocaleDateString(undefined,{weekday:"short",day:"numeric",month:"short"});
+  }
+  function tr(color,name,val){
+    return '<div class="tr"><span><i style="background:'+color+'"></i>'+name+'</span><b>'+val+'</b></div>';
+  }
+  function infoRites(k){
+    var r=recordFor(k);
+    if(!r) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
+    var h='<div class="th">'+fmtDay(k)+' · '+total(r)+'/8</div>';
+    GODS.forEach(function(g){
+      var runes=[0,1].map(function(i){
+        var on=r[g.key]&&r[g.key][i];
+        return '<span class="rn" style="color:'+(on?g.hue:'var(--ink-3)')+';opacity:'+(on?1:.45)+'">'+RUNE[riteNo(g,i)-1]+'</span>';
+      }).join(" ");
+      h+=tr(g.hue,g.name,runes);
+    });
+    return h;
+  }
+  function infoXen(k){
+    var r=rec(k), sc=score(k,r);
+    if(!r || !sc) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
+    var h='<div class="th">'+fmtDay(k)+' · '+Math.round(sc.done/sc.total*100)+'%</div>';
+    h+=tr("var(--c-water)","Water",(r.water||0)+"/"+WATER_TARGET);
+    var gn=gymNo(k);
+    if(gn!==null) h+=tr("var(--c-gym)",gymName(gn), r.gym?"✓":"—");
+    if(r.core!==undefined) h+=tr("var(--c-core)","Core", r.core?"✓":"—");
+    [["supp","Supplements"],["care","Rest &amp; care"],["maint","Maintenance"]].forEach(function(c){
+      var owed=HABITS.filter(function(x){ return x.card===c[0] && isDue(x,k); });
+      if(!owed.length) return;
+      var kept=owed.filter(function(x){ return r.habits&&r.habits[x.k]; }).length;
+      h+=tr("var(--c-"+c[0]+")", c[1], kept+"/"+owed.length);
+    });
+    return h;
+  }
+  function chartDone(id,svg,m){
+    m.svg=svg; m.tip=document.getElementById({chart:"rTip",xchart:"xTip",zchart:"zTip",achart:"aTip"}[id]); CH[id]=m;
+    if(SEL && SEL.id===id){
+      var i=m.days.indexOf(SEL.day);
+      if(i<0){ hideTip(); return; }
+      svg.insertBefore(el("rect",{x:(m.padL+m.step*i).toFixed(1),y:(m.padT-6).toFixed(1),
+        width:m.step.toFixed(1),height:(m.plotH+10).toFixed(1),class:"colsel",rx:"2"}),svg.firstChild);
+      m.tip.innerHTML=m.info(SEL.day);
+      m.tip.hidden=false;
+      var box=m.tip.parentNode, br=box.getBoundingClientRect(), sr=svg.getBoundingClientRect();
+      var cx=sr.left-br.left+box.scrollLeft+((m.padL+m.step*(i+.5))/m.W)*sr.width;
+      /* sit beside the chosen day, never on top of it */
+      var tw=m.tip.offsetWidth, half=box.scrollLeft+box.clientWidth/2;
+      var left = cx>half ? cx-tw-12 : cx+12;
+      left=Math.max(6+box.scrollLeft, Math.min(left, box.scrollLeft+box.clientWidth-tw-6));
+      m.tip.style.left=left.toFixed(0)+"px";
+    }
+  }
+  function hideTip(){
+    if(!SEL) return;
+    SEL=null;
+    ["rTip","xTip","zTip","aTip"].forEach(function(id){ document.getElementById(id).hidden=true; });
+    drawChart(); drawXenChart(); drawXrChart(); drawArChart();
+  }
+  function pickDay(id,ev){
+    ev.stopPropagation();
+    var m=CH[id]; if(!m) return;
+    var r=m.svg.getBoundingClientRect(), xs=(ev.clientX-r.left)*(m.W/r.width);
+    var i=Math.floor((xs-m.padL)/m.step);
+    if(i<0||i>=m.days.length){ hideTip(); return; }
+    fb("tap");
+    if(SEL && SEL.id===id && SEL.day===m.days[i]){ hideTip(); return; }
+    var other=SEL && SEL.id!==id;
+    SEL={id:id, day:m.days[i]};
+    if(other) ["rTip","xTip","zTip","aTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
+    ({chart:drawChart, xchart:drawXenChart, zchart:drawXrChart, achart:drawArChart})[id]();
+  }
+
+  /* ---------- Xeron ---------- */
+  function plural(n,w){ return n+" "+w+(n===1?"":"s"); }
+  function xrDays(){                     /* every day with a Xeron record, oldest first */
+    return state.history.filter(function(r){ return r.xr; })
+      .concat([{date:state.day.date, xr:state.day.xr}])
+      .sort(function(a,b){ return a.date<b.date?-1:1; });
+  }
+  function dayNum(k){ return Math.round(new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)).getTime()/864e5); }
+  /* clear days in a row, counting back from today; a gap in the record ends a run */
+  function xrStreak(){
+    var list=xrDays(), cur=0, best=0, run=0, prev=null;
+    list.forEach(function(r){
+      var n=dayNum(r.date);
+      if(deps(r.xr)===0) run = (prev!==null && n===prev+1 && run>0) ? run+1 : 1;
+      else run=0;
+      best=Math.max(best,run); prev=n;
+    });
+    cur = deps(state.day.xr)===0 ? run : 0;
+    return {cur:cur, best:best};
+  }
+  function xrSubtitle(){
+    var st=xrStreak(), h;
+    if(st.cur>0) h=plural(st.cur,"day")+" without depletion";
+    else h="Depleted today • streak starts again tomorrow";
+    if(st.best>st.cur) h+=" • best "+plural(st.best,"day");
+    document.getElementById("holder").textContent=h;
+  }
+  function buildXr(){
+    XR.forEach(function(x){
+      var row=document.createElement("div"); row.className="ctr";
+      row.innerHTML='<span class="rname"><i class="sw" style="background:'+x.color+'"></i>'+x.name+'</span>'+
+        '<button type="button" class="step" aria-label="One fewer">−</button>'+
+        '<b class="cnt" id="c-'+x.k+'">0</b>'+
+        '<button type="button" class="step plus" aria-label="One more">+</button>';
+      var b=row.querySelectorAll(".step");
+      b[0].addEventListener("click",function(){ if(state.day.xr[x.k]>0){ state.day.xr[x.k]--; fb("off"); save(); renderXr(); } });
+      b[1].addEventListener("click",function(){ state.day.xr[x.k]++; fb("on"); save(); renderXr(); });
+      document.getElementById(x.grp==="dep"?"depCard":"thrCard").appendChild(row);
+    });
+  }
+  function renderXr(){
+    var x=state.day.xr;
+    XR.forEach(function(it){ document.getElementById("c-"+it.k).textContent=x[it.k]||0; });
+    document.querySelectorAll("#viewXr .ctr").forEach(function(row,i){
+      row.querySelector(".step").disabled=!(x[XR[i].k]>0);
+    });
+    document.getElementById("depTotal").textContent=deps(x);
+    document.getElementById("thrTotal").textContent=thrs(x);
+    var D=0, T=0;
+    xrDays().forEach(function(r){ D+=deps(r.xr); T+=thrs(r.xr); });
+    document.getElementById("zToday").textContent=deps(x);
+    document.getElementById("zDeps").textContent=D;
+    document.getElementById("zThrs").textContent=T;
+    if(VIEW==="xr") xrSubtitle();
+    drawXrChart();
+  }
+  function drawXrChart(){
+    var svg=document.getElementById("zchart");
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    var days=lastDays(SPAN);
+    var tot=function(r){ return r&&r.xr ? deps(r.xr)+thrs(r.xr) : 0; };
+    var top=0; days.forEach(function(k){ top=Math.max(top,tot(rec(k))); });
+    var any=top>0;
+    document.getElementById("zEmpty").hidden=any;
+    svg.style.display=any?"block":"none";
+    if(!any){ CH.zchart=null; return; }
+    var max=Math.max(4, top+(top%2));                 /* an even ceiling, at least 4 */
+    var narrow=window.innerWidth<620;
+    var W=(narrow?430:700),H=190,padL=24,padR=8,padT=12,padB=22;
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);
+    var plotW=W-padL-padR, plotH=H-padT-padB, step=plotW/days.length;
+    var bw=Math.max(3.5,Math.min(14,step*0.6)), every=narrow?8:4;
+    [0,max/2,max].forEach(function(v){
+      var y=padT+plotH-(v/max)*plotH;
+      svg.appendChild(el("line",{x1:padL,y1:y.toFixed(1),x2:W-padR,y2:y.toFixed(1),class:"gridline"}));
+      var t=el("text",{x:padL-7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"end"}); t.textContent=v; svg.appendChild(t);
+    });
+    days.forEach(function(k,i){
+      var cx=padL+step*(i+0.5), x=cx-bw/2, r=rec(k), last=i===days.length-1;
+      if(last || (days.length-1-i)%every===0){
+        var lab=el("text",{x:cx.toFixed(1),y:(H-6).toFixed(1),class:"daylabel"+(last?" today":""),"text-anchor":"middle"});
+        lab.textContent=Number(k.slice(8,10)); svg.appendChild(lab);
+      }
+      if(!tot(r)){ svg.appendChild(el("rect",{x:x.toFixed(1),y:(padT+plotH-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"})); return; }
+      var y=padT+plotH;
+      XR.forEach(function(it){
+        var c=r.xr[it.k]||0; if(!c) return;
+        var h=(c/max)*plotH; y-=h;
+        svg.appendChild(el("rect",{x:x.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:it.color}));
+      });
+    });
+    chartDone("zchart",svg,{W:W,padL:padL,padT:padT,plotH:plotH,step:step,days:days,info:infoXr});
+  }
+  function infoXr(k){
+    var r=rec(k);
+    if(!r || !r.xr) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
+    var x=r.xr;
+    var h='<div class="th">'+fmtDay(k)+'</div>';
+    [["dep","Depletion"],["thr","Threshold"]].forEach(function(g){
+      h+='<div class="tr"><span>'+g[1]+'</span><b>'+(g[0]==="dep"?deps(x):thrs(x))+'</b></div>';
+      XR.forEach(function(it){ if(it.grp===g[0] && x[it.k]) h+=tr(it.color,it.name,x[it.k]); });
+    });
+    return h;
+  }
+
+  /* ---------- Arurael: focus blocks with countdowns ----------
+     A running block is kept as a wall-clock end time, so it carries on
+     through a locked screen or another app, and lands when you come back. */
+  var ART={date:dayKey(), blk:null, endsAt:0, left:{}};
+  try{ var _t=JSON.parse(localStorage.getItem("dial.ar")||"null"); if(_t && _t.date) ART=_t; }catch(e){}
+  function arSave(){ try{ localStorage.setItem("dial.ar",JSON.stringify(ART)); }catch(e){} planNotes(); }
+
+  /* ---------- notifications (the Android app only) ----------
+     The page hands the phone a plan of what to say and when, two weeks ahead;
+     the phone keeps it through restarts and rings even with the app closed.
+     Whenever something changes - a pill taken, a countdown started - the plan
+     is redrawn, so nothing is announced that is already done. */
+  var PLAN_SENT="", HEX={arexia:"#0DAF0B", xeron:"#FF000A", arurael:"#1D4ED8", xenlil:"#FDC500"};
+  function planNotes(){
+    var H=window.RitualHost; if(!H || !H.setPlan || !state) return;
+    var out=[], base=new Date(), today=dayKey();
+    base=new Date(base.getFullYear(), base.getMonth(), base.getDate());
+    function at(day,h,m){ var d=new Date(day); d.setHours(h,m||0,0,0); return d.getTime(); }
+    for(var n=0;n<14;n++){
+      var day=new Date(base.getFullYear(), base.getMonth(), base.getDate()+n), k=dayKey(day), isToday=(k===today);
+      GODS.forEach(function(g){
+        [0,1].forEach(function(i){
+          var w=windowOf(g,i);
+          out.push({id:"g"+k+"-"+w[0], at:at(day,w[0]), color:HEX[g.key],
+            ch: w[0]<8 ? "quiet" : "hours",                /* 00, 03 and 06 come silently */
+            title:g.name+" holds the hour",
+            body:(i?"Second":"First")+" rite · "+fmt(w[0])+"–"+fmt(w[1])});
+        });
+      });
+      var hb=isToday ? (state.day.habits||{}) : {};
+      if(!hb.fin) out.push({id:"fin"+k, at:at(day,16), ch:"remind", color:"#A855F7", title:"Finasteride", body:"16:00 · time to take it"});
+      if(!hb.bed) out.push({id:"bed"+k, at:at(day,23,30), ch:"remind", color:"#EC4899", title:"To bed", body:"23:30 · the day is done"});
+      var engDone=isToday && state.day.ar && state.day.ar.eng && state.day.ar.eng[0];
+      var engRun=isToday && typeof ART!=="undefined" && ART && ART.blk==="eng0";
+      if(!engDone && !engRun) out.push({id:"eng"+k, at:at(day,23), ch:"remind", color:"#A5B4FC", title:"English", body:"10 minutes before the day closes"});
+    }
+    if(typeof ART!=="undefined" && ART && ART.blk){
+      var m=arMission(ART.blk), i=+ART.blk.slice(m.k.length);
+      out.push({id:"ar-"+ART.blk+"-"+ART.endsAt, at:ART.endsAt, ch:"remind", color:"#2563EB", fg:true,
+        title:m.name+" · "+(m.blocks>1 ? "Division "+(i+1) : "Division")+" done",
+        body:m.min+" minutes of focus, sealed"});
+    }
+    var js=JSON.stringify(out);
+    if(js===PLAN_SENT) return;
+    try{ H.setPlan(js); PLAN_SENT=js; }catch(e){}
+  }
+  function arMission(id){ for(var i=0;i<AR.length;i++) if(id.indexOf(AR[i].k)===0) return AR[i]; }
+  function arLeft(id){
+    var m=arMission(id), full=m.min*60000;
+    if(ART.blk===id) return Math.max(0, ART.endsAt-Date.now());
+    return ART.left[id]!==undefined ? ART.left[id] : full;
+  }
+  function mmss(ms){ var s=Math.ceil(ms/1000); return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
+  function arStart(id){
+    if(ART.blk===id){ arPause(); return; }
+    if(ART.blk) arPause();
+    audio();
+    var left=arLeft(id);                 /* read before it counts as running */
+    ART.blk=id; ART.endsAt=Date.now()+left; arSave(); awake(true); renderAr();
+  }
+  function arPause(){
+    if(!ART.blk) return;
+    ART.left[ART.blk]=Math.max(0, ART.endsAt-Date.now()); ART.blk=null; arSave(); awake(false); renderAr();
+  }
+  function arReset(id){
+    if(ART.blk===id){ ART.blk=null; awake(false); }
+    delete ART.left[id]; arSave(); renderAr();
+  }
+  function arTick(){
+    /* a division that ran out while the app was away is written to the day it ended on */
+    if(ART.blk && Date.now()>=ART.endsAt){
+      var id=ART.blk, m=arMission(id), i=+id.slice(m.k.length);
+      ART.blk=null; delete ART.left[id]; awake(false);
+      rollover();
+      var r=rec(dayKey(new Date(ART.endsAt)))||state.day;
+      if(!r.ar) r.ar=blankAr();
+      if(r.ar[m.k]) r.ar[m.k][i]=true;
+      if(ART.date!==dayKey()) ART={date:dayKey(), blk:null, endsAt:0, left:{}};
+      arSave(); save();
+      sfx("done");
+      toast(m.name+" division done."); fb("done");
+      renderAr(); return;
+    }
+    if(ART.date!==dayKey()){ ART={date:dayKey(), blk:ART.blk, endsAt:ART.endsAt, left:{}}; arSave(); renderAr(); return; }
+    if(!ART.blk) return;
+    arTimes();
+  }
+  function buildAr(){
+    var host=document.getElementById("arCards");
+    AR.forEach(function(m){
+      var card=document.createElement("div");
+      card.className="card"; card.style.setProperty("--hue",m.color);
+      card.innerHTML='<div class="card-head"><span class="gname">'+m.name+'</span><span class="ghours">'+
+        (m.blocks>1 ? m.blocks+' × '+m.min+' min' : m.min+' min')+'</span></div>';
+      for(var i=0;i<m.blocks;i++){
+        (function(id,label){
+          var b=document.createElement("div"); b.className="blk"; b.id="blk-"+id;
+          b.innerHTML='<div class="blk-row"><span class="blk-name">'+label+'</span><span class="blk-time">'+mmss(m.min*60000)+'</span>'+
+            '<button type="button" class="ctl sm go" aria-label="Start"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7.5-4.5z"/></svg></button>'+
+            '<button type="button" class="ctl sm" aria-label="Reset"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>'+
+            '</div><div class="blk-bar"><i></i></div>';
+          var bt=b.querySelectorAll(".ctl");
+          bt[0].addEventListener("click",function(){ fb("tap"); arStart(id); });
+          bt[1].addEventListener("click",function(){ fb("off"); arReset(id); });
+          card.appendChild(b);
+        })(m.k+i, m.blocks>1 ? "Division "+(i+1) : "Division");
+      }
+      host.appendChild(card);
+    });
+  }
+  function arTimes(){
+    AR.forEach(function(m){
+      for(var i=0;i<m.blocks;i++){
+        var id=m.k+i, b=document.getElementById("blk-"+id), done=state.day.ar[m.k][i];
+        var left=arLeft(id), full=m.min*60000, run=ART.blk===id;
+        b.dataset.done=done?"1":"0"; b.dataset.run=run?"1":"0";
+        b.querySelector(".blk-time").textContent = done ? "Done ✓" : mmss(left);
+        b.querySelector(".blk-bar i").style.width = (done ? 100 : (1-left/full)*100).toFixed(2)+"%";
+        var bt=b.querySelectorAll(".ctl");
+        bt[0].disabled=done; bt[0].setAttribute("aria-label", run?"Pause":"Start");
+        bt[0].querySelector("path").setAttribute("d", run ? "M4.5 3h2.5v10H4.5zM9 3h2.5v10H9z" : "M5 3.5v9l7.5-4.5z");
+        bt[1].disabled = done || (!run && ART.left[id]===undefined);
+      }
+    });
+    if(VIEW==="ar") arSubtitle();
+  }
+  function arSubtitle(){
+    var a=state.day.ar, total=AR.reduce(function(n,m){ return n+m.blocks; },0), h;
+    if(ART.blk){ var m=arMission(ART.blk); h=m.name+" • "+mmss(arLeft(ART.blk))+" left • "+arBlocks(a)+" of "+total+" done"; }
+    else h=arBlocks(a)+" of "+total+" divisions • "+arMin(a)+" of "+AR_FULL+" min";
+    document.getElementById("holder").textContent=h;
+  }
+  function arDays(){
+    return state.history.filter(function(r){ return r.ar; }).concat([{date:state.day.date, ar:state.day.ar}]);
+  }
+  function renderAr(){
+    arTimes();
+    var mins=0, full=0;
+    arDays().forEach(function(r){ mins+=arMin(r.ar); if(arMin(r.ar)>=AR_FULL) full++; });
+    document.getElementById("aToday").textContent=arMin(state.day.ar);
+    document.getElementById("aHours").textContent=(Math.round(mins/6)/10).toString();
+    document.getElementById("aFull").textContent=full;
+    drawArChart();
+  }
+  function drawArChart(){
+    var svg=document.getElementById("achart");
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    var days=lastDays(SPAN);
+    var any=days.some(function(k){ var r=rec(k); return r && r.ar && arMin(r.ar)>0; });
+    document.getElementById("aEmpty").hidden=any;
+    svg.style.display=any?"block":"none";
+    if(!any){ CH.achart=null; return; }
+    var max=AR_FULL;
+    var narrow=window.innerWidth<620;
+    var W=(narrow?430:700),H=190,padL=24,padR=8,padT=12,padB=22;
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);
+    var plotW=W-padL-padR, plotH=H-padT-padB, step=plotW/days.length;
+    var bw=Math.max(3.5,Math.min(14,step*0.6)), every=narrow?8:4;
+    [0,25,50,75].forEach(function(v){
+      var y=padT+plotH-(v/max)*plotH;
+      svg.appendChild(el("line",{x1:padL,y1:y.toFixed(1),x2:W-padR,y2:y.toFixed(1),class:"gridline"}));
+      var t=el("text",{x:padL-7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"end"}); t.textContent=v; svg.appendChild(t);
+    });
+    days.forEach(function(k,i){
+      var cx=padL+step*(i+0.5), x=cx-bw/2, r=rec(k), last=i===days.length-1;
+      if(last || (days.length-1-i)%every===0){
+        var lab=el("text",{x:cx.toFixed(1),y:(H-6).toFixed(1),class:"daylabel"+(last?" today":""),"text-anchor":"middle"});
+        lab.textContent=Number(k.slice(8,10)); svg.appendChild(lab);
+      }
+      if(!r || !r.ar || !arMin(r.ar)){ svg.appendChild(el("rect",{x:x.toFixed(1),y:(padT+plotH-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"})); return; }
+      var y=padT+plotH;
+      AR.forEach(function(m){
+        var v=(r.ar[m.k]||[]).filter(Boolean).length*m.min; if(!v) return;
+        var h=(v/max)*plotH; y-=h;
+        svg.appendChild(el("rect",{x:x.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:m.color}));
+      });
+    });
+    chartDone("achart",svg,{W:W,padL:padL,padT:padT,plotH:plotH,step:step,days:days,info:infoAr});
+  }
+  function infoAr(k){
+    var r=rec(k);
+    if(!r || !r.ar) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
+    var h='<div class="th">'+fmtDay(k)+' • '+arMin(r.ar)+' of '+AR_FULL+' min</div>';
+    AR.forEach(function(m){
+      var n=(r.ar[m.k]||[]).filter(Boolean).length;
+      h+=tr(m.color,m.name,(n*m.min)+" min");
+    });
+    return h;
+  }
+  setInterval(arTick,250);
+  document.addEventListener("visibilitychange",function(){ if(!document.hidden) arTick(); });
+
+  /* ---------- tabs ---------- */
+  var VIEW="dial";
+  /* the arm of the god whose tab is open lights in that god's colour */
+  function turnMark(v){
+    Array.prototype.forEach.call(document.querySelectorAll("#mark .arm"),function(a){
+      a.classList.toggle("lit", a.getAttribute("data-v")===v);
+    });
+  }
+  var ORDER=["xr","ar","xen","dial"];                 /* the nav, left to right */
+  var VIEW_EL={dial:"viewDial", xen:"viewXen", xr:"viewXr", ar:"viewAr"};
+  var SCROLL={};
+  function setView(v,dir){
+    if(dir===undefined) dir=ORDER.indexOf(v)-ORDER.indexOf(VIEW);
+    SCROLL[VIEW]=window.scrollY;
+    VIEW=v;
+    document.getElementById("viewDial").hidden=(v!=="dial");
+    document.getElementById("viewXen").hidden=(v!=="xen");
+    document.getElementById("viewXr").hidden=(v!=="xr");
+    document.getElementById("viewAr").hidden=(v!=="ar");
+    document.getElementById("viewName").textContent={dial:"Arexia",xen:"Xenlil",xr:"Xeron",ar:"Arurael"}[v];
+    turnMark(v);
+
+    Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"),function(t){
+      t.classList.toggle("on", t.dataset.view===v);
+    });
+    SEL=null; ["rTip","xTip","zTip","aTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
+    if(v==="dial"){ kindle(); render(); } else { douse(); ({xen:renderXen, xr:renderXr, ar:renderAr})[v](); }
+    window.scrollTo(0, SCROLL[v]||0);
+    /* the new tab slides in from the side it lives on */
+    var el=document.getElementById(VIEW_EL[v]);
+    el.classList.remove("in-l","in-r");
+    if(dir){ void el.offsetWidth; el.classList.add(dir>0?"in-r":"in-l"); }
+    try{ localStorage.setItem("dial.view",v); }catch(e){}
   }
 
   var toastTimer=null;
@@ -544,7 +1905,119 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   state=load();
   rollover();
-  buildDial(); buildCards(); render();
+  buildDial(); buildCards(); buildPips(); buildHabits(); buildCore(); buildXr(); buildAr();
+  render(); renderXen(); renderXr(); renderAr(); arTick();
+  planNotes();
+  document.getElementById("achart").addEventListener("click",function(ev){ pickDay("achart",ev); });
+  document.getElementById("zchart").addEventListener("click",function(ev){ pickDay("zchart",ev); });
+  /* swipe sideways to move between tabs. The next tab is laid beside the current
+     one, at its own remembered scroll, and both follow the finger like pages of a
+     strip; on release they either carry on or settle back. Nothing is ever blank. */
+  var sw=null, BUSY=false, GAP=24;
+  var calm=window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  function vEl(v){ return document.getElementById(VIEW_EL[v]); }
+  function renderOf(v){ if(v==="dial") render(); else ({xen:renderXen, xr:renderXr, ar:renderAr})[v](); }
+  function put(el,x,ms,ease){
+    el.style.transition = ms ? "transform "+ms+"ms "+ease : "none";
+    el.style.transform = "translate3d("+x+"px,0,0)";
+  }
+  function bare(el){ el.style.transition=""; el.style.transform=""; el.style.willChange=""; el.style.top=""; el.classList.remove("peer"); }
+  function scrollsSideways(n){
+    for(; n && n!==document.body; n=n.parentElement)
+      if(n.scrollWidth>n.clientWidth+1 && /auto|scroll/.test(getComputedStyle(n).overflowX)) return true;
+    return false;
+  }
+  function dropPeer(){ if(sw && sw.peer){ var e=vEl(sw.peer); bare(e); e.hidden=true; sw.peer=null; } }
+  function takePeer(v){
+    var cur=sw.el, docH=document.documentElement.scrollHeight, nb=vEl(v);
+    nb.classList.remove("in-l","in-r");
+    nb.classList.add("peer"); nb.hidden=false; nb.style.willChange="transform";
+    renderOf(v);
+    /* where this tab would sit once it is the page, clamped to how far it can scroll */
+    var maxY=Math.max(0, docH-cur.offsetHeight+nb.offsetHeight-window.innerHeight);
+    var y=Math.min(SCROLL[v]||0, maxY);
+    nb.style.top=(cur.offsetTop+window.scrollY-y)+"px";
+    sw.peer=v; sw.peerY=y;
+  }
+  document.addEventListener("touchstart",function(e){
+    if(BUSY || e.touches.length!==1 || !document.getElementById("modal").hidden || scrollsSideways(e.target)){ sw=null; return; }
+    var t=e.touches[0]; sw={x:t.clientX, y:t.clientY, lock:null, dx:0, peer:null, track:[[t.clientX,Date.now()]]};
+  },{passive:true});
+  document.addEventListener("touchmove",function(e){
+    if(!sw || sw.lock==="y") return;
+    if(e.touches.length!==1){ dropPeer(); if(sw.el) bare(sw.el); sw=null; return; }
+    var t=e.touches[0], dx=t.clientX-sw.x, dy=t.clientY-sw.y;
+    if(!sw.lock){
+      if(Math.abs(dx)>8 && Math.abs(dx)>Math.abs(dy)*1.2 && e.cancelable){
+        sw.lock="x"; sw.x=t.clientX; dx=0; sw.el=vEl(VIEW); sw.el.classList.remove("in-l","in-r"); sw.el.style.willChange="transform";
+        if(calm) sw.lock="calm";
+      }
+      else if(Math.abs(dy)>8){ sw.lock="y"; return; }
+      else return;
+    }
+    e.preventDefault();
+    sw.track.push([t.clientX,Date.now()]); if(sw.track.length>6) sw.track.shift();
+    sw.dx=dx;
+    if(sw.lock==="calm") return;
+    var W=window.innerWidth+GAP, dir=dx<0?1:-1, i=ORDER.indexOf(VIEW)+dir, v=ORDER[i];
+    if(dx===0) return;
+    if(!v){ dropPeer(); put(sw.el, dx/(1+Math.abs(dx)/(W*0.12)), 0); return; }   /* nothing there: rubber band */
+    if(sw.peer!==v){ dropPeer(); takePeer(v); }
+    put(sw.el, dx, 0);
+    put(vEl(v), dx+dir*W, 0);
+  },{passive:false});
+  function swipeEnd(){
+    var s0=sw; sw=null;
+    if(!s0 || (s0.lock!=="x" && s0.lock!=="calm")) return;
+    var W=window.innerWidth+GAP, dx=s0.dx, a=s0.track[0], z=s0.track[s0.track.length-1];
+    var v=(z[1]-a[1])>0 ? (z[0]-a[0])/(z[1]-a[1]) : 0;                       /* px per ms */
+    var dir=dx<0?1:-1, i=ORDER.indexOf(VIEW)+dir, to=ORDER[i];
+    var go=!!to && (Math.abs(dx)>W*0.22 || (Math.abs(v)>0.3 && (v<0?1:-1)===dir && Math.abs(dx)>20));
+    if(s0.lock==="calm"){ bare(s0.el); if(go) setView(to,0); return; }
+    var cur=s0.el, nb=s0.peer?vEl(s0.peer):null;
+    if(go && s0.peer===to){
+      /* carry on, at about the speed the finger left with */
+      var rest=W-Math.abs(dx), ms=Math.round(Math.max(160, Math.min(320, rest/Math.max(0.9,Math.abs(v)))));
+      var ease="cubic-bezier(.25,.75,.35,1)";
+      BUSY=true;
+      put(cur, -dir*W, ms, ease); put(nb, 0, ms, ease);
+      setTimeout(function(){
+        SCROLL[to]=s0.peerY;
+        bare(cur); bare(nb);
+        setView(to,0);                       /* same frame: old page hidden, new one in flow, scroll set */
+        BUSY=false;
+      }, ms+16);
+      return;
+    }
+    /* settle back */
+    var ms2=240, ease2="cubic-bezier(.2,.8,.2,1)";
+    BUSY=true;
+    put(cur, 0, ms2, ease2); if(nb) put(nb, dir*W, ms2, ease2);
+    setTimeout(function(){ bare(cur); if(nb){ bare(nb); nb.hidden=true; } BUSY=false; }, ms2+16);
+  }
+  document.addEventListener("touchend",swipeEnd,{passive:true});
+  document.addEventListener("touchcancel",swipeEnd,{passive:true});
+  var hdr=document.querySelector("header");
+  document.getElementById("chart").addEventListener("click",function(ev){ pickDay("chart",ev); });
+  document.getElementById("xchart").addEventListener("click",function(ev){ pickDay("xchart",ev); });
+  document.addEventListener("click",function(ev){
+    if(!ev.target.closest || !ev.target.closest(".chartbox")) hideTip();
+  });
+  function toggleGym(ev){ if(ev) ev.stopPropagation(); state.day.gym=!state.day.gym; fb(state.day.gym?"on":"off"); save(); renderXen(); }
+  document.getElementById("gymBox").addEventListener("click",toggleGym);
+  document.getElementById("gymRow").addEventListener("click",toggleGym);
+  Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"),function(t){
+    t.addEventListener("click",function(){ if(t.dataset.view!==VIEW) setView(t.dataset.view); });
+  });
+  function sizeMark(){
+    var h=document.querySelector(".brand-text").offsetHeight, m=document.getElementById("mark");
+    if(h){ var z=Math.round(h*0.8); m.style.width=z+"px"; m.style.height=z+"px"; }
+  }
+  sizeMark();
+  if(window.ResizeObserver) new ResizeObserver(sizeMark).observe(document.querySelector(".brand-text"));
+  window.addEventListener("resize",sizeMark);
+  turnMark("dial");
+  try{ var sv=localStorage.getItem("dial.view"); if(sv==="xen"||sv==="xr"||sv==="ar") setView(sv); }catch(e){}
 
   var modal=document.getElementById("modal"), pending=null;
   function closeModal(){ modal.hidden=true; pending=null; }
@@ -554,27 +2027,77 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     document.getElementById("mYes").textContent=label;
     pending=fn; modal.hidden=false;
   }
-  document.getElementById("mNo").addEventListener("click",closeModal);
+  document.getElementById("mNo").addEventListener("click",function(){ fb("tap"); closeModal(); });
   modal.addEventListener("click",function(ev){ if(ev.target===modal) closeModal(); });
   document.addEventListener("keydown",function(ev){ if(ev.key==="Escape") closeModal(); });
   document.getElementById("mYes").addEventListener("click",function(){
+    fb("off");
     var fn=pending; closeModal(); if(fn) fn();
   });
 
+  /* a past day with neither rites nor tally left is dropped */
+  function prune(){
+    state.history=state.history.filter(function(r){ return r.checks!==null || r.xen!==false || r.xr || r.ar; });
+  }
   document.getElementById("btnClearToday").addEventListener("click",function(){
-    ask("Unseal this day?","The eight rites of today return to unsealed. The chronicle is untouched.","Unseal",function(){
+    ask("Unseal this day?","Today's eight rites return to unsealed. Xenlil's tally is untouched.","Unseal",function(){
       state.day.checks=blankChecks(); save(); render(); toast("The day stands empty.");
     });
   });
   document.getElementById("btnClearAll").addEventListener("click",function(){
-    ask("Erase every record?","This day and the whole chronicle. It cannot be undone.","Erase",function(){
-      state={day:{date:dayKey(), checks:blankChecks()}, history:[]};
-      try{ localStorage.removeItem(KEY); }catch(e){}
-      render(); toast("All records erased.");
+    ask("Erase Arexia's chronicle?","Every rite on every day. Xenlil's tally is kept. It cannot be undone.","Erase",function(){
+      state.day.checks=blankChecks();
+      state.history.forEach(function(r){ r.checks=null; });
+      prune(); save(); render(); toast("The chronicle is erased.");
+    });
+  });
+  document.getElementById("aClearToday").addEventListener("click",function(){
+    ask("Clear today's divisions?","Today's Execution & Science, Share and English return to undone, and any countdown stops. The other tabs are untouched.","Clear",function(){
+      state.day.ar=blankAr(); if(ART.blk) awake(false); ART={date:dayKey(), blk:null, endsAt:0, left:{}}; arSave();
+      save(); renderAr(); toast("Today's divisions are cleared.");
+    });
+  });
+  document.getElementById("aClearAll").addEventListener("click",function(){
+    ask("Erase Arurael's record?","Every day of focus divisions. The other tabs are kept. It cannot be undone.","Erase",function(){
+      state.day.ar=blankAr(); if(ART.blk) awake(false); ART={date:dayKey(), blk:null, endsAt:0, left:{}}; arSave();
+      state.history.forEach(function(r){ delete r.ar; });
+      prune(); save(); renderAr(); toast("Arurael's record is erased.");
+    });
+  });
+  document.getElementById("zClearToday").addEventListener("click",function(){
+    ask("Clear today's record?","Today's depletion and threshold counts return to zero. The other tabs are untouched.","Clear",function(){
+      state.day.xr=blankXr(); save(); renderXr(); toast("Today's record is empty.");
+    });
+  });
+  document.getElementById("zClearAll").addEventListener("click",function(){
+    ask("Erase Xeron's record?","Every day of depletion and threshold counts. The other tabs are kept. It cannot be undone.","Erase",function(){
+      state.day.xr=blankXr();
+      state.history.forEach(function(r){ delete r.xr; });
+      prune(); save(); renderXr(); toast("Xeron's record is erased.");
+    });
+  });
+  document.getElementById("xClearToday").addEventListener("click",function(){
+    ask("Clear today's tally?","Water, gym, supplements and sleep & skin for today return to empty. Arexia is untouched.","Clear",function(){
+      state.day.water=0; state.day.gym=false; state.day.habits={}; state.day.core=false;
+      save(); renderXen(); toast("Today's tally is empty.");
+    });
+  });
+  document.getElementById("xClearAll").addEventListener("click",function(){
+    ask("Erase Xenlil's record?","Every day of water, gym, supplements and sleep & skin. Arexia's rites are kept. It cannot be undone.","Erase",function(){
+      state.day.water=0; state.day.gym=false; state.day.habits={}; state.day.core=false;
+      state.history.forEach(function(r){ delete r.water; delete r.gym; delete r.habits; delete r.core; r.xen=false; });
+      prune(); save(); renderXen(); toast("Xenlil's record is erased.");
     });
   });
 
-  setInterval(function(){ rollover(); render(); }, 20000);
+  function renderNow(){ if(VIEW==="dial") render(); else ({xen:renderXen, xr:renderXr, ar:renderAr})[VIEW](); }
+  document.addEventListener("pointerdown",function(){ if(rollover()) renderNow(); },true);
+  document.addEventListener("visibilitychange",function(){ if(!document.hidden && rollover()) renderNow(); });
+  setInterval(function(){
+    if(rollover()) renderXen();
+    if(VIEW==="dial") render(); else ({xen:renderXen, xr:renderXr, ar:renderAr})[VIEW]();
+    renderClock();
+  }, 20000);
 })();
 </script>
 
