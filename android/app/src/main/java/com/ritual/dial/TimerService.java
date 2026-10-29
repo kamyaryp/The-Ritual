@@ -47,7 +47,9 @@ public class TimerService extends Service {
     /* ---------------- the timers themselves ---------------- */
 
     static final class Slot {
-        String kind, id = "", title = "", sub = "";
+        String kind, id = "", title = "", sub = "", color = "", doneTitle = "", doneBody = "";
+        int arm = -1;            // which arm of the cross is lit (0 bottom, 1 left, 2 top, 3 right)
+        long deadline;           // wall-clock ms after which an unfinished timer is void; 0 = none
         boolean run, finished;
         long baseEl, startWall, total, endedAt;   // ms
         long lastSec = -1;
@@ -58,6 +60,8 @@ public class TimerService extends Service {
         JSONObject json(long now) throws Exception {
             JSONObject o = new JSONObject();
             o.put("kind", kind); o.put("id", id); o.put("title", title); o.put("sub", sub);
+            o.put("color", color); o.put("doneTitle", doneTitle); o.put("doneBody", doneBody);
+            o.put("arm", arm); o.put("deadline", deadline);
             o.put("run", run); o.put("finished", finished);
             o.put("baseEl", baseEl); o.put("startWall", startWall); o.put("total", total); o.put("endedAt", endedAt);
             o.put("el", el(now));
@@ -67,6 +71,8 @@ public class TimerService extends Service {
         static Slot from(JSONObject o) {
             Slot s = new Slot();
             s.kind = o.optString("kind"); s.id = o.optString("id"); s.title = o.optString("title"); s.sub = o.optString("sub");
+            s.color = o.optString("color"); s.doneTitle = o.optString("doneTitle"); s.doneBody = o.optString("doneBody");
+            s.arm = o.optInt("arm", -1); s.deadline = o.optLong("deadline");
             s.run = o.optBoolean("run"); s.finished = o.optBoolean("finished");
             s.baseEl = o.optLong("baseEl"); s.startWall = o.optLong("startWall"); s.total = o.optLong("total");
             s.endedAt = o.optLong("endedAt");
@@ -139,6 +145,11 @@ public class TimerService extends Service {
                     s.id = o.optString("id", "");
                     s.title = o.optString("title", "");
                     s.sub = o.optString("sub", "");
+                    s.color = o.optString("color", "");
+                    s.doneTitle = o.optString("doneTitle", "");
+                    s.doneBody = o.optString("doneBody", "");
+                    s.arm = o.optInt("arm", -1);
+                    s.deadline = o.optLong("deadline", 0);
                     s.total = o.optLong("total");
                     s.baseEl = Math.min(s.total, o.optLong("el"));
                     s.startWall = now;
@@ -312,9 +323,15 @@ public class TimerService extends Service {
     private void tick() {
         List<Slot> ended = new ArrayList<>();
         List<Slot> changed = new ArrayList<>();
-        boolean running = false;
+        boolean running = false, voided = false;
         synchronized (LOCK) {
             long now = System.currentTimeMillis();
+            for (Slot s : new ArrayList<>(SLOTS.values())) {
+                if (!s.finished && s.deadline > 0 && now >= s.deadline && s.el(now) < s.total) {
+                    SLOTS.remove(s.kind); CLEARED.put(s.kind, s.id); voided = true;   // its window closed: missed
+                }
+            }
+            if (voided) persist();
             for (Slot s : SLOTS.values()) {
                 if (!s.run || s.finished) continue;
                 long el = s.el(now), sec = el / 1000;
@@ -333,7 +350,7 @@ public class TimerService extends Service {
             if (!ended.isEmpty()) persist();
         }
         for (Slot s : ended) announce(s);
-        if (!ended.isEmpty()) { refresh(); return; }
+        if (!ended.isEmpty() || voided) { refresh(); return; }
         for (Slot s : changed) show(s);
         if (running) h.postDelayed(loop, 40);
     }
@@ -374,10 +391,22 @@ public class TimerService extends Service {
         if (old != 0 && old != fgId) nm.cancel(old);
         for (Slot s : act) show(s);
         if (running) { if (!wl.isHeld()) wl.acquire(8 * 60 * 60 * 1000L); h.post(loop); }
-        else if (wl.isHeld()) wl.release();
+        else {
+            if (wl.isHeld()) wl.release();
+            long next = Long.MAX_VALUE, now = System.currentTimeMillis();
+            for (Slot s : act) if (s.deadline > 0) next = Math.min(next, s.deadline);
+            if (next != Long.MAX_VALUE) h.postDelayed(loop, Math.max(0, next - now) + 50);
+        }
     }
 
-    private static int nid(String kind) { return "core".equals(kind) ? 2101 : 2102; }
+    private static int nid(String kind) { return "core".equals(kind) ? 2101 : "ar".equals(kind) ? 2102 : 2103; }
+
+    private static int colorOf(Slot s) {
+        try { if (!s.color.isEmpty()) return Color.parseColor(s.color); } catch (Exception ignored) { }
+        return Color.parseColor("core".equals(s.kind) ? "#FDC500" : "#1D4ED8");
+    }
+
+    private static int armOf(Slot s) { return s.arm >= 0 ? s.arm : ("core".equals(s.kind) ? 2 : 1); }
 
     private void startFg(Notification n) { startFg(n, 2100); }
 
@@ -428,7 +457,7 @@ public class TimerService extends Service {
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, w[1])
                 .putString(MediaMetadata.METADATA_KEY_ALBUM, "Golden Path")
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, s.total)
-                .putBitmap(MediaMetadata.METADATA_KEY_ART, art(s.kind))
+                .putBitmap(MediaMetadata.METADATA_KEY_ART, art(s))
                 .build());
         ms.setPlaybackState(new PlaybackState.Builder()
                 .setActions(PlaybackState.ACTION_PLAY | PlaybackState.ACTION_PAUSE
@@ -447,14 +476,14 @@ public class TimerService extends Service {
         synchronized (LOCK) { el = s.el(now); }
         String[] w = words(s, el);
         MediaSession ms = session(s);
-        int color = "core".equals(s.kind) ? Color.parseColor("#FDC500") : Color.parseColor("#1D4ED8");
+        int color = colorOf(s);
 
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CH) : new Notification.Builder(this);
         b.setSmallIcon(R.drawable.ic_stat)
          .setContentTitle(w[0])
          .setContentText(w[1])
          .setSubText(s.run ? "Running" : "Paused")
-         .setLargeIcon(art(s.kind))
+         .setLargeIcon(art(s))
          .setColor(color)
          .setOngoing(true)
          .setOnlyAlertOnce(true)
@@ -503,11 +532,12 @@ public class TimerService extends Service {
         return PendingIntent.getService(this, code, i, PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
     }
 
-    /** The app's cross with the holding god's arm lit: Xenlil's for the core, Arurael's for the countdowns. */
+    /** The app's cross with one god's arm lit: Xenlil's for the core, Arurael's for her countdowns, Xeron's for Aeshma. */
     private final Map<String, Bitmap> arts = new HashMap<>();
 
-    private Bitmap art(String kind) {
-        Bitmap bm = arts.get(kind);
+    private Bitmap art(Slot s) {
+        String key = s.kind + armOf(s) + colorOf(s);
+        Bitmap bm = arts.get(key);
         if (bm != null) return bm;
         int n = 512;
         bm = Bitmap.createBitmap(n, n, Bitmap.Config.ARGB_8888);
@@ -515,8 +545,8 @@ public class TimerService extends Service {
         c.drawColor(Color.parseColor("#0d0d0c"));
         Paint grey = new Paint(Paint.ANTI_ALIAS_FLAG); grey.setColor(Color.parseColor("#3a3a3a"));
         Paint lit = new Paint(Paint.ANTI_ALIAS_FLAG);
-        boolean core = "core".equals(kind);
-        lit.setColor(Color.parseColor(core ? "#FDC500" : "#1D4ED8"));
+        lit.setColor(colorOf(s));
+        int litArm = armOf(s);
         float k = n * 0.56f / 1000f, o = n * 0.22f;              // mark viewBox 500..1500, centred
         float[][] arms = {                                       // x, y, w, h in mark units
                 {400, 600, 200, 400},   // bottom - Xeron
@@ -525,10 +555,10 @@ public class TimerService extends Service {
                 {600, 400, 400, 200}};  // right - Arexia
         for (int i = 0; i < 4; i++) {
             float[] a = arms[i];
-            boolean on = core ? i == 2 : i == 1;
+            boolean on = i == litArm;
             c.drawRect(new RectF(o + a[0] * k, o + a[1] * k, o + (a[0] + a[2]) * k, o + (a[1] + a[3]) * k), on ? lit : grey);
         }
-        arts.put(kind, bm);
+        arts.put(key, bm);
         return bm;
     }
 
@@ -541,9 +571,11 @@ public class TimerService extends Service {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, "remind") : new Notification.Builder(this);
         boolean core = "core".equals(s.kind);
         b.setSmallIcon(R.drawable.ic_stat)
-         .setContentTitle(core ? "Core session complete" : s.title + (s.sub.isEmpty() ? "" : " · " + s.sub) + " done")
-         .setContentText(core ? "Six minutes of holds, sealed" : (s.total / 60000) + " minutes of focus, sealed")
-         .setColor(Color.parseColor(core ? "#84CC16" : "#2563EB"))
+         .setContentTitle(!s.doneTitle.isEmpty() ? s.doneTitle
+                 : core ? "Core session complete" : s.title + (s.sub.isEmpty() ? "" : " \u00b7 " + s.sub) + " done")
+         .setContentText(!s.doneBody.isEmpty() ? s.doneBody
+                 : core ? "Six minutes of holds, sealed" : (s.total / 60000) + " minutes of focus, sealed")
+         .setColor(core ? Color.parseColor("#84CC16") : colorOf(s))
          .setAutoCancel(true)
          .setContentIntent(openApp());
         if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_HIGH);

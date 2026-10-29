@@ -39,8 +39,10 @@ img{max-width:100%}
   --xenlil:#FDC500;  --xenlil-dim:#423509;  --xenlil-hot:#fedc66;
   --arexia:#0DAF0B;  --arexia-dim:#0d310c;  --arexia-hot:#6dcf6d;
   --c-water:#22B8CF; --c-gym:#F97316; --c-supp:#A855F7; --c-care:#EC4899; --c-core:#84CC16; --c-maint:#94A3B8;
-  --x-exo:#FF2A2A; --x-endoin:#B3101B; --x-endo:#FF8A7A;
-  --x-texo:#7E3A3D; --x-tendoin:#5B2629; --x-tendo:#A2615F;
+  /* depletion: endo dark, in session mid, exo light; thresholds the same steps, muted */
+  --x-endo:#9E0F18; --x-endoin:#E0202B; --x-exo:#FF7A7A;
+  --x-tendo:#5A2427; --x-tendoin:#8A4447; --x-texo:#BF8583;
+  --x-ae:#B3141C;
   --a-exe:#2563EB; --a-sci:#60A5FA; --a-eng:#A5B4FC;
   --font:"Inter",system-ui,-apple-system,"Segoe UI",sans-serif;
   --mono:"JetBrains Mono",ui-monospace,SFMono-Regular,Menlo,monospace;
@@ -73,7 +75,7 @@ body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset
 h1{font-weight:500;font-size:clamp(20px,3vw,25px);margin:0;letter-spacing:-.02em}
 .holder{display:none}
 .brand{display:flex;align-items:center;gap:16px;min-width:0;flex:1 1 auto}
-.stamp{flex:0 0 auto;white-space:nowrap}
+.stamp{display:none}
 @media (max-width:620px){ .stamp .tm{display:none} }
 .brand-text{min-width:0}
 .mark{flex:0 0 auto;display:block;width:30px;height:30px;overflow:visible}
@@ -149,6 +151,22 @@ svg.dial{width:100%;max-width:450px;height:auto}
 }
 #viewDial[hidden],#viewXen[hidden],#viewXr[hidden],#viewAr[hidden]{display:none}
 .ar-cards{grid-template-columns:repeat(3,1fr)}
+/* the Binding of Aeshma: a small dial of the day's eight windows, and the countdown */
+.ae-body{display:flex;align-items:center;gap:22px}
+.ae-dial{flex:0 0 auto;width:150px;height:150px;display:block;overflow:visible}
+.ae-side{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:9px}
+.ae-now{display:flex;align-items:center;gap:9px;font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.ae-rune{font-family:var(--rune);font-size:17px;line-height:1;color:var(--hue)}
+.ae-time{font-family:var(--mono);font-size:30px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums;letter-spacing:-.02em}
+.ae-card[data-run="1"] .ae-time{color:var(--hue)}
+.ae-card[data-done="1"] .ae-time{font-size:16px;color:var(--hue)}
+.ae-ctl{display:flex;gap:8px}
+.aeband{transition:fill .25s ease,stroke-opacity .25s ease}
+.aeband.open{cursor:pointer}
+@media (prefers-reduced-motion:no-preference){ .aeband.open:not(.sealed){animation:breathe 2.8s ease-in-out infinite} }
+.aerune{font-family:var(--rune);font-size:26px;pointer-events:none}
+.aerunes{font-family:var(--rune);font-size:13px;letter-spacing:.1em}
+@media (max-width:420px){ .ae-dial{width:124px;height:124px} .ae-body{gap:16px} .ae-time{font-size:26px} }
 @media (max-width:860px){ .ar-cards{grid-template-columns:1fr 1fr} .ar-cards .card:first-child{grid-column:1/-1} }
 @media (max-width:560px){ .ar-cards{grid-template-columns:1fr} }
 .blk{display:flex;flex-direction:column;gap:9px;padding-top:2px}
@@ -472,8 +490,23 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       <div class="card" id="depCard" style="--hue:var(--xeron)">
         <div class="card-head"><span class="gname">Depletion</span><span class="ghours" id="depTotal">0</span></div>
       </div>
-      <div class="card" id="thrCard" style="--hue:var(--x-tendo)">
+      <div class="card" id="thrCard" style="--hue:var(--x-tendoin)">
         <div class="card-head"><span class="gname">Threshold</span><span class="ghours" id="thrTotal">0</span></div>
+      </div>
+    </div>
+    <div class="card ae-card" id="aeCard" style="--hue:var(--x-ae)">
+      <div class="card-head"><span class="gname">The Binding of Aeshma</span><span class="ghours" id="aeCount">0/8</span></div>
+      <div class="ae-body">
+        <svg class="ae-dial" id="aeDial" viewBox="36 36 308 308" aria-label="The eight bindings of the day"></svg>
+        <div class="ae-side">
+          <div class="ae-now"><span class="ae-rune" id="aeRune">ᚠ</span><span id="aeWin">00:00–00:17</span></div>
+          <div class="ae-time" id="aeTime">13:00</div>
+          <div class="blk-bar"><i id="aeBar"></i></div>
+          <div class="ae-ctl">
+            <button type="button" class="ctl sm go" id="aePlay" aria-label="Start"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="aePlayIcon" d="M5 3.5v9l7.5-4.5z"/></svg></button>
+            <button type="button" class="ctl sm" id="aeReset" aria-label="Reset"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+          </div>
+        </div>
       </div>
     </div>
     <section class="chron">
@@ -483,6 +516,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           <span><b id="zToday">0</b> today</span>
           <span><b id="zDeps">0</b> depletions</span>
           <span><b id="zThrs">0</b> thresholds</span>
+          <span><b id="zBound">0</b> bound</span>
         </div>
       </div>
       <div class="chartbox">
@@ -642,14 +676,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     return {done:done, total:items.length, parts:parts};
   }
   var XR=[
-    {k:"exo",     grp:"dep", name:"Exo",               color:"var(--x-exo)"},
-    {k:"endoIn",  grp:"dep", name:"Endo · in session", color:"var(--x-endoin)"},
     {k:"endo",    grp:"dep", name:"Endo",              color:"var(--x-endo)"},
-    {k:"texo",    grp:"thr", name:"Exo",               color:"var(--x-texo)"},
+    {k:"endoIn",  grp:"dep", name:"Endo · in session", color:"var(--x-endoin)"},
+    {k:"exo",     grp:"dep", name:"Exo",               color:"var(--x-exo)"},
+    {k:"tendo",   grp:"thr", name:"Endo",              color:"var(--x-tendo)"},
     {k:"tendoIn", grp:"thr", name:"Endo · in session", color:"var(--x-tendoin)"},
-    {k:"tendo",   grp:"thr", name:"Endo",              color:"var(--x-tendo)"}
+    {k:"texo",    grp:"thr", name:"Exo",               color:"var(--x-texo)"}
   ];
   function blankXr(){ var o={}; XR.forEach(function(x){ o[x.k]=0; }); return o; }
+  function blankAe(){ return [false,false,false,false,false,false,false,false]; }
+  function aeCount(a){ var n=0; if(a) a.forEach(function(v){ if(v) n++; }); return n; }
   function deps(x){ return x ? (x.exo||0)+(x.endoIn||0)+(x.endo||0) : 0; }
   function thrs(x){ return x ? (x.texo||0)+(x.tendoIn||0)+(x.tendo||0) : 0; }
   var AR=[
@@ -661,7 +697,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function blankAr(){ var o={}; AR.forEach(function(m){ o[m.k]=[]; for(var i=0;i<m.blocks;i++) o[m.k].push(false); }); return o; }
   function arMin(a){ var n=0; if(a) AR.forEach(function(m){ (a[m.k]||[]).forEach(function(d){ if(d) n+=m.min; }); }); return n; }
   function arBlocks(a){ var n=0; if(a) AR.forEach(function(m){ (a[m.k]||[]).forEach(function(d){ if(d) n++; }); }); return n; }
-  function freshDay(k){ return {date:k||dayKey(), checks:blankChecks(), water:0, gym:false, habits:{}, core:false, xr:blankXr(), ar:blankAr()}; }
+  function freshDay(k){ return {date:k||dayKey(), checks:blankChecks(), water:0, gym:false, habits:{}, core:false, xr:blankXr(), ar:blankAr(), ae:blankAe()}; }
   function fresh(){ return {day:freshDay(), history:[]}; }
   function isGymDay(k){
     var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date();
@@ -681,6 +717,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(typeof d.core!=="boolean") d.core=false;
     if(!d.xr) d.xr=blankXr();
     if(!d.ar) d.ar=blankAr();
+    if(!Array.isArray(d.ae)) d.ae=blankAe();
     delete d.xen;
     GODS.forEach(function(g){ if(!d.checks[g.key]) d.checks[g.key]=[false,false]; });
     return d;
@@ -708,7 +745,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function isBlank(r){
     return !(r.checks && total(r.checks)) && !r.water && !r.gym && !r.core &&
       !(r.habits && Object.keys(r.habits).some(function(k){ return r.habits[k]; })) &&
-      !(deps(r.xr)+thrs(r.xr)) && !arBlocks(r.ar);
+      !(deps(r.xr)+thrs(r.xr)) && !arBlocks(r.ar) && !aeCount(r.ae);
   }
   /* At midnight the whole day - rites, tally, Xeron's counts, Arurael's divisions -
      goes into the chronicle. Days the app was never opened are written in as empty
@@ -1675,6 +1712,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     document.getElementById("zToday").textContent=deps(x);
     document.getElementById("zDeps").textContent=D;
     document.getElementById("zThrs").textContent=T;
+    var B=aeCount(state.day.ae); state.history.forEach(function(r){ B+=aeCount(r.ae); });
+    document.getElementById("zBound").textContent=B;
+    renderAe();
     if(VIEW==="xr") xrSubtitle();
     drawXrChart();
   }
@@ -1683,21 +1723,24 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     while(svg.firstChild) svg.removeChild(svg.firstChild);
     var days=lastDays(SPAN);
     var tot=function(r){ return r&&r.xr ? deps(r.xr)+thrs(r.xr) : 0; };
-    var top=0; days.forEach(function(k){ top=Math.max(top,tot(rec(k))); });
-    var any=top>0;
+    var neg=function(r){ return r ? aeCount(r.ae) : 0; };
+    var top=0, low=0; days.forEach(function(k){ var r=rec(k); top=Math.max(top,tot(r)); low=Math.max(low,neg(r)); });
+    var any=top>0 || low>0;
     document.getElementById("zEmpty").hidden=any;
     svg.style.display=any?"block":"none";
     if(!any){ CH.zchart=null; return; }
     var max=Math.max(4, top+(top%2));                 /* an even ceiling, at least 4 */
+    var floor=low ? Math.max(4, low+(low%2)) : 0;     /* the bindings hang below the line */
     var narrow=window.innerWidth<620;
-    var W=(narrow?430:700),H=190,padL=24,padR=8,padT=12,padB=22;
+    var W=(narrow?430:700),H=floor?250:190,padL=24,padR=8,padT=12,padB=22;
     svg.setAttribute("viewBox","0 0 "+W+" "+H);
     var plotW=W-padL-padR, plotH=H-padT-padB, step=plotW/days.length;
+    var unit=plotH/(max+floor), base=padT+max*unit;   /* y of zero */
     var bw=Math.max(3.5,Math.min(14,step*0.6)), every=narrow?8:4;
-    [0,max/2,max].forEach(function(v){
-      var y=padT+plotH-(v/max)*plotH;
+    [0,max/2,max].concat(floor?[-floor/2,-floor]:[]).forEach(function(v){
+      var y=base-v*unit;
       svg.appendChild(el("line",{x1:padL,y1:y.toFixed(1),x2:W-padR,y2:y.toFixed(1),class:"gridline"}));
-      var t=el("text",{x:padL-7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"end"}); t.textContent=v; svg.appendChild(t);
+      var t=el("text",{x:padL-7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"end"}); t.textContent=v<0?"\u2212"+(-v):v; svg.appendChild(t);
     });
     days.forEach(function(k,i){
       var cx=padL+step*(i+0.5), x=cx-bw/2, r=rec(k), last=i===days.length-1;
@@ -1705,11 +1748,13 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         var lab=el("text",{x:cx.toFixed(1),y:(H-6).toFixed(1),class:"daylabel"+(last?" today":""),"text-anchor":"middle"});
         lab.textContent=Number(k.slice(8,10)); svg.appendChild(lab);
       }
-      if(!tot(r)){ svg.appendChild(el("rect",{x:x.toFixed(1),y:(padT+plotH-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"})); return; }
-      var y=padT+plotH;
+      var n=neg(r);
+      if(n) svg.appendChild(el("rect",{x:x.toFixed(1),y:(base+2).toFixed(1),width:bw.toFixed(1),height:Math.max(1,n*unit-2).toFixed(1),fill:"var(--x-ae)"}));
+      if(!tot(r)){ if(!n) svg.appendChild(el("rect",{x:x.toFixed(1),y:(base-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"})); return; }
+      var y=base-(floor?2:0);                         /* a clear gap at zero when bindings hang below */
       XR.forEach(function(it){
         var c=r.xr[it.k]||0; if(!c) return;
-        var h=(c/max)*plotH; y-=h;
+        var h=c*unit; y-=h;
         svg.appendChild(el("rect",{x:x.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:it.color}));
       });
     });
@@ -1717,14 +1762,151 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   function infoXr(k){
     var r=rec(k);
-    if(!r || !r.xr) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
-    var x=r.xr;
+    if(!r || (!r.xr && !r.ae)) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
+    var x=r.xr||{};
     var h='<div class="th">'+fmtDay(k)+'</div>';
     [["dep","Depletion"],["thr","Threshold"]].forEach(function(g){
       h+='<div class="tr"><span>'+g[1]+'</span><b>'+(g[0]==="dep"?deps(x):thrs(x))+'</b></div>';
       XR.forEach(function(it){ if(it.grp===g[0] && x[it.k]) h+=tr(it.color,it.name,x[it.k]); });
     });
+    if(r.ae){
+      var runes=r.ae.map(function(v,i){ return v?RUNE[i]:""; }).join(" ").trim();
+      h+=tr("var(--x-ae)","Bound",aeCount(r.ae)+"/8");
+      if(runes) h+='<div class="tr"><span class="aerunes">'+runes+'</span></div>';
+    }
     return h;
+  }
+
+  /* ---------- The Binding of Aeshma ----------
+     Eight times a day, as each god takes the hour, a 17-minute window opens; in it a
+     13-minute countdown must run its course. A window that closes first is missed.
+     Numbered with Arexia's runes, drawn as a small dial of her shape. */
+  var AE_MIN=13, AE_WIN=17, AE_FULL=AE_MIN*60000;
+  var AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null};
+  try{ var _a=JSON.parse(localStorage.getItem("dial.ae")||"null"); if(_a && _a.date) AET=_a; }catch(e){}
+  function aeSave(){ try{ localStorage.setItem("dial.ae",JSON.stringify(AET)); }catch(e){} }
+  function aeOpensAt(i,k){ var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date(); d.setHours(i*3,0,0,0); return d.getTime(); }
+  function aeClosesAt(i,k){ return aeOpensAt(i,k)+AE_WIN*60000; }
+  function aeState(i){
+    var t=Date.now();
+    if(t<aeOpensAt(i)) return "awaiting";
+    if(t<aeClosesAt(i)) return "open";
+    return "lapsed";
+  }
+  function aeOpen(){ for(var i=0;i<8;i++) if(aeState(i)==="open") return i; return -1; }
+  function aeNext(){ for(var i=0;i<8;i++) if(aeState(i)==="awaiting") return i; return -1; }
+  function aeLeft(){ return AET.run ? Math.max(0, AET.endsAt-Date.now()) : (AET.left!=null ? AET.left : AE_FULL); }
+  function aeWords(i){ return hm(i*180)+"–"+hm(i*180+AE_WIN); }
+  function aePush(){
+    if(!NT) return;
+    if(AET.idx<0 || (!AET.run && AET.left==null)){ ntSend({kind:"ae", op:"clear"}); return; }
+    ntSend({kind:"ae", op:"set", id:"ae"+AET.idx, run:AET.run, el:Math.max(0, AE_FULL-aeLeft()), total:AE_FULL,
+            title:"The Binding of Aeshma", sub:RUNE[AET.idx]+" · until "+hm(AET.idx*180+AE_WIN),
+            deadline:aeClosesAt(AET.idx, AET.date), color:"#B3141C", arm:0,
+            doneTitle:"Aeshma is bound", doneBody:RUNE[AET.idx]+" · 13 minutes, held"});
+  }
+  function aeClear(){ AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false); aePush(); }
+  function aeToggle(){
+    if(AET.run){                                         /* pause */
+      AET.left=Math.max(0, AET.endsAt-Date.now()); AET.run=false; aeSave(); awake(false); aePush(); renderAe(); return;
+    }
+    var i=aeOpen();
+    if(i<0){ var n=aeNext(); fb("deny"); toast(n<0 ? "No binding is left today." : "The next binding opens at "+hm(n*180)+"."); return; }
+    if(state.day.ae[i]){ fb("deny"); toast("Aeshma is already bound for "+RUNE[i]+"."); return; }
+    if(AET.idx!==i || AET.date!==dayKey()) AET={date:dayKey(), idx:i, run:false, endsAt:0, left:null};
+    var left=aeLeft();
+    if(Date.now()+left>aeClosesAt(i)){ fb("deny"); toast("Too little time is left before "+hm(i*180+AE_WIN)+"."); return; }
+    audio();
+    AET.run=true; AET.endsAt=Date.now()+left; AET.left=null; aeSave(); awake(true); aePush(); renderAe();
+  }
+  function aeReset(){ fb("off"); aeClear(); renderAe(); }
+  /* take up what the phone did: paused, played, reset, finished, or cut off at the window's end */
+  function aeSync(){
+    var st=ntState(), s=st.ae, cl=st.cleared||{};
+    if(cl.hasOwnProperty("ae")){ ntSend({kind:"ae", op:"ack"}); if(AET.idx>=0){ AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false); renderAe(); } return null; }
+    if(!s){ if(AET.run) aePush(); return null; }
+    var idx=+String(s.id).slice(2);
+    if(s.finished){ AET.idx=idx; AET.run=true; AET.endsAt=s.endedAt||Date.now(); return s; }
+    if(s.run){
+      var ends=Date.now()+(s.total-s.el);
+      if(!AET.run || AET.idx!==idx || Math.abs(AET.endsAt-ends)>800){ AET.idx=idx; AET.run=true; AET.endsAt=ends; AET.left=null; aeSave(); awake(true); renderAe(); }
+    } else if(AET.run){ AET.left=Math.max(0, s.total-s.el); AET.run=false; aeSave(); awake(false); renderAe(); }
+    return s;
+  }
+  var aeMark="";
+  function aeTick(){
+    var ns=NT ? aeSync() : null;
+    if(AET.run && Date.now()>=AET.endsAt && (!ns || ns.finished)){
+      var i=AET.idx, day=dayKey(new Date(AET.endsAt));
+      rollover();
+      var r=rec(day)||state.day; if(!Array.isArray(r.ae)) r.ae=blankAe();
+      r.ae[i]=true; save();
+      AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false);
+      if(NT) ntSend({kind:"ae", op:"clear"}); else { sfx("done"); fb("done"); }
+      toast("Aeshma is bound · "+RUNE[i]+".");
+      renderXr(); return;
+    }
+    /* a window that closed with the binding unfinished: missed */
+    if(AET.idx>=0 && (AET.date!==dayKey() || Date.now()>=aeClosesAt(AET.idx, AET.date))){
+      AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false); aePush();
+    }
+    /* redraw when a window opens or closes, and the clock while on the tab */
+    var mark=dayKey()+aeOpen()+state.day.ae.join("");
+    if(mark!==aeMark){ aeMark=mark; renderAe(); }
+    else if(VIEW==="xr") aeTimes();
+  }
+  var aeNodes=[];
+  function buildAe(){
+    var svg=document.getElementById("aeDial");
+    GODS.forEach(function(god){
+      var a0=god.a0+GAP, a1=god.a1-GAP;
+      [0,1].forEach(function(r){
+        var i=god.a0/90+(r?4:0);                         /* windows 0-3 inside, 4-7 outside, as Arexia's rites */
+        var p=el("path",{d:segPath(RINGS[r][0],RINGS[r][1],a0,a1),class:"aeband",fill:god.dim,
+          stroke:god.hue,"stroke-width":"2","stroke-opacity":"0"});
+        p.addEventListener("click",function(){ if(aeState(i)==="open"){ fb("tap"); aeToggle(); } else aeExplain(i); });
+        svg.appendChild(p);
+        var c=pt((RINGS[r][0]+RINGS[r][1])/2,(god.a0+god.a1)/2);
+        var t=el("text",{x:c[0].toFixed(1),y:c[1].toFixed(1),class:"aerune","text-anchor":"middle","dominant-baseline":"central",fill:god.hue});
+        t.textContent=RUNE[i]; svg.appendChild(t);
+        aeNodes[i]={band:p, text:t, god:god};
+      });
+    });
+    document.getElementById("aePlay").addEventListener("click",function(){ fb("tap"); aeToggle(); });
+    document.getElementById("aeReset").addEventListener("click",aeReset);
+  }
+  function aeExplain(i){
+    var st=aeState(i);
+    fb("deny");
+    toast(RUNE[i]+" · "+aeWords(i)+(state.day.ae[i] ? " · bound" : st==="lapsed" ? " · missed" : " · not yet open"));
+  }
+  function renderAe(){
+    var a=state.day.ae;
+    aeNodes.forEach(function(n,i){
+      var st=aeState(i), on=!!a[i];
+      n.band.setAttribute("class","aeband "+(on?"sealed ":"")+st);
+      n.band.setAttribute("fill", on ? n.god.hue : (st==="lapsed" ? "var(--lapsed)" : n.god.dim));
+      n.band.setAttribute("stroke-opacity", st==="open" && !on ? "1" : "0");
+      n.text.setAttribute("fill", on ? "var(--bg)" : (st==="lapsed" ? "var(--ink-3)" : n.god.hue));
+    });
+    document.getElementById("aeCount").textContent=aeCount(a)+"/8";
+    aeTimes();
+  }
+  function aeTimes(){
+    var i = AET.idx>=0 ? AET.idx : aeOpen(), card=document.getElementById("aeCard");
+    var shown = i>=0 ? i : aeNext(), done = shown>=0 && !!state.day.ae[shown];
+    var open = i>=0 && aeState(i)==="open";
+    document.getElementById("aeRune").textContent = shown>=0 ? RUNE[shown] : "—";
+    document.getElementById("aeWin").textContent = shown<0 ? "All windows have passed" : (open ? "" : "next · ")+aeWords(shown);
+    var left = (AET.idx>=0) ? aeLeft() : AE_FULL;
+    document.getElementById("aeTime").textContent = done ? "Bound ✓" : mmss(left);
+    document.getElementById("aeBar").style.width = (done ? 100 : (1-left/AE_FULL)*100).toFixed(2)+"%";
+    card.dataset.run=AET.run?"1":"0"; card.dataset.done=done?"1":"0";
+    var play=document.getElementById("aePlay");
+    play.disabled = !open || done || (!AET.run && Date.now()+left>aeClosesAt(i));
+    play.setAttribute("aria-label", AET.run ? "Pause" : "Start");
+    document.getElementById("aePlayIcon").setAttribute("d", AET.run ? "M4.5 3h2.5v10H4.5zM9 3h2.5v10H9z" : "M5 3.5v9l7.5-4.5z");
+    document.getElementById("aeReset").disabled = AET.idx<0;
   }
 
   /* ---------- Arurael: focus blocks with countdowns ----------
@@ -1753,7 +1935,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           out.push({id:"g"+k+"-"+w[0], at:at(day,w[0]), color:HEX[g.key],
             ch: w[0]<8 ? "quiet" : "hours",                /* 00, 03 and 06 come silently */
             title:g.name+" holds the hour",
-            body:(i?"Second":"First")+" rite · "+fmt(w[0])+"–"+fmt(w[1])});
+            body:(i?"Second":"First")+" rite · "+fmt(w[0])+"–"+fmt(w[1])+" • Bind Aeshma "+RUNE[w[0]/3]+" by "+hm(w[0]*60+AE_WIN)});
         });
       });
       var hb=isToday ? (state.day.habits||{}) : {};
@@ -1949,6 +2131,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     return h;
   }
   setInterval(arTick,250);
+  setInterval(function(){ if(state) aeTick(); },250);
   document.addEventListener("visibilitychange",function(){ if(!document.hidden) arTick(); });
 
   /* ---------- tabs ---------- */
@@ -1997,7 +2180,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   state=load();
   rollover();
-  buildDial(); buildCards(); buildPips(); buildHabits(); buildCore(); buildXr(); buildAr();
+  buildDial(); buildCards(); buildPips(); buildHabits(); buildCore(); buildXr(); buildAe(); buildAr();
   render(); renderXen(); renderXr(); renderAr(); arTick();
   if(NT){ coreSync(); setInterval(function(){ if(!CORE.run) coreSync(); }, 500); }
   planNotes();
@@ -2130,7 +2313,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   /* a past day with neither rites nor tally left is dropped */
   function prune(){
-    state.history=state.history.filter(function(r){ return r.checks!==null || r.xen!==false || r.xr || r.ar; });
+    state.history=state.history.filter(function(r){ return r.checks!==null || r.xen!==false || r.xr || r.ar || r.ae; });
   }
   document.getElementById("btnClearToday").addEventListener("click",function(){
     ask("Unseal this day?","Today's eight rites return to unsealed. Xenlil's tally is untouched.","Unseal",function(){
@@ -2158,14 +2341,14 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     });
   });
   document.getElementById("zClearToday").addEventListener("click",function(){
-    ask("Clear today's record?","Today's depletion and threshold counts return to zero. The other tabs are untouched.","Clear",function(){
-      state.day.xr=blankXr(); save(); renderXr(); toast("Today's record is empty.");
+    ask("Clear today's record?","Today's depletion and threshold counts and bindings of Aeshma return to zero. The other tabs are untouched.","Clear",function(){
+      state.day.xr=blankXr(); state.day.ae=blankAe(); aeClear(); save(); renderXr(); toast("Today's record is empty.");
     });
   });
   document.getElementById("zClearAll").addEventListener("click",function(){
-    ask("Erase Xeron's record?","Every day of depletion and threshold counts. The other tabs are kept. It cannot be undone.","Erase",function(){
-      state.day.xr=blankXr();
-      state.history.forEach(function(r){ delete r.xr; });
+    ask("Erase Xeron's record?","Every day of depletion and threshold counts and bindings of Aeshma. The other tabs are kept. It cannot be undone.","Erase",function(){
+      state.day.xr=blankXr(); state.day.ae=blankAe(); aeClear();
+      state.history.forEach(function(r){ delete r.xr; delete r.ae; });
       prune(); save(); renderXr(); toast("Xeron's record is erased.");
     });
   });
