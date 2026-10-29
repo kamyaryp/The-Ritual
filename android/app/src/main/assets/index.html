@@ -105,6 +105,7 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .flame{pointer-events:none}
 #eye{pointer-events:none}
 .godname{font-size:13px;font-weight:500;letter-spacing:.04em}
+.dialrune{font-family:var(--rune);font-size:19px;pointer-events:none}
 
 .cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
 @media (max-width:560px){.cards{grid-template-columns:1fr}}
@@ -346,10 +347,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   <div class="stage">
     <div class="dialbox">
       <svg class="dial" viewBox="0 0 380 380" role="img" aria-label="The dial of the four gods">
-        <circle cx="190" cy="190" r="151" fill="var(--well)"></circle>
         <g id="bands"></g>
         <g id="ticks"></g>
-        <circle cx="190" cy="190" r="88" fill="var(--bg)" stroke="var(--line)"></circle>
         <g id="eye" transform="translate(190,190) scale(1.62)">
           <defs>
             <clipPath id="eyeClip"><path id="eyeClipPath" d=""></path></clipPath>
@@ -483,14 +482,6 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     </section>
   </div>
   <div id="viewXr" hidden>
-    <div class="cards">
-      <div class="card" id="depCard" style="--hue:var(--xeron)">
-        <div class="card-head"><span class="gname">Depletion</span><span class="ghours" id="depTotal">0</span></div>
-      </div>
-      <div class="card" id="thrCard" style="--hue:var(--x-tendoin)">
-        <div class="card-head"><span class="gname">Threshold</span><span class="ghours" id="thrTotal">0</span></div>
-      </div>
-    </div>
     <div class="card ae-card" id="aeCard" style="--hue:var(--x-ae)">
       <div class="card-head"><span class="gname">The Binding of Aeshma</span><span class="ghours" id="aeCount">0/8</span></div>
       <div class="ae-body">
@@ -504,6 +495,14 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
             <button type="button" class="ctl sm" id="aeReset" aria-label="Reset"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
         </div>
+      </div>
+    </div>
+    <div class="cards">
+      <div class="card" id="depCard" style="--hue:var(--xeron)">
+        <div class="card-head"><span class="gname">Depletion</span><span class="ghours" id="depTotal">0</span></div>
+      </div>
+      <div class="card" id="thrCard" style="--hue:var(--x-tendoin)">
+        <div class="card-head"><span class="gname">Threshold</span><span class="ghours" id="thrTotal">0</span></div>
       </div>
     </div>
     <section class="chron">
@@ -582,7 +581,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     arurael:{dwell:1.25,speed:1.00, jit:0.5, front:0.32, flick:0.07, sweep:0.22, hold:0.18, dil:0.7},
     xenlil: {dwell:0.8, speed:1.25, jit:1.2, front:0.10, flick:0.26, sweep:0.08, hold:0.14, dil:1.2}
   };
-  var CX=190, CY=190, GAP=2.2, RINGS=[[94,116],[120,148]], svgNS="http://www.w3.org/2000/svg";
+  var CX=190, CY=190, GAP=0, CUT=1.6, RINGS=[[91,116],[119,148]], svgNS="http://www.w3.org/2000/svg";
   /* the eight rites of the day, in order from midnight */
   var RUNE=["\u16A0","\u16A2","\u16A6","\u16A8","\u16B1","\u16B2","\u16B7","\u16B9"];
   function riteNo(god,i){ return GODS.indexOf(god)+1+i*4; }
@@ -777,6 +776,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
 
   function pt(r,a){ var t=(a-90)*Math.PI/180; return [CX+r*Math.cos(t), CY+r*Math.sin(t)]; }
+  /* a quarter of a ring with straight, even-width cuts at its ends (CUT either side of the axis) */
+  function ringSeg(r1,r2,a0,a1){
+    var d=function(r){ return Math.asin(CUT/r)*180/Math.PI; };
+    var o0=a0+d(r2), o1=a1-d(r2), i0=a0+d(r1), i1=a1-d(r1);
+    var p1=pt(r2,o0),p2=pt(r2,o1),p3=pt(r1,i1),p4=pt(r1,i0);
+    return "M"+p1[0].toFixed(2)+" "+p1[1].toFixed(2)+
+           "A"+r2+" "+r2+" 0 "+((o1-o0)>180?1:0)+" 1 "+p2[0].toFixed(2)+" "+p2[1].toFixed(2)+
+           "L"+p3[0].toFixed(2)+" "+p3[1].toFixed(2)+
+           "A"+r1+" "+r1+" 0 "+((i1-i0)>180?1:0)+" 0 "+p4[0].toFixed(2)+" "+p4[1].toFixed(2)+"Z";
+  }
   function segPath(r1,r2,a0,a1){
     var p1=pt(r2,a0),p2=pt(r2,a1),p3=pt(r1,a1),p4=pt(r1,a0),big=(a1-a0)>180?1:0;
     return "M"+p1[0].toFixed(2)+" "+p1[1].toFixed(2)+
@@ -793,30 +802,20 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var a0=god.a0+GAP, a1=god.a1-GAP;
       bandNodes[god.key]=[];
       [0,1].forEach(function(i){
-        var p=el("path",{d:segPath(RINGS[i][0],RINGS[i][1],a0,a1),class:"band",fill:god.dim,
+        var p=el("path",{d:ringSeg(RINGS[i][0],RINGS[i][1],a0,a1),class:"band",fill:god.dim,
           stroke:god.hue,"stroke-width":"2","stroke-opacity":"0"});
         p.addEventListener("click",function(){ attempt(god,i); });
         g.appendChild(p);
+        var c=pt((RINGS[i][0]+RINGS[i][1])/2,(god.a0+god.a1)/2);
+        var t=el("text",{x:c[0].toFixed(1),y:c[1].toFixed(1),class:"dialrune","text-anchor":"middle","dominant-baseline":"central",fill:god.hue});
+        t.textContent=RUNE[riteNo(god,i)-1];
+        g.appendChild(t);
         bandNodes[god.key][i]=p;
+        runeNodes[god.key+i]=t;
       });
-      var lp=pt(176,(god.a0+god.a1)/2);
-      var t=el("text",{x:lp[0].toFixed(1),y:lp[1].toFixed(1),class:"godname",fill:god.hue,
-        "text-anchor":"middle","dominant-baseline":"middle"});
-      t.textContent=god.name;
-      g.appendChild(t);
-    });
-    var ticks=document.getElementById("ticks");
-    for(var h=0;h<12;h++){
-      var a=h*30,p1=pt((h%3===0)?138:144,a),p2=pt(149,a);
-      ticks.appendChild(el("line",{x1:p1[0].toFixed(1),y1:p1[1].toFixed(1),x2:p2[0].toFixed(1),y2:p2[1].toFixed(1),
-        class:"tick","stroke-width":(h%3===0?1.3:0.8)}));
-    }
-    [[12,0],[3,90],[6,180],[9,270]].forEach(function(n){
-      var p=pt(128,n[1]);
-      var t=el("text",{x:p[0].toFixed(1),y:p[1].toFixed(1),class:"numeral","text-anchor":"middle","dominant-baseline":"middle"});
-      t.textContent=n[0]; ticks.appendChild(t);
     });
   }
+  var runeNodes={};
 
   function buildCards(){
     var host=document.getElementById("cards");
@@ -876,6 +875,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         band.setAttribute("class","band "+(on?"sealed ":"")+st);
         band.setAttribute("fill", on?god.hue:(st==="lapsed"?"var(--lapsed)":god.dim));
         band.setAttribute("stroke-opacity", st==="open"?"1":"0");
+        runeNodes[god.key+i].setAttribute("fill", on ? "var(--bg)" : (st==="lapsed" ? "var(--ink-3)" : god.hue));
         var ti=band.querySelector("title")||band.appendChild(el("title",{}));
         ti.textContent=RUNE[riteNo(god,i)-1]+" · "+god.name+" · "+
           fmt(windowOf(god,i)[0])+"–"+fmt(windowOf(god,i)[1])+" · "+(on?"sealed":st);
@@ -1859,7 +1859,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var a0=god.a0+GAP, a1=god.a1-GAP;
       [0,1].forEach(function(r){
         var i=god.a0/90+(r?4:0);                         /* windows 0-3 inside, 4-7 outside, as Arexia's rites */
-        var p=el("path",{d:segPath(RINGS[r][0],RINGS[r][1],a0,a1),class:"aeband",fill:god.dim,
+        var p=el("path",{d:ringSeg(RINGS[r][0],RINGS[r][1],a0,a1),class:"aeband",fill:god.dim,
           stroke:god.hue,"stroke-width":"2","stroke-opacity":"0"});
         p.addEventListener("click",function(){ if(aeState(i)==="open"){ fb("tap"); aeToggle(); } else aeExplain(i); });
         svg.appendChild(p);
@@ -2186,7 +2186,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   /* swipe sideways to move between tabs. The next tab is laid beside the current
      one, at its own remembered scroll, and both follow the finger like pages of a
      strip; on release they either carry on or settle back. Nothing is ever blank. */
-  var sw=null, BUSY=false, GAP=24;
+  var sw=null, BUSY=false, SWGAP=24;
   var calm=window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function vEl(v){ return document.getElementById(VIEW_EL[v]); }
   function renderOf(v){ if(v==="dial") render(); else ({xen:renderXen, xr:renderXr, ar:renderAr})[v](); }
@@ -2232,7 +2232,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     sw.track.push([t.clientX,Date.now()]); if(sw.track.length>6) sw.track.shift();
     sw.dx=dx;
     if(sw.lock==="calm") return;
-    var W=window.innerWidth+GAP, dir=dx<0?1:-1, i=ORDER.indexOf(VIEW)+dir, v=ORDER[i];
+    var W=window.innerWidth+SWGAP, dir=dx<0?1:-1, i=ORDER.indexOf(VIEW)+dir, v=ORDER[i];
     if(dx===0) return;
     if(!v){ dropPeer(); put(sw.el, dx/(1+Math.abs(dx)/(W*0.12)), 0); return; }   /* nothing there: rubber band */
     if(sw.peer!==v){ dropPeer(); takePeer(v); }
@@ -2242,7 +2242,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function swipeEnd(){
     var s0=sw; sw=null;
     if(!s0 || (s0.lock!=="x" && s0.lock!=="calm")) return;
-    var W=window.innerWidth+GAP, dx=s0.dx, a=s0.track[0], z=s0.track[s0.track.length-1];
+    var W=window.innerWidth+SWGAP, dx=s0.dx, a=s0.track[0], z=s0.track[s0.track.length-1];
     var v=(z[1]-a[1])>0 ? (z[0]-a[0])/(z[1]-a[1]) : 0;                       /* px per ms */
     var dir=dx<0?1:-1, i=ORDER.indexOf(VIEW)+dir, to=ORDER[i];
     var go=!!to && (Math.abs(dx)>W*0.22 || (Math.abs(v)>0.3 && (v<0?1:-1)===dir && Math.abs(dx)>20));
