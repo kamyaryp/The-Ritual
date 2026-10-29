@@ -97,7 +97,7 @@ final class Notes {
         NotificationChannel hours = new NotificationChannel("hours", "The hours", NotificationManager.IMPORTANCE_DEFAULT);
         hours.setDescription("When a god begins to hold the hour");
         NotificationChannel remind = new NotificationChannel("remind", "Reminders", NotificationManager.IMPORTANCE_HIGH);
-        remind.setDescription("Finasteride, bed, English, and finished countdowns");
+        remind.setDescription("Bed, English, and finished countdowns");
         NotificationChannel quiet = new NotificationChannel("quiet", "Night hours", NotificationManager.IMPORTANCE_LOW);
         quiet.setDescription("The hours that turn at 00:00, 03:00 and 06:00, without sound");
         nm.createNotificationChannel(hours);
