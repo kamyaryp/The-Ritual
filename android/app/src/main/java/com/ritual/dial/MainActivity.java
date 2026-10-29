@@ -41,6 +41,18 @@ public class MainActivity extends Activity {
             } catch (Exception ignored) { }
         }
 
+        /** Hand a timer (the core, or an Arurael countdown) to the phone, so it runs locked. */
+        @JavascriptInterface
+        public void timer(String json) {
+            TimerService.apply(getApplicationContext(), json);
+        }
+
+        /** Every timer as the phone has it, for the page to mirror. */
+        @JavascriptInterface
+        public String timerState() {
+            return TimerService.state(getApplicationContext());
+        }
+
         @JavascriptInterface
         public void setPlan(String json) {
             Notes.setPlan(getApplicationContext(), json);
@@ -84,6 +96,7 @@ public class MainActivity extends Activity {
         web.loadUrl("file:///android_asset/index.html");
 
         Notes.channels(this);
+        Sfx.init(this);
         if (Build.VERSION.SDK_INT >= 33
                 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1);

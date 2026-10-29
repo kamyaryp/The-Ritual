@@ -1307,6 +1307,14 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   /* ---------- Core: 3 types × 2 rounds × 10 holds × 6 s = 360 s of holding,
      with 2 s between types to change posture, so 364 s on the clock ---------- */
+  /* ---------- timers the phone runs (the Android app) ----------
+     In the APK the core and Arurael's countdowns are handed to the phone, which
+     keeps time and plays their sounds with the screen locked, and shows them as a
+     media notification. The page mirrors what the phone has and keeps the record. */
+  var NT=!!(window.RitualHost && window.RitualHost.timer && window.RitualHost.timerState);
+  function ntState(){ try{ return JSON.parse(window.RitualHost.timerState()||"{}")||{}; }catch(e){ return {}; } }
+  function ntSend(o){ if(!NT) return; try{ window.RitualHost.timer(JSON.stringify(o)); }catch(e){} }
+
   var CORE={total:364, ex:360, type:120, brk:2, hold:6, el:0, run:false, t0:0, last:-1, ctx:null, wl:null, iv:0};
   /* where a moment on the clock falls: holding (and how far in), or between types */
   function phase(w){
@@ -1441,27 +1449,56 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(CORE.el>=CORE.total){ CORE.el=0; CORE.last=-1; }
     CORE.inBrk=phase(CORE.el).brk;
     CORE.t0=performance.now(); CORE.run=true;
-    if(CORE.el===0){ CORE.last=0; sfx("start"); }
+    if(CORE.el===0){ CORE.last=0; if(!NT) sfx("start"); }
     awake(true);
     clearInterval(CORE.iv); CORE.iv=setInterval(coreTick,50);
+    corePush();
     renderCore();
   }
   function corePause(){
     if(!CORE.run) return;
-    CORE.el=coreNow(); CORE.run=false; clearInterval(CORE.iv); awake(false); renderCore();
+    CORE.el=coreNow(); CORE.run=false; clearInterval(CORE.iv); CORE.iv=0; awake(false); corePush(); renderCore();
   }
-  function coreReset(){
-    CORE.run=false; CORE.el=0; CORE.last=-1; CORE.inBrk=false; clearInterval(CORE.iv); awake(false); renderCore();
+  function coreReset(fromPhone){
+    CORE.run=false; CORE.el=0; CORE.last=-1; CORE.inBrk=false; clearInterval(CORE.iv); CORE.iv=0; awake(false);
+    if(fromPhone!==true) corePush();
+    renderCore();
+  }
+  function corePush(){
+    if(!NT) return;
+    if(!CORE.run && CORE.el===0) ntSend({kind:"core", op:"clear"});
+    else ntSend({kind:"core", op:"set", run:CORE.run, el:Math.round(coreNow()*1000), total:CORE.total*1000, title:"Core"});
+  }
+  /* the session is over: it counts for the day it ended on */
+  function coreDone(day){
+    CORE.el=CORE.total; CORE.run=false; clearInterval(CORE.iv); CORE.iv=0; awake(false);
+    if(NT) ntSend({kind:"core", op:"clear"}); else fb("done");
+    rollover();
+    var r=(day && rec(day)) || state.day;
+    if(!r.core){ r.core=true; save(); renderXen(); toast("Core session recorded."); }
+    else toast("Done. Today's session was already recorded.");
+    renderCore();
+  }
+  /* take up what the phone has: paused or played from the lock screen, reset, or finished */
+  function coreSync(){
+    if(!NT) return;
+    var st=ntState(), s=st.core, cl=st.cleared||{};
+    if(cl.hasOwnProperty("core")){ ntSend({kind:"core", op:"ack"}); if(CORE.run || CORE.el>0) coreReset(true); return; }
+    if(!s){ if(CORE.run) corePush(); return; }
+    if(s.finished){ coreDone(dayKey(new Date(s.endedAt||Date.now()))); return; }
+    var el=Math.min(CORE.total, s.el/1000);
+    if(s.run!==CORE.run || Math.abs(el-coreNow())>0.35){
+      CORE.el=el; CORE.t0=performance.now(); CORE.last=Math.floor(el+1e-6);
+      if(s.run && !CORE.run){ CORE.run=true; CORE.inBrk=phase(el).brk; awake(true); clearInterval(CORE.iv); CORE.iv=setInterval(coreTick,50); }
+      else if(!s.run && CORE.run){ CORE.run=false; clearInterval(CORE.iv); CORE.iv=0; awake(false); }
+      renderCore();
+    }
   }
   function coreTick(){
+    if(NT){ coreSync(); if(!CORE.run){ renderCore(); return; } }
     var t=coreNow(), sec=Math.floor(t+1e-6);
-    if(sec!==CORE.last){ CORE.last=sec; if(sec>0) sound(sec); }
-    if(t>=CORE.total){
-      CORE.el=CORE.total; CORE.run=false; clearInterval(CORE.iv); awake(false);
-      fb("done");
-      rollover(); if(!state.day.core){ state.day.core=true; save(); renderXen(); toast("Core session recorded."); }
-      else toast("Done. Today's session was already recorded.");
-    }
+    if(sec!==CORE.last){ CORE.last=sec; if(sec>0 && !NT) sound(sec); }
+    if(t>=CORE.total && !NT){ coreDone(); return; }   /* in the app, the phone says when it's over */
     renderCore();
   }
   function buildCore(){
@@ -1503,7 +1540,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     document.getElementById("corePlay").setAttribute("aria-label", CORE.run?"Pause":"Play");
     card.dataset.done=state.day.core?"1":"0";
   }
-  document.addEventListener("visibilitychange",function(){ if(document.hidden) corePause(); });
+  /* in a browser the timer can't run hidden, so it waits; in the app the phone keeps it going */
+  document.addEventListener("visibilitychange",function(){ if(document.hidden){ if(!NT) corePause(); } else coreSync(); });
 
   /* ---------- tapping a day on either chart ---------- */
   var CH={}, SEL=null;
@@ -1721,7 +1759,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var engRun=isToday && typeof ART!=="undefined" && ART && ART.blk==="eng0";
       if(!engDone && !engRun) out.push({id:"eng"+k, at:at(day,23), ch:"remind", color:"#A5B4FC", title:"English", body:"10 minutes before the day closes"});
     }
-    if(typeof ART!=="undefined" && ART && ART.blk){
+    if(!NT && typeof ART!=="undefined" && ART && ART.blk){
       var m=arMission(ART.blk), i=+ART.blk.slice(m.k.length);
       out.push({id:"ar-"+ART.blk+"-"+ART.endsAt, at:ART.endsAt, ch:"remind", color:"#2563EB", fg:true,
         title:m.name+" · "+(m.blocks>1 ? "Division "+(i+1) : "Division")+" done",
@@ -1743,19 +1781,48 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(ART.blk) arPause();
     audio();
     var left=arLeft(id);                 /* read before it counts as running */
-    ART.blk=id; ART.endsAt=Date.now()+left; arSave(); awake(true); renderAr();
+    ART.blk=id; ART.endsAt=Date.now()+left; arSave(); awake(true); arPush(id,true); renderAr();
   }
   function arPause(){
     if(!ART.blk) return;
-    ART.left[ART.blk]=Math.max(0, ART.endsAt-Date.now()); ART.blk=null; arSave(); awake(false); renderAr();
+    var id=ART.blk;
+    ART.left[id]=Math.max(0, ART.endsAt-Date.now()); ART.blk=null; arSave(); awake(false); arPush(id,false); renderAr();
   }
   function arReset(id){
     if(ART.blk===id){ ART.blk=null; awake(false); }
-    delete ART.left[id]; arSave(); renderAr();
+    delete ART.left[id]; arSave();
+    if(NT){ var s=ntState().ar; if(s && s.id===id) ntSend({kind:"ar", op:"clear"}); }
+    renderAr();
+  }
+  function arPush(id,run){
+    if(!NT || !id) return;
+    var m=arMission(id), i=+id.slice(m.k.length), full=m.min*60000;
+    ntSend({kind:"ar", op:"set", id:id, run:run, el:Math.max(0, full-arLeft(id)), total:full,
+            title:m.name, sub:m.blocks>1 ? "Division "+(i+1) : "Division"});
+  }
+  /* take up what the phone has: paused, played or reset from the lock screen, or finished */
+  function arSync(){
+    var st=ntState(), s=st.ar, cl=st.cleared||{};
+    if(cl.hasOwnProperty("ar")){
+      var cid=cl.ar; ntSend({kind:"ar", op:"ack"});
+      if(cid){ if(ART.blk===cid){ ART.blk=null; awake(false); } delete ART.left[cid]; arSave(); renderAr(); }
+      return null;
+    }
+    if(!s){ if(ART.blk) arPush(ART.blk,true); return null; }
+    if(s.finished){ ART.blk=s.id; ART.endsAt=s.endedAt||Date.now(); return s; }
+    if(s.run){
+      var ends=Date.now()+(s.total-s.el);
+      if(ART.blk!==s.id || Math.abs(ART.endsAt-ends)>800){ ART.blk=s.id; ART.endsAt=ends; delete ART.left[s.id]; arSave(); awake(true); renderAr(); }
+    } else if(ART.blk===s.id){
+      ART.left[s.id]=Math.max(0, s.total-s.el); ART.blk=null; arSave(); awake(false); renderAr();
+    }
+    return s;
   }
   function arTick(){
-    /* a division that ran out while the app was away is written to the day it ended on */
-    if(ART.blk && Date.now()>=ART.endsAt){
+    var ns=NT ? arSync() : null;
+    /* a division that ran out while the app was away is written to the day it ended on;
+       in the app it waits for the phone, which plays the chime */
+    if(ART.blk && Date.now()>=ART.endsAt && (!ns || ns.finished || ns.id!==ART.blk)){
       var id=ART.blk, m=arMission(id), i=+id.slice(m.k.length);
       ART.blk=null; delete ART.left[id]; awake(false);
       rollover();
@@ -1764,11 +1831,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       if(r.ar[m.k]) r.ar[m.k][i]=true;
       if(ART.date!==dayKey()) ART={date:dayKey(), blk:null, endsAt:0, left:{}};
       arSave(); save();
-      sfx("done");
-      toast(m.name+" division done."); fb("done");
+      if(NT) ntSend({kind:"ar", op:"clear"}); else { sfx("done"); fb("done"); }
+      toast(m.name+" division done.");
       renderAr(); return;
     }
-    if(ART.date!==dayKey()){ ART={date:dayKey(), blk:ART.blk, endsAt:ART.endsAt, left:{}}; arSave(); renderAr(); return; }
+    if(ART.date!==dayKey()){
+      ART={date:dayKey(), blk:ART.blk, endsAt:ART.endsAt, left:{}}; arSave();
+      if(NT && !ART.blk) ntSend({kind:"ar", op:"clear"});      /* a paused division doesn't carry into a new day */
+      renderAr(); return;
+    }
     if(!ART.blk) return;
     arTimes();
   }
@@ -1925,6 +1996,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   rollover();
   buildDial(); buildCards(); buildPips(); buildHabits(); buildCore(); buildXr(); buildAr();
   render(); renderXen(); renderXr(); renderAr(); arTick();
+  if(NT){ coreSync(); setInterval(function(){ if(!CORE.run) coreSync(); }, 500); }
   planNotes();
   document.getElementById("achart").addEventListener("click",function(ev){ pickDay("achart",ev); });
   document.getElementById("zchart").addEventListener("click",function(ev){ pickDay("zchart",ev); });

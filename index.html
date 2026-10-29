@@ -133,6 +133,7 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .rite{cursor:pointer;border-radius:4px;padding:1px 2px;margin:0 -2px}
 .rite:hover{background:var(--panel-2)}
 .rite[data-state="lapsed"],.rite[data-state="awaiting"]{cursor:not-allowed}
+.rite[id^="h-"][data-state="awaiting"] .rname,.rite[id^="h-"][data-state="lapsed"]:not([data-done="1"]) .rname{color:var(--ink-3)}
 .rite[data-state="lapsed"]:hover,.rite[data-state="awaiting"]:hover{background:transparent}
 .rnum{flex:0 0 auto;width:18px;text-align:center;font-family:var(--rune);font-size:16px;line-height:1;color:var(--ink-2)}
 .rite[data-state="open"] .rnum,.rite[data-done="1"] .rnum{color:var(--hue)}
@@ -573,18 +574,25 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function blankChecks(){ var c={}; GODS.forEach(function(g){c[g.key]=[false,false];}); return c; }
   var WATER_TARGET=14, GYM_DAYS=[1,3,4];           /* Mon, Wed, Thu */
   var HABITS=[
-    {k:"mv",   card:"supp", name:"Multivitamin",     when:"after lunch"},
-    {k:"om",   card:"supp", name:"Omega 3",          when:"after lunch"},
+    {k:"mvom", card:"supp", name:"Multivitamin & Omega 3", when:"after lunch"},
     {k:"cre",  card:"supp", name:"Creatine & whey",  when:"evening"},
     {k:"d3",   card:"supp", name:"D3 50,000",        when:"1st",  monthly:true},
     {k:"skin", card:"care", name:"Skin routine",     when:"once a day"},
-    {k:"nose", card:"care", name:"Nose pore mask",   when:"Tue · Fri · Sun", days:[2,5,0]},
-    {k:"bed",  card:"care", name:"To bed",           when:"23:30"},
-    {k:"wake", card:"care", name:"Awake",            when:"08:00"},
+    {k:"bed",  card:"care", name:"To bed",           when:"23:30", at:23*60+30},
+    {k:"wake", card:"care", name:"Awake",            when:"08:00", at:8*60},
     {k:"room", card:"maint",name:"Room & appliances",when:"Sat", days:[6]},
     {k:"shoe", card:"maint",name:"Shoe care",        when:"Sun", days:[0]},
     {k:"car",  card:"maint",name:"Car care",         when:"Thu", days:[4]}
   ];
+  var MARGIN=13;                                    /* minutes either side of a timed habit */
+  function habState(h){
+    if(h.at===undefined) return null;
+    var d=new Date(), m=d.getHours()*60+d.getMinutes();
+    if(m<h.at-MARGIN) return "awaiting";
+    if(m<=h.at+MARGIN) return "open";
+    return "lapsed";
+  }
+  function hm(n){ n=(n+1440)%1440; return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0"); }
   var GYM_NAMES=["Quads","Upper body","Hamstrings & glutes"];   /* Mon · Wed · Thu */
   function wday(k){ return (k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date()).getDay(); }
   function isDue(h,k){
@@ -660,7 +668,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     return GYM_DAYS.indexOf(d.getDay())>=0;
   }
   var state;
+  function mergePills(r){
+    var h=r && r.habits; if(!h || h.mvom!==undefined || (h.mv===undefined && h.om===undefined)) return;
+    h.mvom=!!(h.mv && h.om); delete h.mv; delete h.om; delete h.nose;
+  }
   function upgrade(d){
+    mergePills(d);
     d.checks=d.checks||{};
     if(typeof d.water!=="number") d.water=0;
     if(typeof d.gym!=="boolean") d.gym=false;
@@ -679,6 +692,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       delete s.missions;
       s.day=upgrade(s.day);
       if(!Array.isArray(s.history)) s.history=[];
+      s.history.forEach(mergePills);
       if(s.sample){ s.history=[]; delete s.sample; }
       return s;
     }catch(e){ return fresh(); }
@@ -1175,17 +1189,21 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var nm=document.createElement("span"); nm.className="rname"; nm.textContent=h.name;
       var wh=document.createElement("span"); wh.className="win"; wh.textContent=h.when;
       row.appendChild(b); row.appendChild(nm); row.appendChild(wh);
-      row.addEventListener("click",function(){
+      function flip(){
+        var st=habState(h);
+        if(st && st!=="open"){
+          fb("deny");
+          toast(st==="awaiting" ? h.name+" opens at "+hm(h.at-MARGIN)+"." : h.name+" closed at "+hm(h.at+MARGIN)+".");
+          return;
+        }
         state.day.habits[h.k]=!state.day.habits[h.k]; fb(state.day.habits[h.k]?"on":"off"); save(); renderXen();
-      });
-      b.addEventListener("click",function(ev){
-        ev.stopPropagation();
-        state.day.habits[h.k]=!state.day.habits[h.k]; fb(state.day.habits[h.k]?"on":"off"); save(); renderXen();
-      });
+      }
+      row.addEventListener("click",flip);
+      b.addEventListener("click",function(ev){ ev.stopPropagation(); flip(); });
       card.appendChild(row);
     });
   }
-  /* only what isn't owed every day: gym, D3, nose pore mask, maintenance */
+  /* only what isn't owed every day: gym, D3, maintenance */
   function xenSubtitle(){
     var ev=[], order={gym:0, maint:1, supp:2, care:3};
     if(isGymDay()) ev.push({card:"gym", name:"Gym"});
@@ -1224,6 +1242,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       row.hidden = !isDue(h);
       row.dataset.done=on?"1":"0";
       row.querySelector(".box").setAttribute("aria-checked", on?"true":"false");
+      var st=habState(h);
+      if(st){ row.dataset.state=st; row.querySelector(".box").setAttribute("aria-disabled", st==="open"?"false":"true"); }
     });
     var dueM=HABITS.filter(function(x){ return x.card==="maint" && isDue(x); });
     document.getElementById("maintRest").hidden=dueM.length>0;
@@ -1290,6 +1310,14 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   /* ---------- Core: 3 types × 2 rounds × 10 holds × 6 s = 360 s of holding,
      with 2 s between types to change posture, so 364 s on the clock ---------- */
+  /* ---------- timers the phone runs (the Android app) ----------
+     In the APK the core and Arurael's countdowns are handed to the phone, which
+     keeps time and plays their sounds with the screen locked, and shows them as a
+     media notification. The page mirrors what the phone has and keeps the record. */
+  var NT=!!(window.RitualHost && window.RitualHost.timer && window.RitualHost.timerState);
+  function ntState(){ try{ return JSON.parse(window.RitualHost.timerState()||"{}")||{}; }catch(e){ return {}; } }
+  function ntSend(o){ if(!NT) return; try{ window.RitualHost.timer(JSON.stringify(o)); }catch(e){} }
+
   var CORE={total:364, ex:360, type:120, brk:2, hold:6, el:0, run:false, t0:0, last:-1, ctx:null, wl:null, iv:0};
   /* where a moment on the clock falls: holding (and how far in), or between types */
   function phase(w){
@@ -1424,27 +1452,56 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(CORE.el>=CORE.total){ CORE.el=0; CORE.last=-1; }
     CORE.inBrk=phase(CORE.el).brk;
     CORE.t0=performance.now(); CORE.run=true;
-    if(CORE.el===0){ CORE.last=0; sfx("start"); }
+    if(CORE.el===0){ CORE.last=0; if(!NT) sfx("start"); }
     awake(true);
     clearInterval(CORE.iv); CORE.iv=setInterval(coreTick,50);
+    corePush();
     renderCore();
   }
   function corePause(){
     if(!CORE.run) return;
-    CORE.el=coreNow(); CORE.run=false; clearInterval(CORE.iv); awake(false); renderCore();
+    CORE.el=coreNow(); CORE.run=false; clearInterval(CORE.iv); CORE.iv=0; awake(false); corePush(); renderCore();
   }
-  function coreReset(){
-    CORE.run=false; CORE.el=0; CORE.last=-1; CORE.inBrk=false; clearInterval(CORE.iv); awake(false); renderCore();
+  function coreReset(fromPhone){
+    CORE.run=false; CORE.el=0; CORE.last=-1; CORE.inBrk=false; clearInterval(CORE.iv); CORE.iv=0; awake(false);
+    if(fromPhone!==true) corePush();
+    renderCore();
+  }
+  function corePush(){
+    if(!NT) return;
+    if(!CORE.run && CORE.el===0) ntSend({kind:"core", op:"clear"});
+    else ntSend({kind:"core", op:"set", run:CORE.run, el:Math.round(coreNow()*1000), total:CORE.total*1000, title:"Core"});
+  }
+  /* the session is over: it counts for the day it ended on */
+  function coreDone(day){
+    CORE.el=CORE.total; CORE.run=false; clearInterval(CORE.iv); CORE.iv=0; awake(false);
+    if(NT) ntSend({kind:"core", op:"clear"}); else fb("done");
+    rollover();
+    var r=(day && rec(day)) || state.day;
+    if(!r.core){ r.core=true; save(); renderXen(); toast("Core session recorded."); }
+    else toast("Done. Today's session was already recorded.");
+    renderCore();
+  }
+  /* take up what the phone has: paused or played from the lock screen, reset, or finished */
+  function coreSync(){
+    if(!NT) return;
+    var st=ntState(), s=st.core, cl=st.cleared||{};
+    if(cl.hasOwnProperty("core")){ ntSend({kind:"core", op:"ack"}); if(CORE.run || CORE.el>0) coreReset(true); return; }
+    if(!s){ if(CORE.run) corePush(); return; }
+    if(s.finished){ coreDone(dayKey(new Date(s.endedAt||Date.now()))); return; }
+    var el=Math.min(CORE.total, s.el/1000);
+    if(s.run!==CORE.run || Math.abs(el-coreNow())>0.35){
+      CORE.el=el; CORE.t0=performance.now(); CORE.last=Math.floor(el+1e-6);
+      if(s.run && !CORE.run){ CORE.run=true; CORE.inBrk=phase(el).brk; awake(true); clearInterval(CORE.iv); CORE.iv=setInterval(coreTick,50); }
+      else if(!s.run && CORE.run){ CORE.run=false; clearInterval(CORE.iv); CORE.iv=0; awake(false); }
+      renderCore();
+    }
   }
   function coreTick(){
+    if(NT){ coreSync(); if(!CORE.run){ renderCore(); return; } }
     var t=coreNow(), sec=Math.floor(t+1e-6);
-    if(sec!==CORE.last){ CORE.last=sec; if(sec>0) sound(sec); }
-    if(t>=CORE.total){
-      CORE.el=CORE.total; CORE.run=false; clearInterval(CORE.iv); awake(false);
-      fb("done");
-      rollover(); if(!state.day.core){ state.day.core=true; save(); renderXen(); toast("Core session recorded."); }
-      else toast("Done. Today's session was already recorded.");
-    }
+    if(sec!==CORE.last){ CORE.last=sec; if(sec>0 && !NT) sound(sec); }
+    if(t>=CORE.total && !NT){ coreDone(); return; }   /* in the app, the phone says when it's over */
     renderCore();
   }
   function buildCore(){
@@ -1486,7 +1543,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     document.getElementById("corePlay").setAttribute("aria-label", CORE.run?"Pause":"Play");
     card.dataset.done=state.day.core?"1":"0";
   }
-  document.addEventListener("visibilitychange",function(){ if(document.hidden) corePause(); });
+  /* in a browser the timer can't run hidden, so it waits; in the app the phone keeps it going */
+  document.addEventListener("visibilitychange",function(){ if(document.hidden){ if(!NT) corePause(); } else coreSync(); });
 
   /* ---------- tapping a day on either chart ---------- */
   var CH={}, SEL=null;
@@ -1704,7 +1762,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var engRun=isToday && typeof ART!=="undefined" && ART && ART.blk==="eng0";
       if(!engDone && !engRun) out.push({id:"eng"+k, at:at(day,23), ch:"remind", color:"#A5B4FC", title:"English", body:"10 minutes before the day closes"});
     }
-    if(typeof ART!=="undefined" && ART && ART.blk){
+    if(!NT && typeof ART!=="undefined" && ART && ART.blk){
       var m=arMission(ART.blk), i=+ART.blk.slice(m.k.length);
       out.push({id:"ar-"+ART.blk+"-"+ART.endsAt, at:ART.endsAt, ch:"remind", color:"#2563EB", fg:true,
         title:m.name+" · "+(m.blocks>1 ? "Division "+(i+1) : "Division")+" done",
@@ -1726,19 +1784,48 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(ART.blk) arPause();
     audio();
     var left=arLeft(id);                 /* read before it counts as running */
-    ART.blk=id; ART.endsAt=Date.now()+left; arSave(); awake(true); renderAr();
+    ART.blk=id; ART.endsAt=Date.now()+left; arSave(); awake(true); arPush(id,true); renderAr();
   }
   function arPause(){
     if(!ART.blk) return;
-    ART.left[ART.blk]=Math.max(0, ART.endsAt-Date.now()); ART.blk=null; arSave(); awake(false); renderAr();
+    var id=ART.blk;
+    ART.left[id]=Math.max(0, ART.endsAt-Date.now()); ART.blk=null; arSave(); awake(false); arPush(id,false); renderAr();
   }
   function arReset(id){
     if(ART.blk===id){ ART.blk=null; awake(false); }
-    delete ART.left[id]; arSave(); renderAr();
+    delete ART.left[id]; arSave();
+    if(NT){ var s=ntState().ar; if(s && s.id===id) ntSend({kind:"ar", op:"clear"}); }
+    renderAr();
+  }
+  function arPush(id,run){
+    if(!NT || !id) return;
+    var m=arMission(id), i=+id.slice(m.k.length), full=m.min*60000;
+    ntSend({kind:"ar", op:"set", id:id, run:run, el:Math.max(0, full-arLeft(id)), total:full,
+            title:m.name, sub:m.blocks>1 ? "Division "+(i+1) : "Division"});
+  }
+  /* take up what the phone has: paused, played or reset from the lock screen, or finished */
+  function arSync(){
+    var st=ntState(), s=st.ar, cl=st.cleared||{};
+    if(cl.hasOwnProperty("ar")){
+      var cid=cl.ar; ntSend({kind:"ar", op:"ack"});
+      if(cid){ if(ART.blk===cid){ ART.blk=null; awake(false); } delete ART.left[cid]; arSave(); renderAr(); }
+      return null;
+    }
+    if(!s){ if(ART.blk) arPush(ART.blk,true); return null; }
+    if(s.finished){ ART.blk=s.id; ART.endsAt=s.endedAt||Date.now(); return s; }
+    if(s.run){
+      var ends=Date.now()+(s.total-s.el);
+      if(ART.blk!==s.id || Math.abs(ART.endsAt-ends)>800){ ART.blk=s.id; ART.endsAt=ends; delete ART.left[s.id]; arSave(); awake(true); renderAr(); }
+    } else if(ART.blk===s.id){
+      ART.left[s.id]=Math.max(0, s.total-s.el); ART.blk=null; arSave(); awake(false); renderAr();
+    }
+    return s;
   }
   function arTick(){
-    /* a division that ran out while the app was away is written to the day it ended on */
-    if(ART.blk && Date.now()>=ART.endsAt){
+    var ns=NT ? arSync() : null;
+    /* a division that ran out while the app was away is written to the day it ended on;
+       in the app it waits for the phone, which plays the chime */
+    if(ART.blk && Date.now()>=ART.endsAt && (!ns || ns.finished || ns.id!==ART.blk)){
       var id=ART.blk, m=arMission(id), i=+id.slice(m.k.length);
       ART.blk=null; delete ART.left[id]; awake(false);
       rollover();
@@ -1747,11 +1834,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       if(r.ar[m.k]) r.ar[m.k][i]=true;
       if(ART.date!==dayKey()) ART={date:dayKey(), blk:null, endsAt:0, left:{}};
       arSave(); save();
-      sfx("done");
-      toast(m.name+" division done."); fb("done");
+      if(NT) ntSend({kind:"ar", op:"clear"}); else { sfx("done"); fb("done"); }
+      toast(m.name+" division done.");
       renderAr(); return;
     }
-    if(ART.date!==dayKey()){ ART={date:dayKey(), blk:ART.blk, endsAt:ART.endsAt, left:{}}; arSave(); renderAr(); return; }
+    if(ART.date!==dayKey()){
+      ART={date:dayKey(), blk:ART.blk, endsAt:ART.endsAt, left:{}}; arSave();
+      if(NT && !ART.blk) ntSend({kind:"ar", op:"clear"});      /* a paused division doesn't carry into a new day */
+      renderAr(); return;
+    }
     if(!ART.blk) return;
     arTimes();
   }
@@ -1908,6 +1999,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   rollover();
   buildDial(); buildCards(); buildPips(); buildHabits(); buildCore(); buildXr(); buildAr();
   render(); renderXen(); renderXr(); renderAr(); arTick();
+  if(NT){ coreSync(); setInterval(function(){ if(!CORE.run) coreSync(); }, 500); }
   planNotes();
   document.getElementById("achart").addEventListener("click",function(ev){ pickDay("achart",ev); });
   document.getElementById("zchart").addEventListener("click",function(ev){ pickDay("zchart",ev); });

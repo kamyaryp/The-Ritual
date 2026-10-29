@@ -1,6 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The app never touches the network. It may buzz, post notifications, and
-     wake at set times to post them, including after the phone restarts. -->
+<!-- The app never touches the network. It may buzz, post notifications, wake at
+     set times to post them (also after a restart), and run its timers in the
+     background with sound while the phone is locked. -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
     <uses-permission android:name="android.permission.VIBRATE" />
@@ -8,6 +9,10 @@
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />
     <uses-permission android:name="android.permission.USE_EXACT_ALARM" />
     <uses-permission android:name="android.permission.SCHEDULE_EXACT_ALARM" android:maxSdkVersion="32" />
+    <!-- the timers run as a media service, like a song, so they keep going with the screen locked -->
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
+    <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
+    <uses-permission android:name="android.permission.WAKE_LOCK" />
 
     <application
         android:label="Golden Path"
@@ -29,6 +34,12 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <!-- the core routine and Arurael's countdowns, running in the background -->
+        <service
+            android:name=".TimerService"
+            android:exported="false"
+            android:foregroundServiceType="mediaPlayback" />
 
         <!-- posts one planned notification when its alarm goes off -->
         <receiver android:name=".NoteReceiver" android:exported="false" />
