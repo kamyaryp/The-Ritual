@@ -57,24 +57,23 @@ body{
   font-family:var(--font); font-size:15px; line-height:1.5; letter-spacing:-.005em;
   padding-left:max(16px,env(safe-area-inset-left,0px));
   padding-right:max(16px,env(safe-area-inset-right,0px));
-  padding-block:30px calc(108px + env(safe-area-inset-bottom,0px));
+  padding-block:0 calc(108px + env(safe-area-inset-bottom,0px));
 }
 .wrap{max-width:1020px;margin:0 auto;display:flex;flex-direction:column;gap:28px;position:relative}
 .peer{position:absolute;left:0;right:0}
-header{display:flex;flex-wrap:nowrap;align-items:flex-start;justify-content:space-between;gap:12px;
+header{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;height:72px;
   position:sticky;top:env(safe-area-inset-top,0px);z-index:12;background:var(--bg);
-  padding-block:14px 12px;margin-block:-14px -12px}
+  padding-block:16px 12px;margin-block:0 -12px}
 /* the bar's ground runs edge to edge, so a page sliding through the side gutters passes under it */
 header::before{content:"";position:absolute;top:0;bottom:0;left:-100vw;right:-100vw;background:var(--bg);z-index:-1}
 body::before{content:"";position:fixed;inset:0 0 auto;height:env(safe-area-inset-top,0px);z-index:13;background:var(--bg)}
 h1{font-weight:500;font-size:clamp(20px,3vw,25px);margin:0;letter-spacing:-.02em}
-.holder{margin:3px 0 0;font-size:12.5px;color:var(--ink-3)}
+.holder{display:none}
 .brand{display:flex;align-items:center;gap:16px;min-width:0;flex:1 1 auto}
-.stamp{flex:0 0 auto;padding-top:7px;white-space:nowrap}
+.stamp{flex:0 0 auto;white-space:nowrap}
 @media (max-width:620px){ .stamp .tm{display:none} }
 .brand-text{min-width:0}
-/* the mark is exactly as tall as title + subtitle together (sized from the text in script) */
-.mark{flex:0 0 auto;display:block;width:42px;height:42px;overflow:visible}
+.mark{flex:0 0 auto;display:block;width:30px;height:30px;overflow:visible}
 .mark .arm{fill:#3a3a3a}
 .mark .arm.lit[data-v="xr"]{fill:var(--xeron)}
 .mark .arm.lit[data-v="ar"]{fill:var(--arurael)}
@@ -185,7 +184,8 @@ h2{font-weight:500;font-size:14px;margin:0;color:var(--ink-2);letter-spacing:-.0
 .chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 12px 8px;overflow-x:auto}
 svg.chart{display:block;width:100%;min-width:420px;height:auto;aspect-ratio:700/190}
 @media (max-width:620px){
-  body{padding-block:22px calc(104px + env(safe-area-inset-bottom,0px))}
+  body{padding-block:0 calc(104px + env(safe-area-inset-bottom,0px))}
+  header{height:64px;padding-top:14px}
   .wrap{gap:22px}
   .stage{gap:22px}
   svg.dial{max-width:370px}
@@ -2011,7 +2011,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   });
   function sizeMark(){
     var h=document.querySelector(".brand-text").offsetHeight, m=document.getElementById("mark");
-    if(h){ var z=Math.round(h*0.8); m.style.width=z+"px"; m.style.height=z+"px"; }
+    return;
   }
   sizeMark();
   if(window.ResizeObserver) new ResizeObserver(sizeMark).observe(document.querySelector(".brand-text"));
