@@ -2395,7 +2395,20 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     {k:"xenlil", name:"Xenlil",  hue:"var(--xenlil)"},
     {k:"arexia", name:"Arexia",  hue:"var(--arexia)"}
   ];
-  function cycleScore(g,days){ return mean(clElapsed(days).map(DAY[g])); }
+  /* Xenlil is scored over the whole cycle at once: each part is done / due across the cycle's
+     days, and keeps its weight whenever anything of it was due; a part drops out only if
+     nothing of it was due all cycle. The others have the same tasks every day, so the mean
+     of their days is the same thing. */
+  function xenPooled(days){
+    if(!days.length) return null;
+    var t=tXenlil(days), sum=0, w=0;
+    XEN_W.forEach(function(x){ var d=t.due[x[0]]; if(!d) return; sum+=x[1]*Math.min(1,t.got[x[0]]/d); w+=x[1]; });
+    return w ? 100*sum/w : null;
+  }
+  function cycleScore(g,days){
+    var seen=clElapsed(days);
+    return g==="xenlil" ? xenPooled(seen) : mean(seen.map(DAY[g]));
+  }
   function clusterScores(c){                           /* {god:{c1,c2,all}} */
     var d=clDays(c), out={};
     CL_GODS.forEach(function(g){
