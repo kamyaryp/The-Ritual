@@ -28,6 +28,7 @@ img{max-width:100%}
 
 /* Dark only, warm near-black. Dial above, four gods in a 2x2 below, chronicle last. */
 :root{
+  --gap:12px; --sect:24px; --pad:14px;
   --bg:#0d0d0c; --panel:#151413; --panel-2:#1a1917; --line:#272523; --line-2:#1f1e1c;
   --ink:#edebe5; --ink-2:#9d9890; --ink-3:#6b6760;
   --well:#121110; --lapsed:#232220; --box:#4a4740;
@@ -61,7 +62,7 @@ body{
   padding-right:max(16px,env(safe-area-inset-right,0px));
   padding-block:0 calc(108px + env(safe-area-inset-bottom,0px));
 }
-.wrap{max-width:1020px;margin:0 auto;display:flex;flex-direction:column;gap:28px;position:relative}
+.wrap{max-width:1020px;margin:0 auto;display:flex;flex-direction:column;gap:var(--sect);position:relative}
 .peer{position:absolute;left:0;right:0}
 header{display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:12px;box-sizing:border-box;height:72px;
   position:sticky;top:env(safe-area-inset-top,0px);z-index:12;background:var(--bg);
@@ -85,7 +86,7 @@ h1{font-weight:500;font-size:clamp(20px,3vw,25px);margin:0;letter-spacing:-.02em
 .holder b{font-weight:600}
 .stamp{font-family:var(--mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 
-.stage{display:grid;grid-template-columns:minmax(290px,1fr) minmax(320px,1.05fr);gap:30px;align-items:center}
+.stage{display:grid;grid-template-columns:minmax(290px,1fr) minmax(320px,1.05fr);gap:var(--sect);align-items:center}
 @media (max-width:880px){.stage{grid-template-columns:1fr}}
 .dialbox{display:flex;justify-content:center}
 svg.dial{width:100%;max-width:450px;height:auto}
@@ -107,9 +108,9 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .godname{font-size:13px;font-weight:500;letter-spacing:.04em}
 .dialrune{font-family:var(--rune);font-size:19px;pointer-events:none}
 
-.cards{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.cards{display:grid;grid-template-columns:1fr 1fr;gap:var(--gap)}
 @media (max-width:560px){.cards{grid-template-columns:1fr}}
-.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:13px 14px;display:flex;flex-direction:column;gap:10px;position:relative;min-width:0}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:var(--pad);display:flex;flex-direction:column;gap:var(--gap);position:relative;min-width:0}
 .card[data-active="1"]{border-color:var(--hue);background:var(--panel-2)}
 .card-head{display:flex;align-items:baseline;gap:8px}
 .gname{font-size:15px;font-weight:600;color:var(--hue);letter-spacing:-.01em}
@@ -133,25 +134,61 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .rite{cursor:pointer;border-radius:4px;padding:1px 2px;margin:0 -2px}
 .rite:hover{background:var(--panel-2)}
 .rite[data-state="lapsed"],.rite[data-state="awaiting"]{cursor:not-allowed}
-.rite[id^="h-"][data-state="awaiting"] .rname,.rite[id^="h-"][data-state="lapsed"]:not([data-done="1"]) .rname{color:var(--ink-3)}
+.gymrow[data-state="awaiting"] .rname,.rite[id^="h-"][data-state="awaiting"] .rname,.rite[id^="h-"][data-state="lapsed"]:not([data-done="1"]) .rname{color:var(--ink-3)}
 .rite[data-state="lapsed"]:hover,.rite[data-state="awaiting"]:hover{background:transparent}
 .rnum{flex:0 0 auto;width:18px;text-align:center;font-family:var(--rune);font-size:16px;line-height:1;color:var(--ink-2)}
 .rite[data-state="open"] .rnum,.rite[data-done="1"] .rnum{color:var(--hue)}
 .win{flex:0 0 auto;margin-left:auto;font-family:var(--mono);font-size:11px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 
-.chron{display:flex;flex-direction:column;gap:12px}
-#viewDial,#viewXen,#viewXr,#viewAr{display:flex;flex-direction:column;gap:28px}
+.chron{display:flex;flex-direction:column;gap:var(--gap)}
+#viewDial,#viewXen,#viewXr,#viewAr,#viewCl{display:flex;flex-direction:column;gap:var(--sect)}
 @keyframes inR{from{opacity:.35;transform:translateX(32px)}to{opacity:1;transform:none}}
 @keyframes inL{from{opacity:.35;transform:translateX(-32px)}to{opacity:1;transform:none}}
 @media (prefers-reduced-motion:no-preference){
   .in-r{animation:inR .26s cubic-bezier(.2,.7,.2,1)}
   .in-l{animation:inL .26s cubic-bezier(.2,.7,.2,1)}
 }
-#viewDial[hidden],#viewXen[hidden],#viewXr[hidden],#viewAr[hidden]{display:none}
+#viewDial[hidden],#viewXen[hidden],#viewXr[hidden],#viewAr[hidden],#viewCl[hidden]{display:none}
 .ar-cards{grid-template-columns:repeat(3,1fr)}
+/* cluster */
+.cl-top{display:flex;align-items:center;gap:var(--gap)}
+.cl-title{flex:1 1 auto;display:flex;flex-direction:column;align-items:center;gap:2px;text-align:center}
+.cl-title .gname{color:var(--ink)}
+.cl-title .ghours{margin-left:0}
+#clchart{aspect-ratio:700/200}
+@media (max-width:620px){ #clchart{aspect-ratio:430/200} }
+.cl-report .rp-row{display:grid;grid-template-columns:1fr auto 44px;align-items:center;gap:var(--gap);font-size:13.5px}
+.cl-report .rp-row span{color:var(--ink-2)}
+.cl-report .rp-row em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.cl-report .rp-row b{font-family:var(--mono);font-size:12.5px;font-weight:500;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.cl-report .rp-row.note b{color:var(--ink-3)}
+.cl-report .rp-bar{height:3px;border-radius:2px;background:var(--well);overflow:hidden;margin-top:-6px}
+.cl-report .rp-bar i{display:block;height:100%;background:var(--hue)}
+.cl-line{fill:none;stroke-linecap:round;stroke-linejoin:round}
+.cl-cyc{font-family:var(--mono);font-size:9.5px;fill:var(--ink-3)}
+.cl-seg{gap:0;padding-block:6px}
+.segrow{display:grid;grid-template-columns:76px 1fr 1fr 52px;align-items:center;gap:var(--gap);padding:9px 0;border-top:1px solid var(--line-2)}
+.segrow:first-child{border-top:0}
+.segrow .nm{font-size:13.5px;font-weight:500;color:var(--hue)}
+.segrow .bar{position:relative;height:22px;border-radius:4px;background:var(--well);border:1px solid var(--line-2);overflow:hidden}
+.segrow .bar i{position:absolute;inset:0 auto 0 0;background:var(--hue);opacity:.85}
+.segrow .bar em{position:absolute;inset:0;display:grid;place-items:center;font-style:normal;font-family:var(--mono);font-size:11px;color:var(--ink);text-shadow:0 0 4px rgba(0,0,0,.7)}
+.segrow .bar.none{border-style:dashed;background:transparent}
+.segrow .bar.none em{color:var(--ink-3);text-shadow:none}
+.segrow .tot{font-family:var(--mono);font-size:14px;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
+.segrow.head{padding:4px 0 6px;font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
+.segrow.head span{text-align:center}
+.segrow.head .tot{font-size:10.5px;color:var(--ink-3);text-align:right}
+.segrow.head + .segrow{border-top:0}
+.tip .muted{color:var(--ink-3)}
+@media (max-width:420px){ .segrow{grid-template-columns:62px 1fr 1fr 44px;gap:8px} }
+.xr-grid{grid-template-columns:1fr 1fr}
+.xr-grid .ae-card{grid-column:1/-1}
+@media (max-width:560px){ .cards.xr-grid{grid-template-columns:1fr 1fr} }
+.xr-ctr .ctr{gap:8px;min-height:0}
+.cnt.big{flex:1 1 auto;text-align:left;font-size:30px;font-weight:500;line-height:1}
 .ar-cards .card.work{grid-column:1/-1}
-.stage-side{display:flex;flex-direction:column;gap:12px;min-width:0}
-.card.nature{padding-block:12px}
+.stage-side{display:flex;flex-direction:column;gap:var(--gap);min-width:0}
 .nat-name{color:var(--hue);font-weight:500}
 #hcCard .rite[data-state="sealed"]{cursor:not-allowed}
 #hcCard .rite[data-state="sealed"]:hover{background:transparent}
@@ -209,15 +246,13 @@ svg.dial{width:100%;max-width:450px;height:auto}
 h2{font-weight:500;font-size:14px;margin:0;color:var(--ink-2);letter-spacing:-.01em}
 .stats{display:flex;gap:20px;font-family:var(--mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .stats b{color:var(--ink);font-weight:500}
-.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:14px 12px 8px;overflow-x:auto}
+.chartbox{background:var(--panel);border:1px solid var(--line);border-radius:6px;padding:var(--pad) var(--gap) 8px;overflow-x:auto}
 svg.chart{display:block;width:100%;min-width:420px;height:auto;aspect-ratio:700/190}
 @media (max-width:620px){
   body{padding-block:0 calc(104px + env(safe-area-inset-bottom,0px))}
   header{height:64px;padding-top:14px}
-  .wrap{gap:22px}
-  .stage{gap:22px}
   svg.dial{max-width:370px}
-  .chartbox{padding:12px 10px 6px;overflow-x:visible}
+  .chartbox{overflow-x:visible}
   svg.chart{min-width:0;aspect-ratio:420/190}
   .stats{gap:14px;font-size:11.5px}
   footer{justify-content:stretch}
@@ -231,7 +266,7 @@ svg.chart{display:block;width:100%;min-width:420px;height:auto;aspect-ratio:700/
 .emptybar{fill:var(--line-2)}
 .empty{padding:34px 10px;text-align:center;color:var(--ink-3);font-size:13px}
 
-footer{display:flex;gap:8px;justify-content:flex-end}
+footer{display:flex;gap:var(--gap);justify-content:flex-end}
 .nav{position:fixed;left:50%;transform:translateX(-50%);z-index:15;display:flex;gap:4px;padding:4px;
   bottom:calc(14px + env(safe-area-inset-bottom,0px));
   background:var(--panel-2);border:1px solid var(--line);border-radius:999px;box-shadow:0 8px 28px rgba(0,0,0,.5)}
@@ -240,6 +275,8 @@ footer{display:flex;gap:8px;justify-content:flex-end}
 .tab.on{background:var(--panel);color:var(--ink);box-shadow:inset 0 0 0 1px var(--line)}
 .tab:hover:not(.on):not(.off){color:var(--ink-2)}
 .tab.off{cursor:default;opacity:.3;padding:7px 12px}
+.tab-mark{padding:0 13px;display:grid;place-items:center}
+.tab-mark svg{width:14px;height:14px;fill:currentColor;display:block}
 .pips{display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:8px 7px}
 .pip{width:100%;height:36px;border:1.5px solid var(--line);border-radius:3px 3px 6px 6px;background:transparent;
   cursor:pointer;padding:0;transition:background .15s,border-color .15s}
@@ -266,7 +303,6 @@ footer{display:flex;gap:8px;justify-content:flex-end}
   #viewXen .cards{grid-template-columns:1fr}
   #gymCard,#maintCard,#waterCard,#suppCard,#careCard{grid-column:auto}
 }
-#viewXen .card{gap:12px}
 #viewXen .card-head{min-height:22px;align-items:center}
 #viewXen .rite{min-height:30px}
 .card.wide{grid-column:1/-1}
@@ -422,11 +458,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   <section class="chron">
     <div class="sec-head">
       <h2>Chronicle</h2>
-      <div class="stats">
-        <span><b id="statToday">0/8</b> today</span>
-        <span><b id="statStreak">0</b> streak</span>
-        <span><b id="statAvg">0.0</b> avg</span>
-      </div>
+      <div class="stats"><span><b id="avgRites">—</b> rituals / day</span></div>
     </div>
     <div class="chartbox">
       <svg class="chart" id="chart" viewBox="0 0 700 190" aria-label="Rites fulfilled, last fourteen days"></svg>
@@ -447,12 +479,27 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         <div class="pips" id="pips"></div>
       </div>
       <div class="card" id="gymCard" style="--hue:var(--c-gym)">
-        <div class="card-head"><span class="gname">Gym</span><span class="ghours">Mon · Wed · Thu</span></div>
-        <div class="rite" id="gymRow">
-          <button type="button" class="box" id="gymBox" role="checkbox" aria-checked="false" aria-label="Gym today">
+        <div class="card-head"><span class="gname">Gym</span></div>
+        <div class="rite gymrow" id="gymRow0" data-n="0">
+          <button type="button" class="box" role="checkbox" aria-checked="false" aria-label="Gym session 1">
             <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
-          <span class="rname" id="gymLabel">Session</span>
+          <span class="rname"></span>
+          <span class="win">Mon</span>
+        </div>
+        <div class="rite gymrow" id="gymRow1" data-n="1">
+          <button type="button" class="box" role="checkbox" aria-checked="false" aria-label="Gym session 2">
+            <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="rname"></span>
+          <span class="win">Wed</span>
+        </div>
+        <div class="rite gymrow" id="gymRow2" data-n="2">
+          <button type="button" class="box" role="checkbox" aria-checked="false" aria-label="Gym session 3">
+            <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </button>
+          <span class="rname"></span>
+          <span class="win">Thu</span>
         </div>
         <div class="rest" id="gymRest" hidden>
           <span class="rest-dash" aria-hidden="true"></span>
@@ -501,12 +548,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     <section class="chron">
       <div class="sec-head">
         <h2>Record</h2>
-        <div class="stats">
-          <span><b id="xToday">0%</b> today</span>
-          <span><b id="xGlasses">0</b> glasses</span>
-          <span><b id="xGym">0</b> gym</span>
-          <span><b id="xCore">0</b> core</span>
-        </div>
+        <div class="stats"><span><b id="avgWater">—</b> water / day</span></div>
       </div>
       <div class="chartbox">
         <svg class="chart" id="xchart" viewBox="0 0 700 190" aria-label="Share of the day's record kept"></svg>
@@ -519,8 +561,32 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       </footer>
     </section>
   </div>
+  <div id="viewCl" hidden>
+    <section class="chron">
+      <div class="sec-head"><h2>Performance</h2><div class="stats" id="clNowStat"></div></div>
+      <div class="chartbox">
+        <svg class="chart" id="clchart" viewBox="0 0 700 200" aria-label="Each god's performance, cluster by cluster"></svg>
+        <div class="tip" id="cTip" hidden></div>
+        <div class="empty" id="clEmpty" hidden></div>
+      </div>
+    </section>
+    <section class="chron">
+      <div class="cl-top">
+        <button type="button" class="step" id="clPrev" aria-label="Previous cluster">‹</button>
+        <div class="cl-title"><span class="gname" id="clName">Cluster 1</span><span class="ghours" id="clDates"></span></div>
+        <button type="button" class="step" id="clNext" aria-label="Next cluster">›</button>
+      </div>
+      <div class="sec-head"><h2>Segments</h2><div class="stats" id="clWhere"></div></div>
+      <div class="card cl-seg" id="clSeg"></div>
+    </section>
+    <section class="chron">
+      <div class="sec-head"><h2>Report</h2></div>
+      <div class="cards cl-report" id="clReport"></div>
+    </section>
+  </div>
   <div id="viewXr" hidden>
-    <div class="card ae-card" id="aeCard" style="--hue:var(--x-ae)">
+    <div class="cards xr-grid">
+      <div class="card ae-card" id="aeCard" style="--hue:var(--x-ae)">
       <div class="card-head"><span class="gname">The Binding of Aeshma</span><span class="ghours" id="aeCount">0/8</span></div>
       <div class="ae-body">
         <svg class="ae-dial" id="aeDial" viewBox="36 36 308 308" aria-label="The eight bindings of the day"></svg>
@@ -535,23 +601,17 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         </div>
       </div>
     </div>
-    <div class="cards">
-      <div class="card" id="depCard" style="--hue:var(--xeron)">
-        <div class="card-head"><span class="gname">Depletion</span><span class="ghours" id="depTotal">0</span></div>
+      <div class="card xr-ctr" id="depCard" style="--hue:var(--x-endoin)">
+        <div class="card-head"><span class="gname">Depletion</span></div>
       </div>
-      <div class="card" id="thrCard" style="--hue:var(--x-tendoin)">
-        <div class="card-head"><span class="gname">Threshold</span><span class="ghours" id="thrTotal">0</span></div>
+      <div class="card xr-ctr" id="thrCard" style="--hue:var(--x-tendoin)">
+        <div class="card-head"><span class="gname">Threshold</span></div>
       </div>
     </div>
     <section class="chron">
       <div class="sec-head">
         <h2>Record</h2>
-        <div class="stats">
-          <span><b id="zToday">0</b> today</span>
-          <span><b id="zDeps">0</b> depletions</span>
-          <span><b id="zThrs">0</b> thresholds</span>
-          <span><b id="zBound">0</b> bound</span>
-        </div>
+        <div class="stats"><span><b id="avgDeps">—</b> depletions / day</span></div>
       </div>
       <div class="chartbox">
         <svg class="chart" id="zchart" viewBox="0 0 700 190" aria-label="Depletions and thresholds per day"></svg>
@@ -569,12 +629,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     <section class="chron">
       <div class="sec-head">
         <h2>Record</h2>
-        <div class="stats">
-          <span><b id="aToday">0</b> min today</span>
-          <span><b id="aHours">0</b> h total</span>
-          <span><b id="aFull">0</b> full days</span>
-          <span><b id="aWork">0/8</b> work</span>
-        </div>
+        <div class="stats"><span><b id="avgUnits">—</b> divisions / day</span></div>
       </div>
       <div class="chartbox">
         <svg class="chart" id="achart" viewBox="0 0 700 190" aria-label="Minutes of focus per day"></svg>
@@ -590,6 +645,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 </div>
 
 <nav class="nav" id="nav">
+  <button type="button" class="tab tab-mark" data-view="cl" aria-label="Golden Path">
+    <svg viewBox="500 500 1000 1000" aria-hidden="true"><rect x="900" y="1100" width="200" height="400"/><rect x="500" y="900" width="400" height="200"/><rect x="900" y="500" width="200" height="400"/><rect x="1100" y="900" width="400" height="200"/></svg>
+  </button>
   <button type="button" class="tab" data-view="xr">Xeron</button>
   <button type="button" class="tab" data-view="ar">Arurael</button>
   <button type="button" class="tab" data-view="xen">Xenlil</button>
@@ -729,18 +787,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     return {done:done, total:items.length, parts:parts};
   }
   var XR=[
-    {k:"endo",    grp:"dep", name:"Endo",              color:"var(--x-endo)"},
-    {k:"endoIn",  grp:"dep", name:"Endo · in session", color:"var(--x-endoin)"},
-    {k:"exo",     grp:"dep", name:"Exo",               color:"var(--x-exo)"},
-    {k:"tendo",   grp:"thr", name:"Endo",              color:"var(--x-tendo)"},
-    {k:"tendoIn", grp:"thr", name:"Endo · in session", color:"var(--x-tendoin)"},
-    {k:"texo",    grp:"thr", name:"Exo",               color:"var(--x-texo)"}
+    {k:"d", grp:"dep", name:"Depletion", color:"var(--x-endoin)"},
+    {k:"t", grp:"thr", name:"Threshold", color:"var(--x-tendoin)"}
   ];
   function blankXr(){ var o={}; XR.forEach(function(x){ o[x.k]=0; }); return o; }
   function blankAe(){ return [false,false,false,false,false,false,false,false]; }
   function aeCount(a){ var n=0; if(a) a.forEach(function(v){ if(v) n++; }); return n; }
-  function deps(x){ return x ? (x.exo||0)+(x.endoIn||0)+(x.endo||0) : 0; }
-  function thrs(x){ return x ? (x.texo||0)+(x.tendoIn||0)+(x.tendo||0) : 0; }
+  /* one count each; older days kept three kinds of each, and still add up */
+  function deps(x){ return x ? (x.d||0)+(x.exo||0)+(x.endoIn||0)+(x.endo||0) : 0; }
+  function thrs(x){ return x ? (x.t||0)+(x.texo||0)+(x.tendoIn||0)+(x.tendo||0) : 0; }
   var AR=[
     {k:"exe", name:"Execution & Science", min:25, blocks:2, color:"var(--a-exe)"},
     {k:"sci", name:"Share",               min:25, blocks:1, color:"var(--a-sci)"},   /* key kept so saved days still read */
@@ -757,6 +812,21 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     return GYM_DAYS.indexOf(d.getDay())>=0;
   }
   var state;
+  function setText(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
+  /* the all-time daily average of something, over every day that recorded it (today included) */
+  function dailyAvg(has, val, dp){
+    var sum=0, n=0;
+    state.history.concat([state.day]).forEach(function(r){ if(!has(r)) return; sum+=val(r); n++; });
+    return n ? (sum/n).toFixed(dp===undefined?1:dp) : "\u2014";
+  }
+  function renderAverages(){
+    setText("avgRites", dailyAvg(function(r){ return r.checks || r.nature; }, function(r){ return r.nature ? 8 : total(r.checks||{}); }));
+    setText("avgWater", dailyAvg(function(r){ return typeof r.water==="number"; }, function(r){ return r.water; }));
+    setText("avgDeps",  dailyAvg(function(r){ return !!r.xr; }, function(r){ return deps(r.xr); }, 2));
+    /* units a day: work 8 + share 1 + execution & science 2 + english 1 = 12 */
+    setText("avgUnits", dailyAvg(function(r){ return !!r.ar || workN(r.work)>0; }, function(r){ var a=r.ar||{};
+      return Math.min(8,workN(r.work))+Math.min(1,cnt(a.sci))+Math.min(2,cnt(a.exe))+Math.min(1,cnt(a.eng)); }));
+  }
   function mergePills(r){
     var h=r && r.habits; if(!h || h.mvom!==undefined || (h.mv===undefined && h.om===undefined)) return;
     h.mvom=!!(h.mv && h.om); delete h.mv; delete h.om; delete h.nose;
@@ -769,6 +839,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(!d.habits) d.habits={};
     if(typeof d.core!=="boolean") d.core=false;
     if(!d.xr) d.xr=blankXr();
+    if(d.xr.d===undefined || d.xr.t===undefined) d.xr={d:deps(d.xr), t:thrs(d.xr)};
     if(!d.ar) d.ar=blankAr();
     if(!Array.isArray(d.ae)) d.ae=blankAe();
     if(!Array.isArray(d.work)) d.work=workArr(d.work);
@@ -929,7 +1000,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var nat=!!state.day.nature;
     document.getElementById("natRow").dataset.done=nat?"1":"0";
     document.getElementById("natBox").setAttribute("aria-checked", nat?"true":"false");
-    document.getElementById("statToday").textContent=done+"/8";
+    setText("statToday",done+"/8");
     var openIdx=null, openGod=null;
 
     GODS.forEach(function(god){
@@ -1216,7 +1287,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var any=days.some(function(d){ var r=recordFor(d); return r && total(r)>0; });
     document.getElementById("chartEmpty").hidden=any;
     svg.style.display=any?"block":"none";
-    if(!any){ updateStats(); return; }
+    if(!any){ updateStats(); renderAverages(); return; }
 
     var narrow=window.innerWidth<620;
     var W=(narrow?430:700),H=190,padL=24,padR=8,padT=12,padB=22;
@@ -1247,19 +1318,19 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       });
     });
     chartDone("chart",svg,{W:W,padL:padL,padT:padT,plotH:plotH,step:step,days:days,info:infoRites});
-    updateStats();
+    updateStats(); renderAverages();
   }
   function updateStats(){
     var sum=0,count=0;
     state.history.forEach(function(rec){ if(!rec.checks && !rec.nature) return; sum+=rec.nature?8:total(rec.checks); count++; });
-    document.getElementById("statAvg").textContent=count?(sum/count).toFixed(1):"\u2014";
+    setText("statAvg",count?(sum/count).toFixed(1):"\u2014");
     var streak=0, d=new Date(), r0=recordFor(dayKey(d));
     if(!(r0 && total(r0)===8)) d.setDate(d.getDate()-1);
     for(;;){
       var rr=recordFor(dayKey(d));
       if(rr && total(rr)===8){ streak++; d.setDate(d.getDate()-1); } else break;
     }
-    document.getElementById("statStreak").textContent=streak;
+    setText("statStreak",streak);
   }
 
   /* ---------- Xenlil: the day's own tally ---------- */
@@ -1325,6 +1396,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var wh=document.createElement("span"); wh.className="win"; wh.textContent=h.when;
       row.appendChild(b); row.appendChild(nm); row.appendChild(wh);
       function flip(){
+        if(!isDue(h)){ fb("deny"); toast(h.name+(h.monthly ? " is on the 1st of the month." : " is on "+h.when+".")); return; }
         var st=habState(h);
         if(st && st!=="open"){
           fb("deny");
@@ -1352,55 +1424,43 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   function renderXen(){
     if(VIEW==="xen") xenSubtitle();
-    var gymToday=isGymDay();
-    document.getElementById("gymRow").hidden=!gymToday;
-    document.getElementById("gymRest").hidden=gymToday;
-    if(gymToday) document.getElementById("gymLabel").innerHTML=gymName(gymNo());
-    else {
-      for(var i=1;i<=7;i++){
-        var nd=new Date(); nd.setDate(nd.getDate()+i);
-        var n=GYM_DAYS.indexOf(nd.getDay());
-        if(n>=0){
-          document.getElementById("gymNext").innerHTML='next · '+
-            nd.toLocaleDateString(undefined,{weekday:"short"})+' · '+GYM_NAMES[n];
-          break;
-        }
-      }
+    /* all three sessions shown; only today's can be ticked */
+    var todayN=gymNo();
+    document.getElementById("gymRest").hidden=true;
+    for(var gn=0;gn<3;gn++){
+      var gr=document.getElementById("gymRow"+gn), gb=gr.querySelector(".box"), on=(todayN===gn && state.day.gym);
+      gr.querySelector(".rname").innerHTML=gymName(gn);
+      gr.dataset.state = todayN===gn ? "open" : "awaiting";
+      gr.dataset.done = on ? "1" : "0";
+      gb.setAttribute("aria-disabled", todayN===gn ? "false" : "true");
+      gb.setAttribute("aria-checked", on ? "true" : "false");
     }
-    document.getElementById("gymBox").setAttribute("aria-checked", state.day.gym?"true":"false");
-    document.getElementById("gymRow").dataset.done=state.day.gym?"1":"0";
     document.getElementById("waterNow").textContent=state.day.water;
     var pips=document.querySelectorAll("#pips .pip");
     renderHealth();
     for(var i=0;i<pips.length;i++) pips[i].className="pip"+(i<state.day.water?" full":"");
     HABITS.forEach(function(h){
       var row=document.getElementById("h-"+h.k), on=!!state.day.habits[h.k];
-      row.hidden = !isDue(h);
+      row.hidden = false;
       row.dataset.done=on?"1":"0";
       row.querySelector(".box").setAttribute("aria-checked", on?"true":"false");
-      var st=habState(h);
+      var st = !isDue(h) ? "awaiting" : habState(h);          /* not owed today: shown, but locked */
       if(st){ row.dataset.state=st; row.querySelector(".box").setAttribute("aria-disabled", st==="open"?"false":"true"); }
+      else { delete row.dataset.state; row.querySelector(".box").setAttribute("aria-disabled","false"); }
     });
-    var dueM=HABITS.filter(function(x){ return x.card==="maint" && isDue(x); });
-    document.getElementById("maintRest").hidden=dueM.length>0;
-    if(!dueM.length){
-      for(var j=1;j<=7;j++){
-        var md=new Date(); md.setDate(md.getDate()+j);
-        var hit=HABITS.filter(function(x){ return x.card==="maint" && x.days && x.days.indexOf(md.getDay())>=0; })[0];
-        if(hit){ document.getElementById("maintNext").textContent='next · '+md.toLocaleDateString(undefined,{weekday:"short"})+' · '+hit.name; break; }
-      }
-    }
+    document.getElementById("maintRest").hidden=true;
     var sc=score(state.day.date,state.day);
-    document.getElementById("xToday").textContent=Math.round(sc.done/sc.total*100)+"%";
+    setText("xToday",Math.round(sc.done/sc.total*100)+"%");
     var glasses=state.day.water, gyms=state.day.gym?1:0, cores=state.day.core?1:0;
     state.history.forEach(function(r){ glasses+=r.water||0; if(r.gym) gyms++; if(r.core) cores++; });
-    document.getElementById("xCore").textContent=cores;
+    setText("xCore",cores);
     renderCore();
-    document.getElementById("xGlasses").textContent=glasses;
-    document.getElementById("xGym").textContent=gyms;
+    setText("xGlasses",glasses);
+    setText("xGym",gyms);
     drawXenChart();
   }
   function drawXenChart(){
+    renderAverages();
     var svg=document.getElementById("xchart");
     while(svg.firstChild) svg.removeChild(svg.firstChild);
     var days=lastDays(SPAN), today=dayKey();
@@ -1724,7 +1784,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     return h;
   }
   function chartDone(id,svg,m){
-    m.svg=svg; m.tip=document.getElementById({chart:"rTip",xchart:"xTip",zchart:"zTip",achart:"aTip"}[id]); CH[id]=m;
+    m.svg=svg; m.tip=document.getElementById({chart:"rTip",xchart:"xTip",zchart:"zTip",achart:"aTip",clchart:"cTip"}[id]); CH[id]=m;
     if(SEL && SEL.id===id){
       var i=m.days.indexOf(SEL.day);
       if(i<0){ hideTip(); return; }
@@ -1744,8 +1804,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function hideTip(){
     if(!SEL) return;
     SEL=null;
-    ["rTip","xTip","zTip","aTip"].forEach(function(id){ document.getElementById(id).hidden=true; });
-    drawChart(); drawXenChart(); drawXrChart(); drawArChart();
+    ["rTip","xTip","zTip","aTip","cTip"].forEach(function(id){ document.getElementById(id).hidden=true; });
+    drawChart(); drawXenChart(); drawXrChart(); drawArChart(); if(VIEW==="cl") drawClChart();
   }
   function pickDay(id,ev){
     ev.stopPropagation();
@@ -1757,8 +1817,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(SEL && SEL.id===id && SEL.day===m.days[i]){ hideTip(); return; }
     var other=SEL && SEL.id!==id;
     SEL={id:id, day:m.days[i]};
-    if(other) ["rTip","xTip","zTip","aTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
-    ({chart:drawChart, xchart:drawXenChart, zchart:drawXrChart, achart:drawArChart})[id]();
+    if(other) ["rTip","xTip","zTip","aTip","cTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
+    ({chart:drawChart, xchart:drawXenChart, zchart:drawXrChart, achart:drawArChart, clchart:drawClChart})[id]();
   }
 
   /* ---------- Xeron ---------- */
@@ -1791,13 +1851,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function buildXr(){
     XR.forEach(function(x){
       var row=document.createElement("div"); row.className="ctr";
-      row.innerHTML='<span class="rname"><i class="sw" style="background:'+x.color+'"></i>'+x.name+'</span>'+
+      row.innerHTML='<b class="cnt big" id="c-'+x.k+'">0</b>'+
         '<button type="button" class="step" aria-label="One fewer">−</button>'+
-        '<b class="cnt" id="c-'+x.k+'">0</b>'+
         '<button type="button" class="step plus" aria-label="One more">+</button>';
       var b=row.querySelectorAll(".step");
       b[0].addEventListener("click",function(){ if(state.day.xr[x.k]>0){ state.day.xr[x.k]--; fb("off"); save(); renderXr(); } });
-      b[1].addEventListener("click",function(){ state.day.xr[x.k]++; fb("on"); save(); renderXr(); });
+      b[1].addEventListener("click",function(){ state.day.xr[x.k]=(state.day.xr[x.k]||0)+1; fb("on"); save(); renderXr(); });
       document.getElementById(x.grp==="dep"?"depCard":"thrCard").appendChild(row);
     });
   }
@@ -1807,20 +1866,19 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     document.querySelectorAll("#viewXr .ctr").forEach(function(row,i){
       row.querySelector(".step").disabled=!(x[XR[i].k]>0);
     });
-    document.getElementById("depTotal").textContent=deps(x);
-    document.getElementById("thrTotal").textContent=thrs(x);
     var D=0, T=0;
     xrDays().forEach(function(r){ D+=deps(r.xr); T+=thrs(r.xr); });
-    document.getElementById("zToday").textContent=deps(x);
-    document.getElementById("zDeps").textContent=D;
-    document.getElementById("zThrs").textContent=T;
+    setText("zToday",deps(x));
+    setText("zDeps",D);
+    setText("zThrs",T);
     var B=aeCount(state.day.ae); state.history.forEach(function(r){ B+=aeCount(r.ae); });
-    document.getElementById("zBound").textContent=B;
+    setText("zBound",B);
     renderAe();
     if(VIEW==="xr") xrSubtitle();
     drawXrChart();
   }
   function drawXrChart(){
+    renderAverages();
     var svg=document.getElementById("zchart");
     while(svg.firstChild) svg.removeChild(svg.firstChild);
     var days=lastDays(SPAN);
@@ -1855,7 +1913,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       if(!tot(r)){ if(!n) svg.appendChild(el("rect",{x:x.toFixed(1),y:(base-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"})); return; }
       var y=base-(floor?2:0);                         /* a clear gap at zero when bindings hang below */
       XR.forEach(function(it){
-        var c=r.xr[it.k]||0; if(!c) return;
+        var c=it.grp==="dep" ? deps(r.xr) : thrs(r.xr); if(!c) return;
         var h=c*unit; y-=h;
         svg.appendChild(el("rect",{x:x.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:it.color}));
       });
@@ -1867,10 +1925,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(!r || (!r.xr && !r.ae)) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
     var x=r.xr||{};
     var h='<div class="th">'+fmtDay(k)+'</div>';
-    [["dep","Depletion"],["thr","Threshold"]].forEach(function(g){
-      h+='<div class="tr"><span>'+g[1]+'</span><b>'+(g[0]==="dep"?deps(x):thrs(x))+'</b></div>';
-      XR.forEach(function(it){ if(it.grp===g[0] && x[it.k]) h+=tr(it.color,it.name,x[it.k]); });
-    });
+    XR.forEach(function(it){ h+=tr(it.color,it.name,it.grp==="dep"?deps(x):thrs(x)); });
     if(r.ae){
       var runes=r.ae.map(function(v,i){ return v?RUNE[i]:""; }).join(" ").trim();
       h+=tr("var(--x-ae)","Bound",aeCount(r.ae)+"/8");
@@ -2205,20 +2260,21 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     arTimes();
     var mins=0, full=0;
     arDays().forEach(function(r){ mins+=arMin(r.ar); if(arMin(r.ar)>=AR_FULL) full++; });
-    document.getElementById("aToday").textContent=arMin(state.day.ar);
+    setText("aToday",arMin(state.day.ar));
     var wa=workArr(state.day.work), w=workN(wa);
     document.getElementById("workNow").textContent=w;
     document.querySelectorAll("#workSlots .slot").forEach(function(b,i){
       b.setAttribute("aria-checked", wa[i]?"true":"false");
       b.classList.toggle("full", wa[i]);
     });
-    document.getElementById("aWork").textContent=w+"/"+WORK_SLOTS;
-    document.getElementById("aHours").textContent=(Math.round(mins/6)/10).toString();
-    document.getElementById("aFull").textContent=full;
+    setText("aWork",w+"/"+WORK_SLOTS);
+    setText("aHours",(Math.round(mins/6)/10).toString());
+    setText("aFull",full);
     drawArChart();
   }
   /* each day: focus minutes (left scale, 0-85) and, beside it, work slots (right scale, 0-8) */
   function drawArChart(){
+    renderAverages();
     var svg=document.getElementById("achart");
     while(svg.firstChild) svg.removeChild(svg.firstChild);
     var days=lastDays(SPAN);
@@ -2280,33 +2336,209 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   setInterval(function(){ if(state) aeTick(); },250);
   document.addEventListener("visibilitychange",function(){ if(!document.hidden) arTick(); });
 
+
+  /* ---------- Cluster ----------
+     From 2 Nov 2026 the days run in cycles of four, two cycles to a cluster. Each god gets
+     a score for every day by its own formula; a cycle is the mean of its days, a cluster
+     the mean of its cycles. Nothing new is stored: it is all read from the daily record. */
+  var CL_START="2026-11-02", CL_LEN=8, CY_LEN=4;
+  function keyAdd(k,n){ return dayKey(new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)+n)); }
+  function clIndex(k){ var n=dayNum(k)-dayNum(CL_START); return n<0 ? -1 : Math.floor(n/CL_LEN); }
+  function clDays(c){ var a=[]; for(var i=0;i<CL_LEN;i++) a.push(keyAdd(CL_START,c*CL_LEN+i)); return a; }
+  function clElapsed(days){ var t=dayKey(); return days.filter(function(k){ return k<=t; }); }
+  function cnt(a){ var n=0; (a||[]).forEach(function(v){ if(v) n++; }); return n; }
+  function mean(a){ var v=a.filter(function(x){ return x!==null && x!==undefined; }); return v.length ? v.reduce(function(s,x){ return s+x; },0)/v.length : null; }
+
+  /* tallies over a span of days, for the scores and the report */
+  function tArexia(days){ var t={kept:0,of:0,nature:0}; days.forEach(function(k){ var r=rec(k)||{}, c=recordFor(k); t.of+=8; t.kept+= c?total(c):0; if(r.nature) t.nature++; }); return t; }
+  function tArurael(days){ var t={W:0,S:0,E:0,L:0,n:days.length};
+    days.forEach(function(k){ var r=rec(k)||{}, a=r.ar||{};
+      t.W+=Math.min(8,workN(r.work)); t.S+=Math.min(1,cnt(a.sci)); t.E+=Math.min(2,cnt(a.exe)); t.L+=Math.min(1,cnt(a.eng)); });
+    return t; }
+  function tXeron(days){ var t={D:0,T:0,clean:0,bound:0,n:days.length};
+    days.forEach(function(k){ var r=rec(k)||{}, d=deps(r.xr), th=thrs(r.xr); t.D+=d; t.T+=th; if(!d&&!th) t.clean++; t.bound+=aeCount(r.ae); });
+    return t; }
+  var XEN_W=[["g",30,"Gym"],["c",20,"Core"],["r",20,"Rest & sleep"],["w",10,"Water"],["s",10,"Supplements"],["h",5,"Checkups"],["m",3,"Maintenance"],["k",2,"Skin care"]];
+  function tXenlil(days){
+    var due={},got={}; XEN_W.forEach(function(x){ due[x[0]]=0; got[x[0]]=0; });
+    days.forEach(function(k){
+      var r=rec(k)||{}, hb=r.habits||{};
+      if(isGymDay(k)){ due.g++; if(r.gym) got.g++; }
+      due.c++; if(r.core) got.c++;
+      due.r+=2; if(hb.bed) got.r++; if(hb.wake) got.r++;
+      due.w+=WATER_TARGET; got.w+=Math.min(WATER_TARGET, r.water||0);
+      HABITS.forEach(function(h){
+        if(!isDue(h,k)) return;
+        if(h.card==="supp"){ due.s++; if(hb[h.k]) got.s++; }
+        if(h.card==="maint"){ due.m++; if(hb[h.k]) got.m++; }
+      });
+      if(state.hcSince && k>=state.hcSince) CHECKUPS.forEach(function(c){ due.h++; if(hcCover(c,k)) got.h++; });
+      due.k++; if(hb.skin) got.k++;
+    });
+    return {due:due, got:got};
+  }
+  /* a day's score for each god */
+  var DAY={
+    arexia: function(k){ var t=tArexia([k]); return 100*t.kept/t.of; },
+    /* 100 x (10w + 6s + 4e + 3l) / 23 */
+    arurael:function(k){ var t=tArurael([k]); return 100*(10*t.W/8 + 6*t.S + 4*t.E/2 + 3*t.L)/23; },
+    /* max(0, 100 - 25D - 6.25T); bindings carry no weight */
+    xeron:  function(k){ var t=tXeron([k]); return Math.max(0, 100-25*t.D-6.25*t.T); },
+    /* 30g + 20c + 20r + 10w + 10s + 5h + 3m + 2k, shared out among what was due */
+    xenlil: function(k){ var t=tXenlil([k]), sum=0, w=0;
+      XEN_W.forEach(function(x){ var d=t.due[x[0]]; if(!d) return; sum+=x[1]*Math.min(1,t.got[x[0]]/d); w+=x[1]; });
+      return w ? 100*sum/w : null; }
+  };
+  var CL_GODS=[
+    {k:"arexia", name:"Arexia",  hue:"var(--arexia)"},
+    {k:"xeron",  name:"Xeron",   hue:"var(--xeron)"},
+    {k:"arurael",name:"Arurael", hue:"var(--arurael)"},
+    {k:"xenlil", name:"Xenlil",  hue:"var(--xenlil)"}
+  ];
+  function cycleScore(g,days){ return mean(clElapsed(days).map(DAY[g])); }
+  function clusterScores(c){                           /* {god:{c1,c2,all}} */
+    var d=clDays(c), out={};
+    CL_GODS.forEach(function(g){
+      var a=cycleScore(g.k,d.slice(0,CY_LEN)), b=cycleScore(g.k,d.slice(CY_LEN));
+      out[g.k]={c1:a, c2:b, all:mean([a,b])};
+    });
+    return out;
+  }
+  function pct(v){ return v===null||v===undefined ? "—" : Math.round(v)+"%"; }
+  var CLSEL=null;                                      /* the cluster on show below; null = the current one */
+  function clNow(){ return Math.max(0, clIndex(dayKey())); }
+  function clSel(){ return CLSEL===null ? clNow() : CLSEL; }
+  function clSpan(d){                                   /* "Nov 2 – Nov 9, 2026", both years if it crosses one */
+    var a=d[0], b=d[d.length-1];
+    return a.slice(0,4)===b.slice(0,4) ? clDate(a)+" – "+clDate(b)+", "+b.slice(0,4)
+      : clDate(a,{month:"short",day:"numeric",year:"numeric"})+" – "+clDate(b,{month:"short",day:"numeric",year:"numeric"});
+  }
+  function clDate(k,o){ return new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)).toLocaleDateString(undefined,o||{month:"short",day:"numeric"}); }
+
+  function renderClBelow(){ var keep=SEL; renderCl(true); }
+  function renderCl(){
+    var started=dayKey()>=CL_START, cur=clNow(), c=clSel(), days=clDays(c), seen=clElapsed(days);
+    document.getElementById("clNowStat").innerHTML = started ? "cluster <b>"+(cur+1)+"</b>" : "";
+    drawClChart();
+    document.getElementById("clName").textContent="Cluster "+(c+1);
+    document.getElementById("clDates").textContent=clSpan(days);
+    document.getElementById("clPrev").disabled = c<=0;
+    document.getElementById("clNext").disabled = c>=cur;
+    document.getElementById("clWhere").innerHTML = !started ? "begins "+clDate(CL_START,{weekday:"short",month:"short",day:"numeric"})
+      : seen.length<CL_LEN ? "day <b>"+seen.length+"</b> of "+CL_LEN : "complete";
+    /* segments */
+    var sc=clusterScores(c), host=document.getElementById("clSeg");
+    var c1on=seen.length>0, c2on=seen.length>CY_LEN;
+    host.innerHTML='<div class="segrow head"><span></span><span>Cycle 1</span><span>Cycle 2</span><span class="tot">Cluster</span></div>';
+    CL_GODS.forEach(function(g){
+      var v=sc[g.k], row=document.createElement("div"); row.className="segrow"; row.style.setProperty("--hue",g.hue);
+      var bar=function(x,on){ return on && x!==null ? '<div class="bar"><i style="width:'+Math.max(0,Math.min(100,x)).toFixed(1)+'%"></i><em>'+pct(x)+'</em></div>'
+                                                   : '<div class="bar none"><em>—</em></div>'; };
+      row.innerHTML='<span class="nm">'+g.name+'</span>'+bar(v.c1,c1on)+bar(v.c2,c2on)+'<span class="tot">'+pct(v.all)+'</span>';
+      host.appendChild(row);
+    });
+    renderReport(seen, sc);
+  }
+  /* the detailed report for the cluster on show */
+  function renderReport(seen, sc){
+    var host=document.getElementById("clReport"), n=seen.length;
+    host.innerHTML="";
+    var row=function(label,a,b,note){
+      var p = b ? Math.min(1,a/b) : null;
+      return '<div class="rp-row'+(note?' note':'')+'"><span>'+label+'</span><em>'+(b===undefined? a : a+" / "+b)+'</em><b>'+(note? "" : (p===null?"—":Math.round(p*100)+"%"))+'</b></div>'+
+             (note||p===null ? '' : '<div class="rp-bar"><i style="width:'+(p*100).toFixed(1)+'%"></i></div>');
+    };
+    var card=function(g, body){
+      var el2=document.createElement("div"); el2.className="card"; el2.style.setProperty("--hue",g.hue);
+      el2.innerHTML='<div class="card-head"><span class="gname">'+g.name+'</span><span class="ghours">'+pct(sc[g.k].all)+'</span></div>'+
+        (n ? body : '<div class="rp-row note"><span>No days yet</span><em></em><b></b></div>');
+      host.appendChild(el2);
+    };
+    var a=tArexia(seen), x=tXeron(seen), r=tArurael(seen), z=tXenlil(seen);
+    card(CL_GODS[0], row("Rites kept",a.kept,a.of)+row("Nature days",a.nature,undefined,true));
+    card(CL_GODS[1], row("Clean days",x.clean,n)+row("Depletions",x.D,undefined,true)+row("Thresholds",x.T,undefined,true)+row("Bindings · no weight",x.bound,8*n));
+    card(CL_GODS[2], row("Work",r.W,8*n)+row("Share",r.S,n)+row("Execution & Science",r.E,2*n)+row("English",r.L,n));
+    card(CL_GODS[3], XEN_W.map(function(w){ return z.due[w[0]] ? row(w[2]+" · "+w[1]+"%",z.got[w[0]],z.due[w[0]]) : row(w[2],"not due",undefined,true); }).join(""));
+  }
+  /* a smooth line through the points (Catmull-Rom as cubic Béziers) */
+  function smooth(pts){
+    if(!pts.length) return "";
+    var d="M"+pts[0][0].toFixed(1)+" "+pts[0][1].toFixed(1);
+    for(var i=0;i<pts.length-1;i++){
+      var p0=pts[Math.max(0,i-1)], p1=pts[i], p2=pts[i+1], p3=pts[Math.min(pts.length-1,i+2)];
+      var c1=[p1[0]+(p2[0]-p0[0])/6, p1[1]+(p2[1]-p0[1])/6], c2=[p2[0]-(p3[0]-p1[0])/6, p2[1]-(p3[1]-p1[1])/6];
+      d+="C"+c1[0].toFixed(1)+" "+c1[1].toFixed(1)+" "+c2[0].toFixed(1)+" "+c2[1].toFixed(1)+" "+p2[0].toFixed(1)+" "+p2[1].toFixed(1);
+    }
+    return d;
+  }
+  /* every cluster so far: four lines, one per god */
+  function drawClChart(){
+    var svg=document.getElementById("clchart");
+    while(svg.firstChild) svg.removeChild(svg.firstChild);
+    var emp=document.getElementById("clEmpty");
+    if(dayKey()<CL_START){
+      emp.hidden=false; svg.style.display="none"; CH.clchart=null;
+      emp.textContent="The first cluster begins tomorrow, "+clDate(CL_START,{weekday:"short",month:"short",day:"numeric"})+".";
+      return;
+    }
+    emp.hidden=true; svg.style.display="block";
+    var cur=clNow(), N=cur+1, keys=[], scores=[];
+    for(var c=0;c<N;c++){ keys.push("c"+c); scores.push(clusterScores(c)); }
+    var narrow=window.innerWidth<620;
+    var W=(narrow?430:700),H=200,padL=28,padR=10,padT=12,padB=22;
+    svg.setAttribute("viewBox","0 0 "+W+" "+H);
+    var slots=Math.max(N,8), plotW=W-padL-padR, plotH=H-padT-padB, step=plotW/slots;
+    var X=function(i){ return padL+step*(i+0.5); }, Y=function(v){ return padT+plotH-(v/100)*plotH; };
+    [0,50,100].forEach(function(v){
+      svg.appendChild(el("line",{x1:padL,y1:Y(v).toFixed(1),x2:W-padR,y2:Y(v).toFixed(1),class:"gridline"}));
+      var t=el("text",{x:padL-7,y:(Y(v)+3.2).toFixed(1),class:"axlabel","text-anchor":"end"}); t.textContent=v; svg.appendChild(t);
+    });
+    var every=Math.max(1,Math.ceil(N/(narrow?8:14)));
+    keys.forEach(function(k,i){
+      if(i===N-1 || (N-1-i)%every===0){
+        var t=el("text",{x:X(i).toFixed(1),y:(H-6).toFixed(1),class:"daylabel"+(i===N-1?" today":""),"text-anchor":"middle"}); t.textContent=i+1; svg.appendChild(t);
+      }
+    });
+    CL_GODS.forEach(function(g){
+      var pts=[]; scores.forEach(function(sc,i){ var v=sc[g.k].all; if(v!==null) pts.push([X(i),Y(Math.max(0,Math.min(100,v)))]); });
+      svg.appendChild(el("path",{d:smooth(pts),class:"cl-line",stroke:g.hue,"stroke-width":"2.2"}));
+      pts.forEach(function(p,j){ svg.appendChild(el("circle",{cx:p[0].toFixed(1),cy:p[1].toFixed(1),r:(j===pts.length-1?3.6:2.4),fill:g.hue})); });
+    });
+    var m={W:W,padL:padL,padT:padT,plotH:plotH,step:step,days:keys,info:infoCl};
+    chartDone("clchart",svg,m);
+  }
+  function infoCl(k){
+    var c=+k.slice(1), d=clDays(c), sc=clusterScores(c);
+    var h='<div class="th">Cluster '+(c+1)+' · '+clSpan(d)+'</div>';
+    CL_GODS.forEach(function(g){ h+=tr(g.hue,g.name,pct(sc[g.k].all)); });
+    return h;
+  }
+
   /* ---------- tabs ---------- */
   var VIEW="dial";
   /* the arm of the god whose tab is open lights in that god's colour */
   function turnMark(v){
     Array.prototype.forEach.call(document.querySelectorAll("#mark .arm"),function(a){
-      a.classList.toggle("lit", a.getAttribute("data-v")===v);
+      a.classList.toggle("lit", v==="cl" || a.getAttribute("data-v")===v);   /* the cluster lights them all */
     });
   }
-  var ORDER=["xr","ar","xen","dial"];                 /* the nav, left to right */
-  var VIEW_EL={dial:"viewDial", xen:"viewXen", xr:"viewXr", ar:"viewAr"};
+  var ORDER=["cl","xr","ar","xen","dial"];            /* the nav, left to right */
+  var VIEW_EL={dial:"viewDial", xen:"viewXen", xr:"viewXr", ar:"viewAr", cl:"viewCl"};
+  var RENDER={xen:function(){ renderXen(); }, xr:function(){ renderXr(); }, ar:function(){ renderAr(); }, cl:function(){ renderCl(); }};
   var SCROLL={};
   function setView(v,dir){
     if(dir===undefined) dir=ORDER.indexOf(v)-ORDER.indexOf(VIEW);
     SCROLL[VIEW]=window.scrollY;
     VIEW=v;
-    document.getElementById("viewDial").hidden=(v!=="dial");
-    document.getElementById("viewXen").hidden=(v!=="xen");
-    document.getElementById("viewXr").hidden=(v!=="xr");
-    document.getElementById("viewAr").hidden=(v!=="ar");
-    document.getElementById("viewName").textContent={dial:"Arexia",xen:"Xenlil",xr:"Xeron",ar:"Arurael"}[v];
+    for(var vk in VIEW_EL) document.getElementById(VIEW_EL[vk]).hidden=(v!==vk);
+    document.getElementById("viewName").textContent={dial:"Arexia",xen:"Xenlil",xr:"Xeron",ar:"Arurael",cl:"Golden Path"}[v];
     turnMark(v);
 
     Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"),function(t){
       t.classList.toggle("on", t.dataset.view===v);
     });
-    SEL=null; ["rTip","xTip","zTip","aTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
-    if(v==="dial"){ kindle(); render(); } else { douse(); ({xen:renderXen, xr:renderXr, ar:renderAr})[v](); }
+    SEL=null; ["rTip","xTip","zTip","aTip","cTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
+    if(v==="dial"){ kindle(); render(); } else { douse(); RENDER[v](); }
     window.scrollTo(0, SCROLL[v]||0);
     /* the new tab slides in from the side it lives on */
     var el=document.getElementById(VIEW_EL[v]);
@@ -2331,6 +2563,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   if(NT){ coreSync(); setInterval(function(){ if(!CORE.run) coreSync(); }, 500); }
   planNotes();
   document.getElementById("achart").addEventListener("click",function(ev){ pickDay("achart",ev); });
+  document.getElementById("clchart").addEventListener("click",function(ev){
+    pickDay("clchart",ev);
+    if(SEL && SEL.id==="clchart"){ var c=+SEL.day.slice(1); CLSEL=(c===clNow()?null:c); renderClBelow(); }
+  });
+  document.getElementById("clPrev").addEventListener("click",function(){ var c=(CLSEL===null?clNow():CLSEL); if(c>0){ fb("tap"); CLSEL=c-1; hideTip(); renderCl(); } });
+  document.getElementById("clNext").addEventListener("click",function(){ var c=(CLSEL===null?clNow():CLSEL); if(c<clNow()){ fb("tap"); CLSEL=(c+1===clNow()?null:c+1); hideTip(); renderCl(); } });
   document.getElementById("zchart").addEventListener("click",function(ev){ pickDay("zchart",ev); });
   /* swipe sideways to move between tabs. The next tab is laid beside the current
      one, at its own remembered scroll, and both follow the finger like pages of a
@@ -2338,7 +2576,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   var sw=null, BUSY=false, SWGAP=24;
   var calm=window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches;
   function vEl(v){ return document.getElementById(VIEW_EL[v]); }
-  function renderOf(v){ if(v==="dial") render(); else ({xen:renderXen, xr:renderXr, ar:renderAr})[v](); }
+  function renderOf(v){ if(v==="dial") render(); else RENDER[v](); }
   function put(el,x,ms,ease){
     el.style.transition = ms ? "transform "+ms+"ms "+ease : "none";
     el.style.transform = "translate3d("+x+"px,0,0)";
@@ -2425,9 +2663,14 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   document.addEventListener("click",function(ev){
     if(!ev.target.closest || !ev.target.closest(".chartbox")) hideTip();
   });
-  function toggleGym(ev){ if(ev) ev.stopPropagation(); state.day.gym=!state.day.gym; fb(state.day.gym?"on":"off"); save(); renderXen(); }
-  document.getElementById("gymBox").addEventListener("click",toggleGym);
-  document.getElementById("gymRow").addEventListener("click",toggleGym);
+  function toggleGym(n,ev){ if(ev) ev.stopPropagation();
+    if(gymNo()!==n){ fb("deny"); toast(GYM_NAMES[n]+" is on "+["Mon","Wed","Thu"][n]+"."); return; }
+    state.day.gym=!state.day.gym; fb(state.day.gym?"on":"off"); save(); renderXen(); }
+  [0,1,2].forEach(function(n){
+    var gr=document.getElementById("gymRow"+n);
+    gr.addEventListener("click",function(ev){ toggleGym(n,ev); });
+    gr.querySelector(".box").addEventListener("click",function(ev){ toggleGym(n,ev); });
+  });
   Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"),function(t){
     t.addEventListener("click",function(){ if(t.dataset.view!==VIEW) setView(t.dataset.view); });
   });
@@ -2439,7 +2682,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   if(window.ResizeObserver) new ResizeObserver(sizeMark).observe(document.querySelector(".brand-text"));
   window.addEventListener("resize",sizeMark);
   turnMark("dial");
-  try{ var sv=localStorage.getItem("dial.view"); if(sv==="xen"||sv==="xr"||sv==="ar") setView(sv); }catch(e){}
+  try{ var sv=localStorage.getItem("dial.view"); if(sv==="xen"||sv==="xr"||sv==="ar"||sv==="cl") setView(sv); }catch(e){}
 
   var modal=document.getElementById("modal"), pending=null;
   var modalT=0;
@@ -2530,12 +2773,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     });
   });
 
-  function renderNow(){ if(VIEW==="dial") render(); else ({xen:renderXen, xr:renderXr, ar:renderAr})[VIEW](); }
+  function renderNow(){ if(VIEW==="dial") render(); else RENDER[VIEW](); }
   document.addEventListener("pointerdown",function(){ if(rollover()) renderNow(); },true);
   document.addEventListener("visibilitychange",function(){ if(!document.hidden && rollover()) renderNow(); });
   setInterval(function(){
     if(rollover()) renderXen();
-    if(VIEW==="dial") render(); else ({xen:renderXen, xr:renderXr, ar:renderAr})[VIEW]();
+    if(VIEW==="dial") render(); else RENDER[VIEW]();
     renderClock();
   }, 20000);
 })();
