@@ -2392,11 +2392,11 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       XEN_W.forEach(function(x){ var d=t.due[x[0]]; if(!d) return; sum+=x[1]*Math.min(1,t.got[x[0]]/d); w+=x[1]; });
       return w ? 100*sum/w : null; }
   };
-  var CL_GODS=[
-    {k:"arexia", name:"Arexia",  hue:"var(--arexia)"},
+  var CL_GODS=[                                        /* the nav's order */
     {k:"xeron",  name:"Xeron",   hue:"var(--xeron)"},
     {k:"arurael",name:"Arurael", hue:"var(--arurael)"},
-    {k:"xenlil", name:"Xenlil",  hue:"var(--xenlil)"}
+    {k:"xenlil", name:"Xenlil",  hue:"var(--xenlil)"},
+    {k:"arexia", name:"Arexia",  hue:"var(--arexia)"}
   ];
   function cycleScore(g,days){ return mean(clElapsed(days).map(DAY[g])); }
   function clusterScores(c){                           /* {god:{c1,c2,all}} */
@@ -2458,10 +2458,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       host.appendChild(el2);
     };
     var a=tArexia(seen), x=tXeron(seen), r=tArurael(seen), z=tXenlil(seen);
-    card(CL_GODS[0], row("Rites kept",a.kept,a.of)+row("Nature days",a.nature,undefined,true));
-    card(CL_GODS[1], row("Clean days",x.clean,n)+row("Depletions",x.D,undefined,true)+row("Thresholds",x.T,undefined,true)+row("Bindings · no weight",x.bound,8*n));
-    card(CL_GODS[2], row("Work",r.W,8*n)+row("Share",r.S,n)+row("Execution & Science",r.E,2*n)+row("English",r.L,n));
-    card(CL_GODS[3], XEN_W.map(function(w){ return z.due[w[0]] ? row(w[2]+" · "+w[1]+"%",z.got[w[0]],z.due[w[0]]) : row(w[2],"not due",undefined,true); }).join(""));
+    card(CL_GODS[0], row("Clean days",x.clean,n)+row("Depletions",x.D,undefined,true)+row("Thresholds",x.T,undefined,true)+row("Bindings · no weight",x.bound,8*n));
+    card(CL_GODS[1], row("Work",r.W,8*n)+row("Share",r.S,n)+row("Execution & Science",r.E,2*n)+row("English",r.L,n));
+    card(CL_GODS[2], XEN_W.map(function(w){ return z.due[w[0]] ? row(w[2]+" · "+w[1]+"%",z.got[w[0]],z.due[w[0]]) : row(w[2],"not due",undefined,true); }).join(""));
+    card(CL_GODS[3], row("Rites kept",a.kept,a.of)+row("Nature days",a.nature,undefined,true));
   }
   /* a smooth line through the points (Catmull-Rom as cubic Béziers) */
   function smooth(pts){
