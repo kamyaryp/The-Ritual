@@ -157,12 +157,17 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .cl-title .ghours{margin-left:0}
 #clchart{aspect-ratio:700/200}
 @media (max-width:620px){ #clchart{aspect-ratio:430/200} }
-.cl-report .rp-row{display:grid;grid-template-columns:1fr auto 44px;align-items:center;gap:var(--gap);font-size:13.5px}
-.cl-report .rp-row span{color:var(--ink-2)}
-.cl-report .rp-row em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
-.cl-report .rp-row b{font-family:var(--mono);font-size:12.5px;font-weight:500;text-align:right;color:var(--ink);font-variant-numeric:tabular-nums}
-.cl-report .rp-row.note b{color:var(--ink-3)}
-.cl-report .rp-bar{height:3px;border-radius:2px;background:var(--well);overflow:hidden;margin-top:-6px}
+.cl-report{grid-template-columns:1fr}
+.cl-report .rp-row{display:grid;grid-template-columns:minmax(0,1.3fr) 1fr 1fr;align-items:start;gap:var(--gap);font-size:13.5px}
+.cl-report .rp-row>span{color:var(--ink-2);padding-top:1px}
+.cl-report .rp-head{align-items:baseline}
+.cl-report .rp-head .gname{color:var(--hue)}
+.cl-report .rp-h{font-family:var(--mono);font-size:10.5px;color:var(--ink-3)}
+.cl-report .rp-c{display:grid;grid-template-columns:1fr auto;align-items:baseline;column-gap:6px;row-gap:5px}
+.cl-report .rp-c em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
+.cl-report .rp-c b{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
+.cl-report .rp-c.none{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.cl-report .rp-bar{grid-column:1/-1;height:3px;border-radius:2px;background:var(--well);overflow:hidden}
 .cl-report .rp-bar i{display:block;height:100%;background:var(--hue)}
 .cl-line{fill:none;stroke-linecap:round;stroke-linejoin:round}
 .cl-cyc{font-family:var(--mono);font-size:9.5px;fill:var(--ink-3)}
@@ -1935,30 +1940,34 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
 
   /* ---------- The Binding of Aeshma ----------
-     Eight times a day, as each god takes the hour, a 17-minute window opens; in it a
-     13-minute countdown must run its course. A window that closes first is missed.
+     Eight times a day, as each god takes the hour, the binding opens: it can be started in
+     the first 17 minutes, and its 13-minute countdown must be done within the first 30.
+     Not started by :17, or not done by :30, it is missed.
      Numbered with Arexia's runes, drawn as a small dial of her shape. */
-  var AE_MIN=13, AE_WIN=17, AE_FULL=AE_MIN*60000;
+  var AE_MIN=13, AE_WIN=17, AE_END=30, AE_FULL=AE_MIN*60000;
   var AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null};
   try{ var _a=JSON.parse(localStorage.getItem("dial.ae")||"null"); if(_a && _a.date) AET=_a; }catch(e){}
   function aeSave(){ try{ localStorage.setItem("dial.ae",JSON.stringify(AET)); }catch(e){} }
   function aeOpensAt(i,k){ var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date(); d.setHours(i*3,0,0,0); return d.getTime(); }
-  function aeClosesAt(i,k){ return aeOpensAt(i,k)+AE_WIN*60000; }
+  function aeStartBy(i,k){ return aeOpensAt(i,k)+AE_WIN*60000; }   /* last moment to start */
+  function aeClosesAt(i,k){ return aeOpensAt(i,k)+AE_END*60000; }  /* must be done by */
   function aeState(i){
     var t=Date.now();
     if(t<aeOpensAt(i)) return "awaiting";
-    if(t<aeClosesAt(i)) return "open";
+    if(t<aeStartBy(i)) return "open";
+    /* started in time: stays open until :30 */
+    if(AET.idx===i && AET.date===dayKey() && t<aeClosesAt(i)) return "open";
     return "lapsed";
   }
   function aeOpen(){ for(var i=0;i<8;i++) if(aeState(i)==="open") return i; return -1; }
   function aeNext(){ for(var i=0;i<8;i++) if(aeState(i)==="awaiting") return i; return -1; }
   function aeLeft(){ return AET.run ? Math.max(0, AET.endsAt-Date.now()) : (AET.left!=null ? AET.left : AE_FULL); }
-  function aeWords(i){ return hm(i*180)+"–"+hm(i*180+AE_WIN); }
+  function aeWords(i){ return hm(i*180)+"–"+hm(i*180+AE_END); }
   function aePush(){
     if(!NT) return;
     if(AET.idx<0 || (!AET.run && AET.left==null)){ ntSend({kind:"ae", op:"clear"}); return; }
     ntSend({kind:"ae", op:"set", id:"ae"+AET.idx, run:AET.run, el:Math.max(0, AE_FULL-aeLeft()), total:AE_FULL,
-            title:"The Binding of Aeshma", sub:RUNE[AET.idx]+" · until "+hm(AET.idx*180+AE_WIN),
+            title:"The Binding of Aeshma", sub:RUNE[AET.idx]+" · until "+hm(AET.idx*180+AE_END),
             deadline:aeClosesAt(AET.idx, AET.date), color:"#B3141C", arm:0,
             doneTitle:"Aeshma is bound", doneBody:RUNE[AET.idx]+" · 13 minutes, held"});
   }
@@ -1970,9 +1979,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var i=aeOpen();
     if(i<0){ var n=aeNext(); fb("deny"); toast(n<0 ? "No binding is left today." : "The next binding opens at "+hm(n*180)+"."); return; }
     if(state.day.ae[i]){ fb("deny"); toast("Aeshma is already bound for "+RUNE[i]+"."); return; }
-    if(AET.idx!==i || AET.date!==dayKey()) AET={date:dayKey(), idx:i, run:false, endsAt:0, left:null};
+    if(AET.idx!==i || AET.date!==dayKey()){
+      if(Date.now()>=aeStartBy(i)){ fb("deny"); toast("The binding had to begin by "+hm(i*180+AE_WIN)+"."); return; }
+      AET={date:dayKey(), idx:i, run:false, endsAt:0, left:null};
+    }
     var left=aeLeft();
-    if(Date.now()+left>aeClosesAt(i)){ fb("deny"); toast("Too little time is left before "+hm(i*180+AE_WIN)+"."); return; }
+    if(Date.now()+left>aeClosesAt(i)){ fb("deny"); toast("Too little time is left before "+hm(i*180+AE_END)+"."); return; }
     audio();
     AET.run=true; AET.endsAt=Date.now()+left; AET.left=null; aeSave(); awake(true); aePush(); renderAe();
   }
@@ -2055,7 +2067,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var shown = i>=0 ? i : aeNext(), done = shown>=0 && !!state.day.ae[shown];
     var open = i>=0 && aeState(i)==="open";
     document.getElementById("aeRune").textContent = shown>=0 ? RUNE[shown] : "—";
-    document.getElementById("aeWin").textContent = shown<0 ? "All windows have passed" : (open ? "" : "next · ")+aeWords(shown);
+    document.getElementById("aeWin").textContent = shown<0 ? "All windows have passed"
+      : (open ? "" : "next · ")+aeWords(shown)+(AET.idx===shown ? "" : " · start by "+hm(shown*180+AE_WIN));
     var left = (AET.idx>=0) ? aeLeft() : AE_FULL;
     document.getElementById("aeTime").textContent = done ? "Bound ✓" : mmss(left);
     document.getElementById("aeBar").style.width = (done ? 100 : (1-left/AE_FULL)*100).toFixed(2)+"%";
@@ -2093,7 +2106,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           out.push({id:"g"+k+"-"+w[0], at:at(day,w[0]), color:HEX[g.key],
             ch: w[0]<8 ? "quiet" : "hours",                /* 00, 03 and 06 come silently */
             title:g.name+" holds the hour",
-            body:(i?"Second":"First")+" rite · "+fmt(w[0])+"–"+fmt(w[1])+" • Bind Aeshma "+RUNE[w[0]/3]+" by "+hm(w[0]*60+AE_WIN)});
+            body:(i?"Second":"First")+" rite · "+fmt(w[0])+"–"+fmt(w[1])+" • Bind Aeshma "+RUNE[w[0]/3]+" · start by "+hm(w[0]*60+AE_WIN)});
         });
       });
       var hb=isToday ? (state.day.habits||{}) : {};
@@ -2395,19 +2408,26 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     {k:"xenlil", name:"Xenlil",  hue:"var(--xenlil)"},
     {k:"arexia", name:"Arexia",  hue:"var(--arexia)"}
   ];
-  /* Xenlil is scored over the whole cycle at once: each part is done / due across the cycle's
-     days, and keeps its weight whenever anything of it was due; a part drops out only if
-     nothing of it was due all cycle. The others have the same tasks every day, so the mean
-     of their days is the same thing. */
+  /* every god is scored over the whole cycle as one unit - no daily averaging:
+     Xeron       max(0, 100 - 25·D - 6.25·T), D and T counted across the cycle
+     Arurael     100·(10·W/8n + 6·S/n + 4·E/2n + 3·L/n)/23 over the cycle's n days
+     Arexia      rites kept / 8n (a Nature day counts 8)
+     Xenlil      each part done/due across the cycle, weights shared out only among parts with something due */
   function xenPooled(days){
     if(!days.length) return null;
     var t=tXenlil(days), sum=0, w=0;
     XEN_W.forEach(function(x){ var d=t.due[x[0]]; if(!d) return; sum+=x[1]*Math.min(1,t.got[x[0]]/d); w+=x[1]; });
     return w ? 100*sum/w : null;
   }
+  var CYCLE_SCORE={
+    xeron:  function(d){ var t=tXeron(d); return Math.max(0, 100-25*t.D-6.25*t.T); },
+    arurael:function(d){ var t=tArurael(d), n=d.length; return 100*(10*t.W/(8*n) + 6*t.S/n + 4*t.E/(2*n) + 3*t.L/n)/23; },
+    arexia: function(d){ var t=tArexia(d); return 100*t.kept/t.of; },
+    xenlil: xenPooled
+  };
   function cycleScore(g,days){
     var seen=clElapsed(days);
-    return g==="xenlil" ? xenPooled(seen) : mean(seen.map(DAY[g]));
+    return seen.length ? CYCLE_SCORE[g](seen) : null;
   }
   function clusterScores(c){                           /* {god:{c1,c2,all}} */
     var d=clDays(c), out={};
@@ -2453,25 +2473,43 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     renderReport(seen, sc);
   }
   /* the detailed report for the cluster on show */
+  /* the detailed report for the cluster on show, split into its two cycles like the segments */
   function renderReport(seen, sc){
-    var host=document.getElementById("clReport"), n=seen.length;
+    var host=document.getElementById("clReport");
     host.innerHTML="";
-    var row=function(label,a,b,note){
-      var p = b ? Math.min(1,a/b) : null;
-      return '<div class="rp-row'+(note?' note':'')+'"><span>'+label+'</span><em>'+(b===undefined? a : a+" / "+b)+'</em><b>'+(note? "" : (p===null?"—":Math.round(p*100)+"%"))+'</b></div>'+
-             (note||p===null ? '' : '<div class="rp-bar"><i style="width:'+(p*100).toFixed(1)+'%"></i></div>');
+    var cy=[seen.slice(0,CY_LEN), seen.slice(CY_LEN)];
+    /* one cell: "x / y", a bar and a %, or a bare count for the notes, or a dash */
+    var cell=function(v){
+      if(!v) return '<div class="rp-c none">—</div>';
+      if(v.note!==undefined) return '<div class="rp-c"><em>'+v.note+'</em></div>';
+      var p=v.b ? Math.min(1,v.a/v.b) : null;
+      return '<div class="rp-c"><em>'+v.a+' / '+v.b+'</em><b>'+(p===null?"—":Math.round(p*100)+"%")+'</b>'+
+             (p===null?'':'<div class="rp-bar"><i style="width:'+(p*100).toFixed(1)+'%"></i></div>')+'</div>';
     };
-    var card=function(g, body){
+    /* rows: label + a function from a cycle's days to its value */
+    var rows=function(list){ return list.map(function(r){
+      return '<div class="rp-row">'+'<span>'+r[0]+'</span>'+cy.map(function(d){ return cell(d.length ? r[1](d) : null); }).join("")+'</div>'; }).join(""); };
+    var card=function(g, list){
       var el2=document.createElement("div"); el2.className="card"; el2.style.setProperty("--hue",g.hue);
-      el2.innerHTML='<div class="card-head"><span class="gname">'+g.name+'</span><span class="ghours">'+pct(sc[g.k].all)+'</span></div>'+
-        (n ? body : '<div class="rp-row note"><span>No days yet</span><em></em><b></b></div>');
+      el2.innerHTML='<div class="rp-row rp-head"><span class="gname">'+g.name+'</span>'+
+        '<span class="rp-h">Cycle 1 · '+pct(sc[g.k].c1)+'</span><span class="rp-h">Cycle 2 · '+pct(sc[g.k].c2)+'</span></div>'+rows(list);
       host.appendChild(el2);
     };
-    var a=tArexia(seen), x=tXeron(seen), r=tArurael(seen), z=tXenlil(seen);
-    card(CL_GODS[0], row("Clean days",x.clean,n)+row("Depletions",x.D,undefined,true)+row("Thresholds",x.T,undefined,true)+row("Bindings · no weight",x.bound,8*n));
-    card(CL_GODS[1], row("Work",r.W,8*n)+row("Share",r.S,n)+row("Execution & Science",r.E,2*n)+row("English",r.L,n));
-    card(CL_GODS[2], XEN_W.map(function(w){ return z.due[w[0]] ? row(w[2]+" · "+w[1]+"%",z.got[w[0]],z.due[w[0]]) : row(w[2],"not due",undefined,true); }).join(""));
-    card(CL_GODS[3], row("Rites kept",a.kept,a.of)+row("Nature days",a.nature,undefined,true));
+    card(CL_GODS[0], [
+      ["Clean days", function(d){ var t=tXeron(d); return {a:t.clean, b:d.length}; }],
+      ["Depletions", function(d){ return {note:tXeron(d).D}; }],
+      ["Thresholds", function(d){ return {note:tXeron(d).T}; }],
+      ["Bindings · no weight", function(d){ return {a:tXeron(d).bound, b:8*d.length}; }]]);
+    card(CL_GODS[1], [
+      ["Work", function(d){ return {a:tArurael(d).W, b:8*d.length}; }],
+      ["Share", function(d){ return {a:tArurael(d).S, b:d.length}; }],
+      ["Execution & Science", function(d){ return {a:tArurael(d).E, b:2*d.length}; }],
+      ["English", function(d){ return {a:tArurael(d).L, b:d.length}; }]]);
+    card(CL_GODS[2], XEN_W.map(function(w){
+      return [w[2]+" · "+w[1]+"%", function(d){ var z=tXenlil(d); return z.due[w[0]] ? {a:z.got[w[0]], b:z.due[w[0]]} : {note:"not due"}; }]; }));
+    card(CL_GODS[3], [
+      ["Rites kept", function(d){ var t=tArexia(d); return {a:t.kept, b:t.of}; }],
+      ["Nature days", function(d){ return {note:tArexia(d).nature}; }]]);
   }
   /* a smooth line through the points (Catmull-Rom as cubic Béziers) */
   function smooth(pts){
