@@ -551,7 +551,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     <section class="chron">
       <div class="sec-head">
         <h2>Record</h2>
-        <div class="stats"><span><b id="avgWater">—</b> glasses / day</span></div>
+        <div class="stats"><span><b id="avgWater">—</b> water / day</span></div>
       </div>
       <div class="chartbox">
         <svg class="chart" id="xchart" viewBox="0 0 700 190" aria-label="Share of the day's record kept"></svg>
@@ -632,7 +632,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     <section class="chron">
       <div class="sec-head">
         <h2>Record</h2>
-        <div class="stats"><span><b id="avgShare">—</b> share / day</span></div>
+        <div class="stats"><span><b id="avgUnits">—</b> divisions / day</span></div>
       </div>
       <div class="chartbox">
         <svg class="chart" id="achart" viewBox="0 0 700 190" aria-label="Minutes of focus per day"></svg>
@@ -648,7 +648,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 </div>
 
 <nav class="nav" id="nav">
-  <button type="button" class="tab tab-mark" data-view="cl" aria-label="Cluster">
+  <button type="button" class="tab tab-mark" data-view="cl" aria-label="Golden Path">
     <svg viewBox="500 500 1000 1000" aria-hidden="true"><rect x="900" y="1100" width="200" height="400"/><rect x="500" y="900" width="400" height="200"/><rect x="900" y="500" width="200" height="400"/><rect x="1100" y="900" width="400" height="200"/></svg>
   </button>
   <button type="button" class="tab" data-view="xr">Xeron</button>
@@ -826,7 +826,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     setText("avgRites", dailyAvg(function(r){ return r.checks || r.nature; }, function(r){ return r.nature ? 8 : total(r.checks||{}); }));
     setText("avgWater", dailyAvg(function(r){ return typeof r.water==="number"; }, function(r){ return r.water; }));
     setText("avgDeps",  dailyAvg(function(r){ return !!r.xr; }, function(r){ return deps(r.xr); }, 2));
-    setText("avgShare", dailyAvg(function(r){ return !!r.ar; }, function(r){ return Math.min(1,cnt(r.ar.sci)); }, 2));
+    /* units a day: work 8 + share 1 + execution & science 2 + english 1 = 12 */
+    setText("avgUnits", dailyAvg(function(r){ return !!r.ar || workN(r.work)>0; }, function(r){ var a=r.ar||{};
+      return Math.min(8,workN(r.work))+Math.min(1,cnt(a.sci))+Math.min(2,cnt(a.exe))+Math.min(1,cnt(a.eng)); }));
   }
   function mergePills(r){
     var h=r && r.habits; if(!h || h.mvom!==undefined || (h.mv===undefined && h.om===undefined)) return;
@@ -2532,7 +2534,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     SCROLL[VIEW]=window.scrollY;
     VIEW=v;
     for(var vk in VIEW_EL) document.getElementById(VIEW_EL[vk]).hidden=(v!==vk);
-    document.getElementById("viewName").textContent={dial:"Arexia",xen:"Xenlil",xr:"Xeron",ar:"Arurael",cl:"Cluster"}[v];
+    document.getElementById("viewName").textContent={dial:"Arexia",xen:"Xenlil",xr:"Xeron",ar:"Arurael",cl:"Golden Path"}[v];
     turnMark(v);
 
     Array.prototype.forEach.call(document.querySelectorAll(".tab[data-view]"),function(t){
