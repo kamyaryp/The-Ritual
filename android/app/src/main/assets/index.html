@@ -1298,16 +1298,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(!any){ updateStats(); return; }
 
     var narrow=window.innerWidth<620;
-    var W=(narrow?430:700),H=190,padL=24,padR=8,padT=12,padB=22;
+    var W=(narrow?430:700),H=190,padL=28,padR=8,padT=14,padB=22;
     svg.setAttribute("viewBox","0 0 "+W+" "+H);
     var plotW=W-padL-padR, plotH=H-padT-padB, step=plotW/days.length;
     var bw=Math.max(3.5, Math.min(14, step*0.6)), every=narrow?8:4;
-    for(var v=0; v<=8; v+=2){
-      var y=padT+plotH-(v/8)*plotH;
+    [0,50,100].forEach(function(v){                  /* the Golden Path's day score: kept / 8 */
+      var y=padT+plotH-(v/100)*plotH;
       svg.appendChild(el("line",{x1:padL,y1:y.toFixed(1),x2:W-padR,y2:y.toFixed(1),class:"gridline"}));
       var t=el("text",{x:padL-7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"end"});
       t.textContent=v; svg.appendChild(t);
-    }
+    });
     days.forEach(function(dk,i){
       var cx=padL+step*(i+0.5), x=cx-bw/2, rec=recordFor(dk);
       var last=i===days.length-1;
@@ -1758,7 +1758,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function infoRites(k){
     var r=recordFor(k);
     if(!r) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
-    var h='<div class="th">'+fmtDay(k)+' · '+total(r)+'/8</div>';
+    var h='<div class="th">'+fmtDay(k)+' · '+Math.round(100*total(r)/8)+'%</div>';
     if(r===ALL_KEPT) h+=tr("var(--c-nature)","Nature","\u2713");
     GODS.forEach(function(g){
       var runes=[0,1].map(function(i){
@@ -1881,29 +1881,25 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(VIEW==="xr") xrSubtitle();
     drawXrChart();
   }
+  /* each day: the Golden Path's day score, max(0, 100 - 25·depletions - 6.25·thresholds);
+     the bindings carry no weight, so they are in the tooltip, not the bar */
   function drawXrChart(){
     var svg=document.getElementById("zchart");
     while(svg.firstChild) svg.removeChild(svg.firstChild);
     var days=lastDays(SPAN);
-    var tot=function(r){ return r&&r.xr ? deps(r.xr)+thrs(r.xr) : 0; };
-    var neg=function(r){ return r ? aeCount(r.ae) : 0; };
-    var top=0, low=0; days.forEach(function(k){ var r=rec(k); top=Math.max(top,tot(r)); low=Math.max(low,neg(r)); });
-    var any=top>0 || low>0;
+    var any=days.some(function(k){ return !!rec(k); });
     document.getElementById("zEmpty").hidden=any;
     svg.style.display=any?"block":"none";
     if(!any){ CH.zchart=null; return; }
-    var max=Math.max(4, top+(top%2));                 /* an even ceiling, at least 4 */
-    var floor=low ? Math.max(4, low+(low%2)) : 0;     /* the bindings hang below the line */
     var narrow=window.innerWidth<620;
-    var W=(narrow?430:700),H=floor?250:190,padL=24,padR=8,padT=12,padB=22;
+    var W=(narrow?430:700),H=190,padL=28,padR=8,padT=14,padB=22;
     svg.setAttribute("viewBox","0 0 "+W+" "+H);
-    var plotW=W-padL-padR, plotH=H-padT-padB, step=plotW/days.length;
-    var unit=plotH/(max+floor), base=padT+max*unit;   /* y of zero */
+    var plotW=W-padL-padR, plotH=H-padT-padB, step=plotW/days.length, base=padT+plotH;
     var bw=Math.max(3.5,Math.min(14,step*0.6)), every=narrow?8:4;
-    [0,max/2,max].concat(floor?[-floor/2,-floor]:[]).forEach(function(v){
-      var y=base-v*unit;
+    [0,50,100].forEach(function(v){
+      var y=base-(v/100)*plotH;
       svg.appendChild(el("line",{x1:padL,y1:y.toFixed(1),x2:W-padR,y2:y.toFixed(1),class:"gridline"}));
-      var t=el("text",{x:padL-7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"end"}); t.textContent=v<0?"\u2212"+(-v):v; svg.appendChild(t);
+      var t=el("text",{x:padL-7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"end"}); t.textContent=v; svg.appendChild(t);
     });
     days.forEach(function(k,i){
       var cx=padL+step*(i+0.5), x=cx-bw/2, r=rec(k), last=i===days.length-1;
@@ -1911,15 +1907,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         var lab=el("text",{x:cx.toFixed(1),y:(H-6).toFixed(1),class:"daylabel"+(last?" today":""),"text-anchor":"middle"});
         lab.textContent=Number(k.slice(8,10)); svg.appendChild(lab);
       }
-      var n=neg(r);
-      if(n) svg.appendChild(el("rect",{x:x.toFixed(1),y:(base+2).toFixed(1),width:bw.toFixed(1),height:Math.max(1,n*unit-2).toFixed(1),fill:"var(--x-ae)"}));
-      if(!tot(r)){ if(!n) svg.appendChild(el("rect",{x:x.toFixed(1),y:(base-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"})); return; }
-      var y=base-(floor?2:0);                         /* a clear gap at zero when bindings hang below */
-      XR.forEach(function(it){
-        var c=it.grp==="dep" ? deps(r.xr) : thrs(r.xr); if(!c) return;
-        var h=c*unit; y-=h;
-        svg.appendChild(el("rect",{x:x.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:it.color}));
-      });
+      var v=r ? DAY.xeron(k) : 0;
+      if(!v){ svg.appendChild(el("rect",{x:x.toFixed(1),y:(base-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"})); return; }
+      var h=(v/100)*plotH;
+      svg.appendChild(el("rect",{x:x.toFixed(1),y:(base-h).toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:"var(--xeron)"}));
     });
     chartDone("zchart",svg,{W:W,padL:padL,padT:padT,plotH:plotH,step:step,days:days,info:infoXr});
   }
@@ -1927,7 +1918,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var r=rec(k);
     if(!r || (!r.xr && !r.ae)) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
     var x=r.xr||{};
-    var h='<div class="th">'+fmtDay(k)+'</div>';
+    var h='<div class="th">'+fmtDay(k)+' · '+Math.round(DAY.xeron(k))+'%</div>';
     XR.forEach(function(it){ h+=tr(it.color,it.name,it.grp==="dep"?deps(x):thrs(x)); });
     if(r.ae){
       var runes=r.ae.map(function(v,i){ return v?RUNE[i]:""; }).join(" ").trim();
@@ -2293,56 +2284,46 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     setText("aFull",full);
     drawArChart();
   }
-  /* each day: focus minutes (left scale, 0-85) and, beside it, work slots with the extra
-     stacked on top (right scale, 0-8, or 0-16 once any extra is in view) */
+  /* each day: the Golden Path's day score, min(100, 100·(10·(W+X)/8 + 6·S + 4·E/2 + 3·L)/23),
+     stacked by what earned it; extra work only fills what the duty left, so it is trimmed at 100 */
+  function arParts(k){
+    var t=tArurael([k]), p=[
+      ["var(--a-exe)", 4*t.E/2], ["var(--a-sci)", 6*t.S], ["var(--a-eng)", 3*t.L],
+      ["var(--a-work)", 10*t.W/8], ["var(--a-xtra)", 10*t.X/8]];
+    var duty=p[0][1]+p[1][1]+p[2][1]+p[3][1];
+    p[4][1]=Math.max(0, Math.min(p[4][1], 23-duty));
+    return p.map(function(q){ return [q[0], 100*q[1]/23]; });
+  }
   function drawArChart(){
     var svg=document.getElementById("achart");
     while(svg.firstChild) svg.removeChild(svg.firstChild);
     var days=lastDays(SPAN);
-    var wk=function(r){ return r ? workN(r.work) : 0; };
-    var xk=function(r){ return r ? workN(r.extra) : 0; };
-    var any=days.some(function(k){ var r=rec(k); return r && ((r.ar && arMin(r.ar)>0) || wk(r)>0 || xk(r)>0); });
-    var hasWork=days.some(function(k){ var r=rec(k); return wk(r)>0 || xk(r)>0; });
-    var hasExtra=days.some(function(k){ return xk(rec(k))>0; }), wmax=hasExtra ? 2*WORK_SLOTS : WORK_SLOTS;
+    var any=days.some(function(k){ return rec(k) && DAY.arurael(k)>0; });
     document.getElementById("aEmpty").hidden=any;
     svg.style.display=any?"block":"none";
     if(!any){ CH.achart=null; return; }
-    var max=AR_FULL;
     var narrow=window.innerWidth<620;
-    var W=(narrow?430:700),H=190,padL=24,padR=hasWork?22:8,padT=12,padB=22;
+    var W=(narrow?430:700),H=190,padL=28,padR=8,padT=14,padB=22;
     svg.setAttribute("viewBox","0 0 "+W+" "+H);
     var plotW=W-padL-padR, plotH=H-padT-padB, step=plotW/days.length, base=padT+plotH;
-    var full=Math.max(3.5,Math.min(14,step*0.6)), gap=hasWork?1:0;
-    var bw=hasWork ? (full*1.5-gap)/2 : full, every=narrow?8:4;
-    [0,25,50,75].forEach(function(v){
-      var y=base-(v/max)*plotH;
+    var bw=Math.max(3.5,Math.min(14,step*0.6)), every=narrow?8:4;
+    [0,50,100].forEach(function(v){
+      var y=base-(v/100)*plotH;
       svg.appendChild(el("line",{x1:padL,y1:y.toFixed(1),x2:W-padR,y2:y.toFixed(1),class:"gridline"}));
       var t=el("text",{x:padL-7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"end"}); t.textContent=v; svg.appendChild(t);
     });
-    if(hasWork) [0,wmax/2,wmax].forEach(function(v){    /* the work scale, on the right */
-      var y=base-(v/wmax)*plotH;
-      var t=el("text",{x:W-padR+7,y:(y+3.2).toFixed(1),class:"axlabel","text-anchor":"start",style:"fill:var(--a-work)"}); t.textContent=v; svg.appendChild(t);
-    });
     days.forEach(function(k,i){
-      var cx=padL+step*(i+0.5), r=rec(k), last=i===days.length-1;
-      var x1=hasWork ? cx-bw-gap/2 : cx-bw/2, x2=cx+gap/2;
+      var cx=padL+step*(i+0.5), x=cx-bw/2, r=rec(k), last=i===days.length-1;
       if(last || (days.length-1-i)%every===0){
         var lab=el("text",{x:cx.toFixed(1),y:(H-6).toFixed(1),class:"daylabel"+(last?" today":""),"text-anchor":"middle"});
         lab.textContent=Number(k.slice(8,10)); svg.appendChild(lab);
       }
-      var wn=wk(r), xn=xk(r), mins=r && r.ar ? arMin(r.ar) : 0;
-      if(!wn && !xn && !mins){ svg.appendChild(el("rect",{x:(cx-full/2).toFixed(1),y:(base-2).toFixed(1),width:full.toFixed(1),height:2,class:"emptybar"})); return; }
-      var wy=base;
-      [[wn,"var(--a-work)"],[xn,"var(--a-xtra)"]].forEach(function(p){
-        if(!p[0]) return; var wh=(p[0]/wmax)*plotH; wy-=wh;
-        svg.appendChild(el("rect",{x:x2.toFixed(1),y:wy.toFixed(1),width:bw.toFixed(1),height:wh.toFixed(1),fill:p[1]}));
-      });
-      if(!mins) return;
+      if(!r || !(DAY.arurael(k)>0)){ svg.appendChild(el("rect",{x:x.toFixed(1),y:(base-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"})); return; }
       var y=base;
-      AR.forEach(function(m){
-        var v=(r.ar[m.k]||[]).filter(Boolean).length*m.min; if(!v) return;
-        var h=(v/max)*plotH; y-=h;
-        svg.appendChild(el("rect",{x:x1.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:m.color}));
+      arParts(k).forEach(function(q){
+        if(!(q[1]>0)) return;
+        var h=(q[1]/100)*plotH; y-=h;
+        svg.appendChild(el("rect",{x:x.toFixed(1),y:y.toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:q[0]}));
       });
     });
     chartDone("achart",svg,{W:W,padL:padL,padT:padT,plotH:plotH,step:step,days:days,info:infoAr});
@@ -2351,10 +2332,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var r=rec(k);
     if(!r || (!r.ar && !r.work && !r.extra)) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
     var a=r.ar||{};
-    var h='<div class="th">'+fmtDay(k)+' • '+arMin(a)+' of '+AR_FULL+' min</div>';
+    var h='<div class="th">'+fmtDay(k)+' · '+Math.round(DAY.arurael(k))+'%</div>';
     AR.forEach(function(m){
       var n=(a[m.k]||[]).filter(Boolean).length;
-      h+=tr(m.color,m.name,(n*m.min)+" min");
+      h+=tr(m.color,m.name,n+"/"+m.blocks);
     });
     h+=tr("var(--a-work)","Work",workN(r.work)+"/"+WORK_SLOTS);
     if(workN(r.extra)) h+=tr("var(--a-xtra)","Extra",workN(r.extra)+"/"+WORK_SLOTS);
