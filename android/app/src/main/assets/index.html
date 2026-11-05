@@ -203,6 +203,33 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .tip .muted{color:var(--ink-3)}
 @media (max-width:420px){ .segrow{grid-template-columns:62px 1fr 1fr 44px;gap:8px} }
 .xr-grid{grid-template-columns:1fr 1fr}
+/* Voice of Qartaq: the Allfather's court speaks, through Ishtar. An ember-lit panel,
+   a double frame, a living flame between two rules, and the words set in a book face. */
+.qartaq{position:relative;overflow:hidden;text-align:center;padding:22px 22px 18px;border-radius:8px;
+  border:1px solid rgba(255,0,10,.30);
+  background:radial-gradient(120% 95% at 50% 0%,rgba(255,0,10,.16),rgba(255,0,10,.04) 45%,transparent 72%),var(--panel)}
+.qartaq::before{content:"";position:absolute;inset:5px;border:1px solid rgba(255,0,10,.13);border-radius:5px;pointer-events:none}
+.qartaq::after{content:"";position:absolute;left:50%;bottom:-60px;width:220px;height:90px;transform:translateX(-50%);
+  background:radial-gradient(closest-side,rgba(255,0,10,.10),transparent);pointer-events:none}
+.q-crown{display:flex;align-items:center;justify-content:center;gap:10px}
+.q-rule{flex:0 1 64px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,0,10,.65))}
+.q-rule.r{background:linear-gradient(270deg,transparent,rgba(255,0,10,.65))}
+.q-flame{width:13px;height:18px;fill:var(--xeron);filter:drop-shadow(0 0 5px rgba(255,0,10,.75));transform-origin:50% 100%}
+.q-title{margin:9px 0 0;padding-left:.34em;font-size:10.5px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--xeron)}
+.q-say{position:relative;margin:13px auto 0;max-width:30em;
+  font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Noto Serif",Georgia,serif;
+  font-size:18px;line-height:1.55;font-style:italic;color:var(--ink);text-wrap:pretty}
+.q-rune{font-family:var(--rune);font-style:normal;color:var(--xeron);font-size:.92em;padding:0 .08em}
+.q-who{display:flex;align-items:center;justify-content:center;gap:9px;margin:13px 0 0;
+  font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-3)}
+.q-who::before,.q-who::after{content:"";width:14px;height:1px;background:var(--line)}
+@media (prefers-reduced-motion:no-preference){
+  .q-flame{animation:qflick 3.4s ease-in-out infinite}
+  .q-say.in{animation:qin .6s ease both}
+}
+@keyframes qflick{0%,100%{transform:scale(1,1);opacity:1}30%{transform:scale(.94,1.06);opacity:.88}55%{transform:scale(1.04,.96);opacity:1}80%{transform:scale(.97,1.03);opacity:.92}}
+@keyframes qin{from{opacity:0;filter:blur(3px);transform:translateY(4px)}to{opacity:1;filter:none;transform:none}}
+@media (max-width:420px){ .qartaq{padding:20px 18px 16px} .q-say{font-size:17px} }
 .xr-grid .ae-card{grid-column:1/-1}
 @media (max-width:560px){ .cards.xr-grid{grid-template-columns:1fr 1fr} }
 .xr-ctr .ctr{gap:8px;min-height:0}
@@ -605,6 +632,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     </section>
   </div>
   <div id="viewXr" hidden>
+    <section class="qartaq" aria-label="Voice of Qartaq">
+      <div class="q-crown" aria-hidden="true">
+        <span class="q-rule"></span>
+        <svg class="q-flame" viewBox="0 0 24 32"><path d="M12 1.5c1.2 6.1 7.5 9.3 7.5 17.4a7.5 7.5 0 0 1-15 0c0-3.9 1.9-6.4 4-8.6-.1 3.1 1.1 5.2 3.1 5.6-1.1-4.3-.6-9.7.4-14.4z"/></svg>
+        <span class="q-rule r"></span>
+      </div>
+      <h2 class="q-title">Voice of Qartaq</h2>
+      <p class="q-say" id="qSay" aria-live="polite"></p>
+      <p class="q-who" id="qWho">Ishtar</p>
+    </section>
     <div class="cards xr-grid">
       <div class="card ae-card" id="aeCard" style="--hue:var(--x-ae)">
       <div class="card-head"><span class="gname">The Binding of Aeshma</span></div>
@@ -1868,6 +1905,322 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       document.getElementById(x.grp==="dep"?"depCard":"thrCard").appendChild(row);
     });
   }
+  /* ---------- Voice of Qartaq ---------- */
+  /* ---------- Xeron's realm speaks, through Ishtar ----------
+     The Allfather is silent, so Ishtar speaks for his realm: his battlefield commander,
+     decisive, protective of the daughters, quick to anger, quick to grieve, never vague.
+     One line at the end of Xeron's tab, chosen from what the day holds. The first scenario
+     whose condition holds is taken, and one of its lines is shown; which line is fixed by
+     the date, so reopening the tab says the same thing until the facts change.
+     She judges only Xeron's realm (falls, thresholds, the binding of Aeshma, his greatest
+     enemy) but reads the others: sleep from Xenlil, work from Arurael, rites from Arexia.
+
+     facts:
+       locked      true before Cluster 1 begins        start  e.g. "Fri, Nov 6"
+       date        "YYYY-MM-DD" (picks the line)        min    minutes since 00:00
+       D, T        today's depletions and thresholds
+       bound       [8] bindings kept today              running  a binding is counting down now
+       s0          clean days in a row before today     best   longest clean run ever
+       yFell       yesterday had a depletion
+       bedLast     last night's To bed was kept         awake  today's Awake: true / false / null (not yet due)
+       arurael     Arurael's score today, 0-100          rites  Arexia's rites kept today, 0-8 (Nature = 8)
+  */
+  var XR_SPEAKER="Ishtar";
+  var XR_RUNE=["ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ"];
+  function xrHm(n){ n=((n%1440)+1440)%1440; return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0"); }
+
+  /* what the raw facts mean, worked out once */
+  function xeronRead(f){
+    var q=Math.min(7,Math.floor(f.min/180));                 /* the quarter we are in */
+    var missed=0; for(var i=0;i<q;i++) if(!f.bound[i]) missed++;
+    var boundN=f.bound.filter(Boolean).length;
+    var startBy=q*180+167;                                   /* last minute a binding can begin */
+    var clean=f.D===0;
+    return {
+      q:q, missed:missed, boundN:boundN,
+      s: clean ? f.s0+1 : 0,                                 /* the run, today included */
+      tired: f.bedLast===false || f.awake===false,           /* Xenlil: sleep broken */
+      idle: f.arurael<40 && f.min>=15*60,                    /* Arurael: an empty afternoon */
+      busy: f.arurael>=80,                                   /* Arurael: a full day */
+      aligned: f.rites>=6,                                   /* Arexia: the rites mostly kept */
+      closing: !f.bound[q] && !f.running && startBy-f.min>=0 && startBy-f.min<=45,
+      rune: XR_RUNE[q], end: xrHm(q*180+180), startBy: xrHm(startBy)
+    };
+  }
+
+  /* in order: the first that holds is spoken */
+  var XERON_SAYS=[
+    {id:"locked", tone:"quiet", when:function(f){ return f.locked; }, lines:[
+      "No orders before the cluster opens. Be ready at {start}.",
+      "The throne isn't counting yet. At {start}, we fight again.",
+      "Until {start}, rest your sling. Nothing is written.",
+      "Hold your post until {start}. Then the count begins.",
+      "No breaches, no bindings, no record until {start}. Sharpen the sling.",
+      "Today is not counted. From {start}, everything is.",
+      "The daughters are waiting for {start}. So am I.",
+      "Rest now. From {start}, I'll want everything you have."]},
+
+    {id:"fall_many", tone:"anger", when:function(f){ return f.D>=2; }, lines:[
+      "{d} breaches in one day. I won't pretend that's small. Seal the night and sleep.",
+      "The plateau fell {d} times, and I counted every sister it cost. Not one more tonight.",
+      "{d} falls. I'm angry, and I'll still be at the wall tomorrow. Be there with me.",
+      "{d} times the gate gave way. I'm not done being angry, and you shouldn't be either.",
+      "{d} breaches. The Allfather is silent, but I heard him tonight. Stop here.",
+      "{d} falls in a day is a rout, not a slip. Pull back, sleep, and we rebuild at dawn.",
+      "I lost {d} lines of sisters today. Close the gates. Nothing more tonight.",
+      "{d} falls. Aeshma is feasting. Starve him tomorrow."]},
+
+    {id:"fall_broke_run", tone:"grief", when:function(f){ return f.D===1 && f.s0>=3; }, lines:[
+      "{s0} days we held, and one hour broke the line. The days still stand. Rebuild the count from one.",
+      "{s0} days of victory don't vanish because of tonight. Grieve it, then regroup.",
+      "We lost a run of {s0}, not the war. Back in formation.",
+      "A run of {s0} ends tonight. I've buried better days than this and still won the war.",
+      "{s0} days, gone in an hour. That's how the Abyss fights. We fight longer.",
+      "Don't mourn the {s0} days; they did their work. Start the next run at dawn.",
+      "The run broke. You didn't. One day at a time, like before.",
+      "{s0} days of discipline are still in you. Use them tomorrow."]},
+
+    {id:"fall_tired", tone:"advice", when:function(f,x){ return f.D===1 && x.tired; }, lines:[
+      "You fought tired, and the Abyss saw it. Sleep is a wall too; man it with Xenlil.",
+      "No sleep, then a breach. I've seen this a thousand times. Fix the night first.",
+      "A tired defender is an open gate. Give Xenlil the night, and I'll hold the rest.",
+      "A short night and a fall. I won't call that coincidence. Bed at 23:30, no arguments.",
+      "Exhaustion is Aeshma's best ally. Take it from him: rest.",
+      "The flame flickers when you're worn down. Feed it with sleep.",
+      "I'd rather lose an hour of the night than another sister. Go to bed.",
+      "Tired eyes miss the breach. Rest, then stand watch."]},
+
+    {id:"fall_idle", tone:"criticism", when:function(f,x){ return f.D===1 && x.idle; }, lines:[
+      "An empty afternoon is an unguarded rampart. Give Arurael your hands tomorrow.",
+      "Idle hours are where Hawiya opens its mouth. Fill them, or it will.",
+      "Arurael waited, nothing came, and the Abyss walked in. Occupy the hours.",
+      "Nothing to do is the most dangerous order there is. Give yourself work.",
+      "The afternoon was empty and the gate was open. Those are the same thing.",
+      "Boredom opened the door. Next time, open Arurael's work instead.",
+      "An idle soldier is a target. Keep moving.",
+      "You weren't defeated; you were unoccupied. Fix that first."]},
+
+    {id:"fall_busy", tone:"advice", when:function(f,x){ return f.D===1 && x.busy; }, lines:[
+      "You gave everything to Arurael and left the wall bare. Always keep one archer back.",
+      "A full day, and still a breach. Strength spent elsewhere thins the line; bind Aeshma before evening.",
+      "Good work, bad watch. Both are orders.",
+      "Hard work, then a breach at the end of it. Guard the hour after the work.",
+      "The fight was at Arurael's front, and Aeshma took the back. Watch both.",
+      "A worn-out victor is easy prey. Bind Aeshma when the work ends.",
+      "You earned the day and gave away the night. Keep what you earn.",
+      "Even the busiest defender needs a sentry. Bind before you rest."]},
+
+    {id:"fall", tone:"grief", when:function(f){ return f.D===1; }, lines:[
+      "One breach. Mark it, don't carry it. Bind Aeshma at the next window.",
+      "We lost the plateau today. Tomorrow we take it back.",
+      "Today the desire went to Aeshma. Tomorrow it returns to the Allfather's flame.",
+      "We fell once. The Allfather has seen worse. So have I.",
+      "One breach. Find where it came from, then close that gate for good.",
+      "A loss, not a rout. Back to the wall.",
+      "The flame dipped today; it didn't die. Tend it.",
+      "Aeshma won an hour. Don't give him the night as well."]},
+
+    {id:"edge_many", tone:"warning", when:function(f){ return f.T>=3; }, lines:[
+      "{t} times at the edge today. Stop patrolling there; the edge is already his ground.",
+      "{t} thresholds. My sisters held each one, and they're tiring. Pull back.",
+      "{t} near-breaches. Change your ground before he changes it for you.",
+      "{t} close calls. Each one was a sister on the rampart. Give them rest.",
+      "You keep walking up to the gate. Walk the other way.",
+      "{t} times you turned back. Next time, don't go near.",
+      "That's {t} thresholds. Aeshma is probing for the weak point. Don't show it to him.",
+      "{t} near-falls. Find what keeps leading you there and cut it off."]},
+
+    {id:"closing", tone:"order", when:function(f,x){ return x.closing; }, lines:[
+      "{rune} is open until {startBy}. Thirteen minutes. Bind him now.",
+      "Begin before {startBy}, or the hour is his.",
+      "The window of {rune} closes at {end}. Don't hand it to Aeshma.",
+      "Window {rune}. You have until {startBy} to start. Go.",
+      "Last call for {rune}. After {startBy}, it's too late to bind him.",
+      "Don't let {rune} pass unbound. Start before {startBy}.",
+      "{rune} is closing. Thirteen minutes, and he's chained.",
+      "Aeshma is waiting for {end}. Bind him before {startBy}."]},
+
+    {id:"edge_held", tone:"encouragement", when:function(f){ return f.T>=1; }, lines:[
+      "He pushed, you stood. That's persistence, and I saw it.",
+      "A threshold, not a fall. Good. Hold that ground.",
+      "Desire came and you didn't hand it to Aeshma. That's how we win.",
+      "You stood at the threshold and turned around. That's the whole battle, won.",
+      "Close, but the wall held. Remember this feeling.",
+      "He reached for you and caught nothing. Good.",
+      "The edge, and no further. That's a defender's day.",
+      "Temptation came; discipline answered. Keep answering."]},
+
+    {id:"aeshma_free", tone:"warning", when:function(f,x){ return x.missed>=3; }, lines:[
+      "{m} windows left unbound. Every one is a gate I have to cover. Bind him.",
+      "Aeshma walked free {m} times today. He's rallying. Don't give him another.",
+      "{m} bindings missed. My sisters can't hold what you leave open.",
+      "{m} windows unbound. I'm covering for you, but not forever.",
+      "Every unbound window feeds him. {m} today.",
+      "{m} times he went unchecked. Bind the next one, whatever it costs.",
+      "You left {m} windows open. He noticed. So did I.",
+      "{m} bindings missed. He grows stronger in the gaps."]},
+
+    {id:"all_bound", tone:"praise", when:function(f,x){ return x.boundN===8; }, lines:[
+      "Eight of eight. Aeshma didn't move today. Well fought.",
+      "Every window bound. The throne is quiet; I'll carry word to Qartaq.",
+      "All eight. This is what the daughters bleed for. Rest now.",
+      "Eight bindings, eight windows. A perfect watch.",
+      "Not one window lost. The daughters will sing tonight.",
+      "Aeshma spent the whole day in chains. Well done.",
+      "Every binding kept. This is how wars are won, one window at a time.",
+      "Eight of eight. Tonight even I can rest."]},
+
+    {id:"run_13", tone:"inspiration", when:function(f,x){ return x.s>=13 && x.s%13===0; }, lines:[
+      "{s} days, the Allfather's number. The daughters are weeping for joy. Hold.",
+      "{s} days. He won't say it, so I will: he's proud of you.",
+      "{s} days without a breach. Thirteen stars burn in the Scorpion tonight.",
+      "{s} days. Thirteen is his number, and now it's yours too.",
+      "{s} days. The Allfather's soul was thirsty; tonight it drinks.",
+      "{s} days unbroken. I'll tell the daughters your name.",
+      "{s} days. The throne has never been this steady.",
+      "{s} days. A number fit for Qartaq. Keep going."]},
+
+    {id:"run_record", tone:"inspiration", when:function(f,x){ return x.s>=4 && x.s>f.best; }, lines:[
+      "{s} days, the longest line we've ever held. Don't look down. March.",
+      "A new record: {s} days. Guard it like the throne.",
+      "Never this far before. {s} days. Keep the formation tight.",
+      "{s} days. No one has held this line longer. Keep holding.",
+      "Further than ever: {s} days. Don't celebrate, advance.",
+      "{s} days, a record. Aeshma is worried. Good.",
+      "The longest run yet: {s}. Every day from here is new ground.",
+      "{s} days. History, and it's still being written."]},
+
+    {id:"run_mark", tone:"encouragement", when:function(f,x){ return [3,7,10,20,30,40,50].indexOf(x.s)>=0; }, lines:[
+      "{s} clean days. The line holds.",
+      "{s} days. Good. Keep the formation.",
+      "{s} days held. Every one of them counts.",
+      "{s} days clean. Steady work.",
+      "{s} days. The wall is getting taller.",
+      "{s} days held. Aeshma is running out of patience.",
+      "{s} clean days. Keep the count, quietly.",
+      "{s} days. One more, then another."]},
+
+    {id:"resilience", tone:"encouragement", when:function(f){ return f.yFell && f.D===0; }, lines:[
+      "Yesterday we fell. Today we stand. That's resilience; that's us.",
+      "You didn't follow yesterday down. That matters more than the fall.",
+      "Breach yesterday, none today. That's how a defense recovers.",
+      "You fell yesterday and stood today. That's the stronger story.",
+      "Yesterday's breach is closed. Keep it closed.",
+      "Back on the wall after a fall. That's what I need from you.",
+      "A day after defeat, a clean day. That's the Allfather's resilience in you.",
+      "Recovery is a victory too. Today, you won it."]},
+
+    {id:"clean_tired", tone:"advice", when:function(f,x){ return x.tired; }, lines:[
+      "Clean, but on no sleep. He loves a tired night; sleep before he comes.",
+      "You held without rest. Don't make me watch you try that twice.",
+      "Give Xenlil the night. One rested sister is worth ten tired ones.",
+      "Clean, but running on empty. Rest before you make me worry.",
+      "You held without sleep. Impressive, and foolish. Sleep tonight.",
+      "A tired guard still held. Now let her rest.",
+      "Sleep is the wall Aeshma can't climb. Build it tonight.",
+      "Clean today, but tired days end badly. Go to bed on time."]},
+
+    {id:"clean_busy", tone:"praise", when:function(f,x){ return x.busy && f.min>=15*60; }, lines:[
+      "Full hands, clean wall. Desire turned into work, exactly right.",
+      "Arurael's work and the throne both held today. That's discipline.",
+      "A full day and no breach. Lust aligned with discipline.",
+      "You poured the fire into work. That's where it belongs.",
+      "Busy hands, quiet gate. Perfect.",
+      "Arurael got your effort; Aeshma got nothing. A good trade.",
+      "The flame burned for the work, not for him. Keep it pointed there.",
+      "A full day without a breach. That's how the throne is defended."]},
+
+    {id:"clean_aligned", tone:"praise", when:function(f,x){ return x.aligned && f.min>=18*60; }, lines:[
+      "Arexia's rites kept, the throne held. The axis stands together.",
+      "Rites and restraint in one day. The Lattice is whole tonight.",
+      "The rites were kept and the gate stayed shut. The four realms are aligned.",
+      "The rites and the wall, both kept. Arexia and I agree tonight.",
+      "Rites done, gate shut. The axis holds firm.",
+      "Discipline in two realms today. That's what alignment looks like.",
+      "Arexia's rites and the Allfather's flame, both honoured.",
+      "Kept the rites, kept the line. A good day."]},
+
+    {id:"morning", tone:"order", when:function(f){ return f.min<10*60; }, lines:[
+      "Morning. No breach. Bind Aeshma before {end} and keep it that way.",
+      "Quiet hours. Use them; the evening is where he strikes.",
+      "New day, same wall. Take your post.",
+      "Dawn. The wall is yours. Bind before {end}.",
+      "A clean start. Guard it until nightfall.",
+      "Mornings are easy. Remember this in the evening.",
+      "Fresh day. Aeshma is still sleeping; bind him before he wakes.",
+      "Up and on watch. That's how a good day begins."]},
+
+    {id:"clean", tone:"quiet", when:function(){ return true; }, lines:[
+      "No breach today. Keep watch.",
+      "The throne is quiet. Stay sharp.",
+      "Clean. That's the job. Again tomorrow.",
+      "Another clean day. That's how wars are won.",
+      "No breach. The daughters are resting easy.",
+      "Clean. The Allfather is quiet, and that's good.",
+      "Steady. Keep it that way.",
+      "Nothing broke today. Good."]}
+  ];
+
+  /* counts read as words up to thirteen, as figures beyond */
+  var XR_WORDS=["no","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen"];
+  function xrWord(n){ return n<XR_WORDS.length ? XR_WORDS[n] : String(n); }
+
+  /* a small steady hash, so a date always picks the same line */
+  function xrPick(seed,n){ var h=0; for(var i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0; return h%n; }
+
+  function xeronSpeaks(f, forceLine){
+    var x=xeronRead(f);
+    for(var i=0;i<XERON_SAYS.length;i++){
+      var sc=XERON_SAYS[i];
+      if(!sc.when(f,x)) continue;
+      var k = forceLine!=null ? forceLine%sc.lines.length : xrPick(f.date+sc.id, sc.lines.length);
+      var text=sc.lines[k].replace(/\{(\w+)\}/g,function(_,v){
+        return ({d:xrWord(f.D), t:xrWord(f.T), s0:xrWord(f.s0), s:xrWord(x.s), m:xrWord(x.missed),
+                 start:f.start, rune:x.rune, end:x.end, startBy:x.startBy})[v];
+      });
+      text=text.charAt(0).toUpperCase()+text.slice(1);
+      return {id:sc.id, tone:sc.tone, line:k, text:text, read:x};
+    }
+  }
+
+  /* the facts the Voice needs, read from the record */
+  function qartaqFacts(){
+    var today=dayKey(), d=new Date(), y=keyAdd(today,-1), yr=past(y);
+    var s0=0, k=y;
+    for(var n=0;n<3660;n++){                     /* clean days in a row before today */
+      var r=past(k); if(!r || deps(r.xr)>0 || (k<CL_START && isBlank(r))) break;
+      s0++; k=keyAdd(k,-1);
+    }
+    var best=0, run=0, prev=null;                 /* longest clean run before today */
+    xrDays().forEach(function(r){
+      if(r.date>=today) return;
+      var dn=dayNum(r.date);
+      run = deps(r.xr)===0 ? ((prev!==null && dn===prev+1) ? run+1 : 1) : 0;
+      best=Math.max(best,run); prev=dn;
+    });
+    var m=d.getHours()*60+d.getMinutes(), wake=HABITS.filter(function(h){ return h.k==="wake"; })[0];
+    return {
+      locked: today<CL_START, start: clDate(CL_START,{weekday:"short",month:"short",day:"numeric"}),
+      date: today, min: m, D: deps(state.day.xr), T: thrs(state.day.xr),
+      bound: (state.day.ae||[]).map(Boolean), running: !!(AET.run && AET.date===today),
+      s0: s0, best: best, yFell: !!(yr && deps(yr.xr)>0),
+      bedLast: yr && yr.habits ? !!yr.habits.bed : null,
+      awake: m>habCloses(wake) ? !!(state.day.habits && state.day.habits.wake) : null,
+      arurael: DAY.arurael(today)||0, rites: total(recordFor(today)||{})
+    };
+  }
+  var qSaid="";
+  function renderQartaq(){
+    var r=xeronSpeaks(qartaqFacts()), el=document.getElementById("qSay");
+    if(r.text===qSaid) return;
+    qSaid=r.text;
+  /* runes set in the rune face, like the dial's */
+  el.innerHTML=r.text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+    .replace(/[\u16A0-\u16FF]/g,'<span class="q-rune">$&</span>');
+    setText("qWho",XR_SPEAKER);
+    el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+  }
+
   function renderXr(){
     var x=state.day.xr;
     XR.forEach(function(it){ document.getElementById("c-"+it.k).textContent=x[it.k]||0; });
@@ -1884,6 +2237,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     renderAe();
     if(VIEW==="xr") xrSubtitle();
     drawXrChart();
+    renderQartaq();
   }
   /* each day: the Golden Path's day score, max(0, 100 - 25·depletions - 6.25·thresholds);
      the bindings carry no weight, so they are in the tooltip, not the bar */
