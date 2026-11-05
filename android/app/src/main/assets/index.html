@@ -206,29 +206,24 @@ svg.dial{width:100%;max-width:450px;height:auto}
 /* The Voices: the court of each realm speaks at the top of its tab. An ember-lit panel in the
    god's colour, a double frame, a living sign between two rules (Xeron's flame, Arurael's eye,
    Xenlil's crown), and the words set in a book face. --vc is the glow, --va the rules and sign. */
-.voice{--vc:255,0,10;--va:255,0,10;--vt:var(--xeron);
+.voice{--vc:255,0,10;--va:255,0,10;--vt:var(--xeron);--vs:var(--xeron);
   position:relative;overflow:hidden;text-align:center;padding:22px 22px 18px;border-radius:8px;
   border:1px solid rgba(var(--vc),.32);
   background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.16),rgba(var(--vc),.04) 45%,transparent 72%),var(--panel)}
-.voice.v-ar{--vc:29,78,216;--va:110,150,245;--vt:var(--arurael-hot)}
-.voice.v-xen{--vc:253,197,0;--va:253,197,0;--vt:var(--xenlil)}
-.voice.v-dial{--vc:13,175,11;--va:13,175,11;--vt:var(--arexia-hot)}
+.voice.v-ar{--vc:29,78,216;--va:110,150,245;--vt:var(--arurael-hot);--vs:var(--arurael-hot)}
+.voice.v-xen{--vc:253,197,0;--va:253,197,0;--vt:var(--xenlil);--vs:var(--xenlil)}
+.voice.v-dial{--vc:13,175,11;--va:13,175,11;--vt:var(--arexia-hot);--vs:var(--arexia)}
 .voice.v-ar{border-color:rgba(var(--vc),.45);background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.24),rgba(var(--vc),.06) 45%,transparent 72%),var(--panel)}
 .voice.v-dial{border-color:rgba(var(--vc),.30);background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.12),rgba(var(--vc),.03) 45%,transparent 72%),var(--panel)}
 .voice.v-xen{border-color:rgba(var(--vc),.26);background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.11),rgba(var(--vc),.03) 45%,transparent 72%),var(--panel)}
 .voice::before{content:"";position:absolute;inset:5px;border:1px solid rgba(var(--vc),.14);border-radius:5px;pointer-events:none}
 .voice::after{content:"";position:absolute;left:50%;bottom:-60px;width:220px;height:90px;transform:translateX(-50%);
   background:radial-gradient(closest-side,rgba(var(--va),.10),transparent);pointer-events:none}
-.v-crown{display:flex;align-items:center;justify-content:center;gap:10px;height:18px}
+.v-crown{display:flex;align-items:center;justify-content:center;gap:10px;height:22px}
 .v-rule{flex:0 1 64px;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--va),.65))}
 .v-rule.r{background:linear-gradient(270deg,transparent,rgba(var(--va),.65))}
 .v-sign{overflow:visible;filter:drop-shadow(0 0 5px rgba(var(--va),.75))}
-.v-flame{width:13px;height:18px;fill:var(--xeron);transform-origin:50% 100%}
-.v-eye{width:22px;height:14px}
-.v-eye .lid{fill:none;stroke:var(--vt);stroke-width:1.4}
-.v-eye .iris{fill:var(--vt)}
-.v-crownmark{width:22px;height:16px;fill:var(--xenlil)}
-.v-sword{width:12px;height:18px;fill:var(--arexia)}
+.v-zod{width:24px;height:22px;fill:none;stroke:var(--vs);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round;transform-origin:50% 60%}
 .v-title{margin:9px 0 0;padding-left:.34em;font-size:10.5px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--vt)}
 .v-say{position:relative;margin:13px auto 0;max-width:30em;
   font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Noto Serif",Georgia,serif;
@@ -238,14 +233,14 @@ svg.dial{width:100%;max-width:450px;height:auto}
   font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-3)}
 .v-who::before,.v-who::after{content:"";width:14px;height:1px;background:var(--line)}
 @media (prefers-reduced-motion:no-preference){
-  .v-flame{animation:vflick 3.4s ease-in-out infinite}
-  .v-eye .iris{animation:vlook 7s ease-in-out infinite}
-  .v-crownmark{animation:vglint 5s ease-in-out infinite}
-  .v-sword{animation:vcold 6s ease-in-out infinite}
+  .v-xr .v-zod{animation:vflick 3.4s ease-in-out infinite}            /* the scorpion, in fire */
+  .v-ar .v-zod{animation:vwave 4.5s ease-in-out infinite}             /* the water-bearer's waves */
+  .v-xen .v-zod{animation:vglint 5s ease-in-out infinite}             /* the bull, catching light */
+  .v-dial .v-zod{animation:vcold 6s ease-in-out infinite}             /* the lioness, cold */
   .v-say.in{animation:vin .6s ease both}
 }
 @keyframes vflick{0%,100%{transform:scale(1,1);opacity:1}30%{transform:scale(.94,1.06);opacity:.88}55%{transform:scale(1.04,.96);opacity:1}80%{transform:scale(.97,1.03);opacity:.92}}
-@keyframes vlook{0%,40%,100%{transform:translateX(0)}50%,60%{transform:translateX(-2.2px)}75%,85%{transform:translateX(2.2px)}}
+@keyframes vwave{0%,100%{transform:translateX(0)}50%{transform:translateX(1.6px)}}
 @keyframes vglint{0%,70%,100%{opacity:1;filter:none}80%{opacity:1;filter:brightness(1.45)}90%{opacity:.9}}
 @keyframes vcold{0%,100%{opacity:.75;filter:drop-shadow(0 0 3px rgba(13,175,11,.5))}50%{opacity:1;filter:drop-shadow(0 0 8px rgba(13,175,11,.95))}}
 @keyframes vin{from{opacity:0;filter:blur(3px);transform:translateY(4px)}to{opacity:1;filter:none;transform:none}}
@@ -479,7 +474,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     <section class="voice v-dial" aria-label="Voice of Irkalla">
       <div class="v-crown" aria-hidden="true">
         <span class="v-rule"></span>
-        <svg class="v-sign v-sword" viewBox="0 0 16 24"><circle cx="8" cy="1.8" r="1.25"/><rect x="7.25" y="2.7" width="1.5" height="4"/><rect x="2.5" y="6.6" width="11" height="1.5" rx=".4"/><path d="M6.7 8.3h2.6v11.4L8 23.4l-1.3-3.7z"/></svg>
+        <svg class="v-sign v-zod" viewBox="0 0 24 22" role="img" aria-label="Leo"><circle cx="6.6" cy="14.6" r="3.2"/><path d="M9.6 13.6C8.6 9.4 9.4 3.4 14 3.4c4.2 0 5 4.2 3.4 7.8-1.4 3.2-3.6 5.6-1.6 8.2 1 1.2 2.8 1 3.8-.4"/></svg>
         <span class="v-rule r"></span>
       </div>
       <h2 class="v-title">Voice of Irkalla</h2>
@@ -552,7 +547,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     <section class="voice v-xen" aria-label="Voice of Ugarit">
       <div class="v-crown" aria-hidden="true">
         <span class="v-rule"></span>
-        <svg class="v-sign v-crownmark" viewBox="0 0 24 18"><path d="M2 14.5 3.4 4.6l5 4.4L12 1.8l3.6 7.2 5-4.4L22 14.5z"/><rect x="2" y="15.6" width="20" height="2" rx=".6"/></svg>
+        <svg class="v-sign v-zod" viewBox="0 0 24 22" role="img" aria-label="Taurus"><circle cx="12" cy="14" r="5.2"/><path d="M3.5 3.2c1.6 4.4 4.6 5.6 8.5 5.6s6.9-1.2 8.5-5.6"/></svg>
         <span class="v-rule r"></span>
       </div>
       <h2 class="v-title">Voice of Ugarit</h2>
@@ -675,7 +670,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     <section class="voice v-xr" aria-label="Voice of Qartaq">
       <div class="v-crown" aria-hidden="true">
         <span class="v-rule"></span>
-        <svg class="v-sign v-flame" viewBox="0 0 24 32"><path d="M12 1.5c1.2 6.1 7.5 9.3 7.5 17.4a7.5 7.5 0 0 1-15 0c0-3.9 1.9-6.4 4-8.6-.1 3.1 1.1 5.2 3.1 5.6-1.1-4.3-.6-9.7.4-14.4z"/></svg>
+        <svg class="v-sign v-zod" viewBox="0 0 24 22" role="img" aria-label="Scorpio"><path d="M2.5 6.5V17 M2.5 9c0-3.4 4.6-3.4 4.6 0v8 M7.1 9c0-3.4 4.6-3.4 4.6 0v6.6c0 2.6 2.6 3.6 5 2.2l3.3-2.2 M16.8 14.2l3.6 1.4-0.9 3.7"/></svg>
         <span class="v-rule r"></span>
       </div>
       <h2 class="v-title">Voice of Qartaq</h2>
@@ -719,7 +714,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     <section class="voice v-ar" aria-label="Voice of Ebabbar">
       <div class="v-crown" aria-hidden="true">
         <span class="v-rule"></span>
-        <svg class="v-sign v-eye" viewBox="0 0 24 16"><path class="lid" d="M1.5 8C5 2.6 19 2.6 22.5 8 19 13.4 5 13.4 1.5 8z"/><circle class="iris" cx="12" cy="8" r="3.1"/></svg>
+        <svg class="v-sign v-zod" viewBox="0 0 24 22" role="img" aria-label="Aquarius"><path d="M2 9l3.3-3 3.3 3 3.3-3 3.3 3 3.3-3 3.3 3 M2 15l3.3-3 3.3 3 3.3-3 3.3 3 3.3-3 3.3 3"/></svg>
         <span class="v-rule r"></span>
       </div>
       <h2 class="v-title">Voice of Ebabbar</h2>
@@ -3294,8 +3289,96 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         aeNodes[i]={band:p, text:t, god:RED};
       });
     });
+    buildAeEyes(svg);
     document.getElementById("aePlay").addEventListener("click",function(){ fb("tap"); aeToggle(); });
     document.getElementById("aeReset").addEventListener("click",aeReset);
+  }
+  /* Aeshma's eyes, inside the bindings, in a disc of black. They answer the day's bindings:
+     wide, burning and darting when windows were left unbound; watchful while a window stands open;
+     half-shut once the current window is bound; narrowing and straining as a binding counts down;
+     and all but closed when all eight are bound. They blink, wander, and glow. */
+  var AEY={on:false, o:.5, glow:.4, anger:.3, pupil:2, gx:0, gy:0, tx:0, ty:0, nextGaze:0, nextBlink:0, blink:-1, nodes:null,
+           still: !!(window.matchMedia && window.matchMedia("(prefers-reduced-motion: reduce)").matches)};
+  function buildAeEyes(svg){
+    var defs=el("defs",{});
+    var ig=el("radialGradient",{id:"aeIris",cx:"50%",cy:"50%",r:"50%"});
+    [["0%","#ffe08a"],["34%","#ff5a1f"],["72%","#c0001a"],["100%","#3d0007"]].forEach(function(s){ ig.appendChild(el("stop",{offset:s[0],"stop-color":s[1]})); });
+    var gf=el("filter",{id:"aeGlow",x:"-60%",y:"-150%",width:"220%",height:"400%"}); gf.appendChild(el("feGaussianBlur",{stdDeviation:"5"}));
+    defs.appendChild(ig); defs.appendChild(gf);
+    svg.insertBefore(defs, svg.firstChild);
+    var disc=el("circle",{cx:CX,cy:CY,r:(RINGS[0][0]-CUT-.5).toFixed(1),fill:"#000","pointer-events":"none"});
+    svg.insertBefore(disc, defs.nextSibling);
+    var eyes=el("g",{"pointer-events":"none","aria-hidden":"true"});
+    svg.insertBefore(eyes, disc.nextSibling);
+    AEY.nodes=[-1,1].map(function(s){
+      var g=el("g",{transform:"translate("+(CX+s*37)+","+(CY+6)+") rotate("+(-s*13)+") scale(1.3)"});
+      var glow=el("ellipse",{cx:0,cy:0,rx:30,ry:12,fill:"#ff1020",filter:"url(#aeGlow)",opacity:".4"});
+      var id="aeLid"+(s<0?"L":"R"), cp=el("clipPath",{id:id}), clip=el("path",{d:""});
+      cp.appendChild(clip); defs.appendChild(cp);
+      var inner=el("g",{"clip-path":"url(#"+id+")"});
+      inner.appendChild(el("rect",{x:-26,y:-22,width:52,height:44,fill:"#1a0003"}));
+      var iris=el("g",{}), pupil=el("ellipse",{cx:0,cy:0,rx:2,ry:10,fill:"#000"});
+      iris.appendChild(el("circle",{cx:0,cy:0,r:11.5,fill:"url(#aeIris)"})); iris.appendChild(pupil);
+      inner.appendChild(iris);
+      var lid=el("path",{d:"",fill:"none",stroke:"#6a000b","stroke-width":"1.6"});
+      var brow=el("path",{d:"M-25 -16 Q0 -24 24 -13",fill:"none",stroke:"#8a000e","stroke-width":"3","stroke-linecap":"round",opacity:"0"});
+      g.appendChild(glow); g.appendChild(inner); g.appendChild(lid); g.appendChild(brow);
+      eyes.appendChild(g);
+      return {clip:clip, lid:lid, iris:iris, pupil:pupil, glow:glow, brow:brow};
+    });
+  }
+  /* what the bindings say about him right now */
+  function aeMood(){
+    var a=state.day.ae||[], q=Math.min(7,Math.floor(nowHours()/3)), bound=aeCount(a), missed=0;
+    for(var i=0;i<q;i++) if(!a[i]) missed++;
+    if(dayKey()<CL_START) return {o:.08, glow:.06, dart:0,   jit:0,   pupil:3,   anger:0};    /* not yet: asleep */
+    if(AET.run && AET.date===dayKey()){                                                        /* being bound */
+      var p=Math.max(0,Math.min(1,1-aeLeft()/AE_FULL));
+      return {o:Math.max(.12,.95-.82*p), glow:.8-.55*p, dart:.7, jit:.3+1.5*(1-p), pupil:1.3, anger:.85-.5*p};
+    }
+    if(bound===8)  return {o:.1,  glow:.1,  dart:.05, jit:0,   pupil:3,   anger:0};    /* all eight: subdued */
+    if(missed>=3)  return {o:1,   glow:1,   dart:1,   jit:.35, pupil:1.1, anger:1};    /* free and furious */
+    if(missed>=1)  return {o:.86, glow:.7,  dart:.7,  jit:.12, pupil:1.5, anger:.65};  /* loose */
+    if(a[q])       return {o:.32, glow:.24, dart:.2,  jit:0,   pupil:2.6, anger:.15};  /* this window bound */
+    return               {o:.62, glow:.45, dart:.45, jit:0,   pupil:2,   anger:.35};   /* window open, watching */
+  }
+  function aeEyesDraw(o,jx,jy,t){
+    var h=Math.max(.35,13*o), pulse=AEY.glow*(.85+.15*Math.sin(t/260));
+    var d="M-24 0Q0 "+(-2*h).toFixed(2)+" 24 0Q0 "+(1.6*h).toFixed(2)+" -24 0Z";
+    AEY.nodes.forEach(function(n){
+      n.clip.setAttribute("d",d); n.lid.setAttribute("d",d);
+      n.iris.setAttribute("transform","translate("+(AEY.gx+jx).toFixed(2)+","+(AEY.gy*.6+jy).toFixed(2)+")");
+      n.pupil.setAttribute("rx",AEY.pupil.toFixed(2));
+      n.glow.setAttribute("opacity",(pulse*.85).toFixed(3)); n.glow.setAttribute("ry",(4+h*.9).toFixed(2));
+      n.brow.setAttribute("opacity",(Math.max(0,AEY.anger-.3)*1.2).toFixed(3));
+    });
+  }
+  function aeEyesFrame(t){
+    if(!AEY.on) return;
+    if(VIEW!=="xr" || document.hidden){ AEY.on=false; return; }
+    var m=aeMood(), k=.06;
+    AEY.o+=(m.o-AEY.o)*k; AEY.glow+=(m.glow-AEY.glow)*k; AEY.anger+=(m.anger-AEY.anger)*k; AEY.pupil+=(m.pupil-AEY.pupil)*k;
+    if(t>AEY.nextGaze){                                      /* look somewhere else, sooner when angry */
+      AEY.tx=(Math.random()*2-1)*7*(.35+m.dart*.65); AEY.ty=(Math.random()*2-1)*2.5;
+      AEY.nextGaze=t+(2800-2100*m.dart)*(.6+Math.random()*.8);
+    }
+    var sp=.07+.22*m.dart; AEY.gx+=(AEY.tx-AEY.gx)*sp; AEY.gy+=(AEY.ty-AEY.gy)*sp;
+    var bm=1;                                                /* a blink now and then */
+    if(AEY.blink<0 && t>AEY.nextBlink) AEY.blink=t;
+    if(AEY.blink>=0){ var ph=(t-AEY.blink)/170; if(ph>=1){ AEY.blink=-1; AEY.nextBlink=t+2200+Math.random()*4500; } else bm=1-Math.sin(Math.PI*ph); }
+    var jx=m.jit?(Math.random()*2-1)*m.jit:0, jy=m.jit?(Math.random()*2-1)*m.jit*.5:0;
+    aeEyesDraw(AEY.o*bm, jx, jy, t);
+    requestAnimationFrame(aeEyesFrame);
+  }
+  function aeEyesWake(){
+    if(!AEY.nodes) return;
+    if(AEY.still){                                           /* reduced motion: a still face that still tells the state */
+      var m=aeMood(); AEY.o=m.o; AEY.glow=m.glow; AEY.anger=m.anger; AEY.pupil=m.pupil; AEY.gx=AEY.gy=0;
+      aeEyesDraw(m.o,0,0,0); return;
+    }
+    if(AEY.on) return;
+    if(VIEW!=="xr" || document.hidden){ aeEyesDraw(AEY.o,0,0,0); return; }   /* seen in passing (a swipe): drawn, not run */
+    AEY.on=true; requestAnimationFrame(aeEyesFrame);
   }
   function aeExplain(i){
     var st=aeState(i);
@@ -3312,6 +3395,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       n.text.setAttribute("fill", on ? "var(--bg)" : (st==="lapsed" ? "var(--ink-3)" : n.god.hue));
     });
     aeTimes();
+    aeEyesWake();
   }
   function aeTimes(){
     var i = AET.idx>=0 ? AET.idx : aeOpen(), card=document.getElementById("aeCard");
@@ -3605,7 +3689,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   setInterval(arTick,250);
   setInterval(function(){ if(state) aeTick(); },250);
-  document.addEventListener("visibilitychange",function(){ if(!document.hidden) arTick(); });
+  document.addEventListener("visibilitychange",function(){ if(!document.hidden){ arTick(); aeEyesWake(); } });
 
 
   /* ---------- Cluster ----------
