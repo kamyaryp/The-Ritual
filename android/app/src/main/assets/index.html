@@ -203,33 +203,48 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .tip .muted{color:var(--ink-3)}
 @media (max-width:420px){ .segrow{grid-template-columns:62px 1fr 1fr 44px;gap:8px} }
 .xr-grid{grid-template-columns:1fr 1fr}
-/* Voice of Qartaq: the Allfather's court speaks, through Ishtar. An ember-lit panel,
-   a double frame, a living flame between two rules, and the words set in a book face. */
-.qartaq{position:relative;overflow:hidden;text-align:center;padding:22px 22px 18px;border-radius:8px;
-  border:1px solid rgba(255,0,10,.30);
-  background:radial-gradient(120% 95% at 50% 0%,rgba(255,0,10,.16),rgba(255,0,10,.04) 45%,transparent 72%),var(--panel)}
-.qartaq::before{content:"";position:absolute;inset:5px;border:1px solid rgba(255,0,10,.13);border-radius:5px;pointer-events:none}
-.qartaq::after{content:"";position:absolute;left:50%;bottom:-60px;width:220px;height:90px;transform:translateX(-50%);
-  background:radial-gradient(closest-side,rgba(255,0,10,.10),transparent);pointer-events:none}
-.q-crown{display:flex;align-items:center;justify-content:center;gap:10px}
-.q-rule{flex:0 1 64px;height:1px;background:linear-gradient(90deg,transparent,rgba(255,0,10,.65))}
-.q-rule.r{background:linear-gradient(270deg,transparent,rgba(255,0,10,.65))}
-.q-flame{width:13px;height:18px;fill:var(--xeron);filter:drop-shadow(0 0 5px rgba(255,0,10,.75));transform-origin:50% 100%}
-.q-title{margin:9px 0 0;padding-left:.34em;font-size:10.5px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--xeron)}
-.q-say{position:relative;margin:13px auto 0;max-width:30em;
+/* The Voices: the court of each realm speaks at the top of its tab. An ember-lit panel in the
+   god's colour, a double frame, a living sign between two rules (Xeron's flame, Arurael's eye,
+   Xenlil's crown), and the words set in a book face. --vc is the glow, --va the rules and sign. */
+.voice{--vc:255,0,10;--va:255,0,10;--vt:var(--xeron);
+  position:relative;overflow:hidden;text-align:center;padding:22px 22px 18px;border-radius:8px;
+  border:1px solid rgba(var(--vc),.32);
+  background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.16),rgba(var(--vc),.04) 45%,transparent 72%),var(--panel)}
+.voice.v-ar{--vc:29,78,216;--va:110,150,245;--vt:var(--arurael-hot)}
+.voice.v-xen{--vc:253,197,0;--va:253,197,0;--vt:var(--xenlil)}
+.voice.v-ar{border-color:rgba(var(--vc),.45);background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.24),rgba(var(--vc),.06) 45%,transparent 72%),var(--panel)}
+.voice.v-xen{border-color:rgba(var(--vc),.26);background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.11),rgba(var(--vc),.03) 45%,transparent 72%),var(--panel)}
+.voice::before{content:"";position:absolute;inset:5px;border:1px solid rgba(var(--vc),.14);border-radius:5px;pointer-events:none}
+.voice::after{content:"";position:absolute;left:50%;bottom:-60px;width:220px;height:90px;transform:translateX(-50%);
+  background:radial-gradient(closest-side,rgba(var(--va),.10),transparent);pointer-events:none}
+.v-crown{display:flex;align-items:center;justify-content:center;gap:10px;height:18px}
+.v-rule{flex:0 1 64px;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--va),.65))}
+.v-rule.r{background:linear-gradient(270deg,transparent,rgba(var(--va),.65))}
+.v-sign{overflow:visible;filter:drop-shadow(0 0 5px rgba(var(--va),.75))}
+.v-flame{width:13px;height:18px;fill:var(--xeron);transform-origin:50% 100%}
+.v-eye{width:22px;height:14px}
+.v-eye .lid{fill:none;stroke:var(--vt);stroke-width:1.4}
+.v-eye .iris{fill:var(--vt)}
+.v-crownmark{width:22px;height:16px;fill:var(--xenlil)}
+.v-title{margin:9px 0 0;padding-left:.34em;font-size:10.5px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--vt)}
+.v-say{position:relative;margin:13px auto 0;max-width:30em;
   font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Noto Serif",Georgia,serif;
   font-size:18px;line-height:1.55;font-style:italic;color:var(--ink);text-wrap:pretty}
-.q-rune{font-family:var(--rune);font-style:normal;color:var(--xeron);font-size:.92em;padding:0 .08em}
-.q-who{display:flex;align-items:center;justify-content:center;gap:9px;margin:13px 0 0;
+.v-rune{font-family:var(--rune);font-style:normal;color:var(--vt);font-size:.92em;padding:0 .08em}
+.v-who{display:flex;align-items:center;justify-content:center;gap:9px;margin:13px 0 0;
   font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-3)}
-.q-who::before,.q-who::after{content:"";width:14px;height:1px;background:var(--line)}
+.v-who::before,.v-who::after{content:"";width:14px;height:1px;background:var(--line)}
 @media (prefers-reduced-motion:no-preference){
-  .q-flame{animation:qflick 3.4s ease-in-out infinite}
-  .q-say.in{animation:qin .6s ease both}
+  .v-flame{animation:vflick 3.4s ease-in-out infinite}
+  .v-eye .iris{animation:vlook 7s ease-in-out infinite}
+  .v-crownmark{animation:vglint 5s ease-in-out infinite}
+  .v-say.in{animation:vin .6s ease both}
 }
-@keyframes qflick{0%,100%{transform:scale(1,1);opacity:1}30%{transform:scale(.94,1.06);opacity:.88}55%{transform:scale(1.04,.96);opacity:1}80%{transform:scale(.97,1.03);opacity:.92}}
-@keyframes qin{from{opacity:0;filter:blur(3px);transform:translateY(4px)}to{opacity:1;filter:none;transform:none}}
-@media (max-width:420px){ .qartaq{padding:20px 18px 16px} .q-say{font-size:17px} }
+@keyframes vflick{0%,100%{transform:scale(1,1);opacity:1}30%{transform:scale(.94,1.06);opacity:.88}55%{transform:scale(1.04,.96);opacity:1}80%{transform:scale(.97,1.03);opacity:.92}}
+@keyframes vlook{0%,40%,100%{transform:translateX(0)}50%,60%{transform:translateX(-2.2px)}75%,85%{transform:translateX(2.2px)}}
+@keyframes vglint{0%,70%,100%{opacity:1;filter:none}80%{opacity:1;filter:brightness(1.45)}90%{opacity:.9}}
+@keyframes vin{from{opacity:0;filter:blur(3px);transform:translateY(4px)}to{opacity:1;filter:none;transform:none}}
+@media (max-width:420px){ .voice{padding:20px 18px 16px} .v-say{font-size:17px} }
 .xr-grid .ae-card{grid-column:1/-1}
 @media (max-width:560px){ .cards.xr-grid{grid-template-columns:1fr 1fr} }
 .xr-ctr .ctr{gap:8px;min-height:0}
@@ -519,6 +534,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   </div>
 
   <div id="viewXen" hidden>
+    <section class="voice v-xen" aria-label="Voice of Ugarit">
+      <div class="v-crown" aria-hidden="true">
+        <span class="v-rule"></span>
+        <svg class="v-sign v-crownmark" viewBox="0 0 24 18"><path d="M2 14.5 3.4 4.6l5 4.4L12 1.8l3.6 7.2 5-4.4L22 14.5z"/><rect x="2" y="15.6" width="20" height="2" rx=".6"/></svg>
+        <span class="v-rule r"></span>
+      </div>
+      <h2 class="v-title">Voice of Ugarit</h2>
+      <p class="v-say" id="uSay" aria-live="polite"></p>
+      <p class="v-who" id="uWho">Xenlil</p>
+    </section>
     <div class="cards">
       <div class="card" id="waterCard" style="--hue:var(--c-water)">
         <div class="card-head"><span class="gname">Water</span></div>
@@ -632,15 +657,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     </section>
   </div>
   <div id="viewXr" hidden>
-    <section class="qartaq" aria-label="Voice of Qartaq">
-      <div class="q-crown" aria-hidden="true">
-        <span class="q-rule"></span>
-        <svg class="q-flame" viewBox="0 0 24 32"><path d="M12 1.5c1.2 6.1 7.5 9.3 7.5 17.4a7.5 7.5 0 0 1-15 0c0-3.9 1.9-6.4 4-8.6-.1 3.1 1.1 5.2 3.1 5.6-1.1-4.3-.6-9.7.4-14.4z"/></svg>
-        <span class="q-rule r"></span>
+    <section class="voice v-xr" aria-label="Voice of Qartaq">
+      <div class="v-crown" aria-hidden="true">
+        <span class="v-rule"></span>
+        <svg class="v-sign v-flame" viewBox="0 0 24 32"><path d="M12 1.5c1.2 6.1 7.5 9.3 7.5 17.4a7.5 7.5 0 0 1-15 0c0-3.9 1.9-6.4 4-8.6-.1 3.1 1.1 5.2 3.1 5.6-1.1-4.3-.6-9.7.4-14.4z"/></svg>
+        <span class="v-rule r"></span>
       </div>
-      <h2 class="q-title">Voice of Qartaq</h2>
-      <p class="q-say" id="qSay" aria-live="polite"></p>
-      <p class="q-who" id="qWho">Ishtar</p>
+      <h2 class="v-title">Voice of Qartaq</h2>
+      <p class="v-say" id="qSay" aria-live="polite"></p>
+      <p class="v-who" id="qWho">Ishtar</p>
     </section>
     <div class="cards xr-grid">
       <div class="card ae-card" id="aeCard" style="--hue:var(--x-ae)">
@@ -676,6 +701,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     </section>
   </div>
   <div id="viewAr" hidden>
+    <section class="voice v-ar" aria-label="Voice of Ebabbar">
+      <div class="v-crown" aria-hidden="true">
+        <span class="v-rule"></span>
+        <svg class="v-sign v-eye" viewBox="0 0 24 16"><path class="lid" d="M1.5 8C5 2.6 19 2.6 22.5 8 19 13.4 5 13.4 1.5 8z"/><circle class="iris" cx="12" cy="8" r="3.1"/></svg>
+        <span class="v-rule r"></span>
+      </div>
+      <h2 class="v-title">Voice of Ebabbar</h2>
+      <p class="v-say" id="eSay" aria-live="polite"></p>
+      <p class="v-who" id="eWho">Arurael</p>
+    </section>
     <div class="cards ar-cards" id="arCards"></div>
     <section class="chron">
       <div class="sec-head">
@@ -1505,6 +1540,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     setText("xGlasses",glasses);
     setText("xGym",gyms);
     drawXenChart();
+    renderUgarit();
   }
   function drawXenChart(){
     var svg=document.getElementById("xchart");
@@ -2209,17 +2245,634 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       arurael: DAY.arurael(today)||0, rites: total(recordFor(today)||{})
     };
   }
-  var qSaid="";
-  function renderQartaq(){
-    var r=xeronSpeaks(qartaqFacts()), el=document.getElementById("qSay");
-    if(r.text===qSaid) return;
-    qSaid=r.text;
-  /* runes set in the rune face, like the dial's */
-  el.innerHTML=r.text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-    .replace(/[\u16A0-\u16FF]/g,'<span class="q-rune">$&</span>');
-    setText("qWho",XR_SPEAKER);
+  /* set a voice's line; it fades in only when the words change */
+  var VOICE_SAID={};
+  function speak(sayId, whoId, who, text){
+    if(VOICE_SAID[sayId]===text) return;
+    VOICE_SAID[sayId]=text;
+    var el=document.getElementById(sayId);
+    /* runes set in the rune face, like the dial's */
+    el.innerHTML=text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/[\u16A0-\u16FF]/g,'<span class="v-rune">$&</span>');
+    setText(whoId,who);
     el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
   }
+  function renderQartaq(){ speak("qSay","qWho",XR_SPEAKER,xeronSpeaks(qartaqFacts()).text); }
+
+  /* ---------- Voice of Ebabbar ---------- */
+  /* ---------- Voice of Ebabbar: Arurael speaks ----------
+     Arurael speaks for himself: the Wise, knowledge itself, curious and exact, who treats an
+     empty day as a question to investigate rather than a sin, names causes, owns limits, and
+     keeps the redemptive purpose in view. He judges only his own realm (Execution & Science,
+     Share, English, Work and Extra) but reads the others: falls from Xeron, sleep from Xenlil.
+     The first situation that holds is spoken; its line is fixed by the date.
+
+     facts:
+       locked, start      before Cluster 1 begins, and when it does ("Fri, Nov 6")
+       date, min          "YYYY-MM-DD" (picks the line) and minutes since 00:00
+       E, S, L            Execution & Science divisions (0-2), Share (0-1), English (0-1)
+       W, X               work slots (0-8) and extra slots (0-8)
+       running            name of the division counting down now, or ""
+       yScore             yesterday's score, or null if there is no yesterday
+       run0, best         full days (100%) in a row before today, and the longest such run
+       D                  Xeron: depletions today
+       bedLast, awake     Xenlil: last night's To bed, today's Awake (true / false / null)
+  */
+  var AR_SPEAKER="Arurael";
+  var AR_WORDS=["no","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen"];
+  function arWord(n){ return n<AR_WORDS.length ? AR_WORDS[n] : String(n); }
+
+  /* the day's score, as the Golden Path counts it */
+  function arDayScore(f){ return Math.min(100, 100*(10*(f.W+f.X)/8 + 6*f.S + 4*f.E/2 + 3*f.L)/23); }
+
+  function aruraelRead(f){
+    var score=arDayScore(f), duty=f.E>=2 && f.S>=1 && f.L>=1 && f.W>=8, full=score>=99.999;
+    var left=[];                                             /* what the duty still owes */
+    if(f.E<2) left.push(f.E===1 ? "one division of Execution & Science" : "both divisions of Execution & Science");
+    if(f.S<1) left.push("Share");
+    if(f.L<1) left.push("English");
+    if(f.W<8) left.push(arWord(8-f.W)+" work slot"+(8-f.W===1?"":"s"));
+    var leftText = left.length<2 ? (left[0]||"") : left.slice(0,-1).join(", ")+" and "+left[left.length-1];
+    return {
+      score:score, duty:duty, full:full, left:leftText,
+      run: full ? f.run0+1 : 0,                               /* full days in a row, today included */
+      study: f.E>=2 && f.S>=1 && f.L>=1,                      /* every division sealed */
+      tired: f.bedLast===false || f.awake===false,             /* Xenlil: sleep broken */
+      fell: f.D>0                                             /* Xeron: a fall today */
+    };
+  }
+
+  var ARURAEL_SAYS=[
+    {id:"locked", tone:"quiet", when:function(f){ return f.locked; }, lines:[
+      "Nothing is measured before the cluster begins. On {start}, the Ahtuxasai begin counting.",
+      "Until {start}, I only observe. Then we learn together.",
+      "The record opens on {start}. Use today to decide what you want to understand.",
+      "No divisions count yet. On {start}, bring a question worth chasing.",
+      "Today is unmeasured. From {start}, every division will be seen.",
+      "Rest the mind until {start}. Curiosity keeps.",
+      "The Eye is open, but the record is closed until {start}.",
+      "Prepare the question tonight; answer it from {start}."]},
+
+    {id:"running", tone:"focus", when:function(f){ return !!f.running; }, lines:[
+      "{div} is under way. Stay with it until the water settles.",
+      "You're inside {div} now. Let nothing else in for these minutes.",
+      "Focus is a narrow river. Keep {div} within its banks.",
+      "{div}: the clock runs, and so should your attention.",
+      "I'm watching {div} with you. Finish it clean.",
+      "One division at a time. This one is {div}.",
+      "While {div} runs, the rest of the world can wait.",
+      "{div} is the only question right now."]},
+
+    {id:"run_15", tone:"inspiration", when:function(f,x){ return x.run>=15 && x.run%15===0; }, lines:[
+      "{r} full days. Fifteen stars in Aquarius, and you've lit every one.",
+      "{r} days complete. The Ahtuxasai ran the numbers twice; they're true.",
+      "{r} full days. This is how ignorance loses: slowly, then entirely.",
+      "{r} days. The Azure Dragon stirs.",
+      "{r} days of complete work. I have nothing to correct.",
+      "{r} days. An explosion of light is only many small lights at once.",
+      "{r} days. The Eye finds nothing missing.",
+      "{r} full days. The question now is how far this goes."]},
+
+    {id:"run_record", tone:"inspiration", when:function(f,x){ return x.run>=4 && x.run>f.best; }, lines:[
+      "{r} full days, more than ever before. Note what made it possible.",
+      "A new record: {r} days. Study it; it will teach you more than failure did.",
+      "{r} days, your longest. I'm curious how far it can run.",
+      "Never this many: {r}. Keep the method, not just the mood.",
+      "{r} days in a row. The evidence says you've changed.",
+      "{r} days. A record is a question that hasn't been answered yet.",
+      "Longest run yet: {r}. Don't stop to admire it.",
+      "{r} complete days. The pattern is clear now."]},
+
+    {id:"overflow", tone:"praise", when:function(f,x){ return x.duty && f.X>=4; }, lines:[
+      "Duty complete, and {x} extra besides. This is where understanding grows.",
+      "You went past the measure by {x}. Curiosity did that, not obligation.",
+      "Everything owed, and {x} more. The light spread further than it had to.",
+      "Full, and then {x} beyond. I'd call that a small explosion of light.",
+      "{x} extra on a complete day. The Ahtuxasai will have to recount.",
+      "The duty was the floor. You built {x} more on it.",
+      "Complete, plus {x}. Rest well; you earned the surplus.",
+      "{x} past the measure. Keep some thirst for tomorrow."]},
+
+    {id:"full_run", tone:"encouragement", when:function(f,x){ return x.duty && x.run>=3; }, lines:[
+      "{r} complete days in a row. The method is working.",
+      "{r} full days. Knowledge compounds; so does discipline.",
+      "{r} days complete. Each one makes the next easier to see.",
+      "{r} in a row. I'd like to see the next one.",
+      "{r} full days. The water runs clear.",
+      "Another complete day: {r} now. Steady light.",
+      "{r} days without a gap. Good.",
+      "{r} full days. Keep asking, keep finishing."]},
+
+    {id:"full", tone:"praise", when:function(f,x){ return x.duty; }, lines:[
+      "Everything owed today is done. Clear water.",
+      "Complete. The Eye sees nothing missing.",
+      "Execution, Share, English, Work: all of it. Well reasoned, well done.",
+      "A full day. Ignorance lost a little ground.",
+      "Done, and done properly. Rest the mind.",
+      "Every division sealed. I have no notes.",
+      "The measure is full. What did you learn that surprised you?",
+      "Complete. The Ahtuxasai record it gladly."]},
+
+    {id:"filled_by_extra", tone:"advice", when:function(f,x){ return x.full && !x.duty; }, lines:[
+      "Extra work filled the gap, but {left} stayed undone. Covered is not learned.",
+      "The score is full; the duty isn't. Still waiting: {left}.",
+      "Extra work carried the day. Tomorrow, give {left} its turn.",
+      "You compensated well. But {left} is knowledge you didn't gather.",
+      "Full by extra. Fair enough, but notice what you avoided: {left}.",
+      "The numbers balance. The learning doesn't; missing: {left}.",
+      "Work filled in for {left}. A substitute, not the thing itself.",
+      "Full marks. Now ask yourself why {left} was skipped."]},
+
+    {id:"tired_low", tone:"understanding", when:function(f,x){ return x.tired && x.score<50; }, lines:[
+      "You were short on sleep. A tired mind learns little; I won't judge today harshly.",
+      "Xenlil's night was broken, and it shows here. Sleep first, then study.",
+      "Fatigue clouds the water. Rest is part of learning.",
+      "Little done on little sleep. That's cause, not character.",
+      "The Eye sees the tiredness behind the empty divisions. Fix the night.",
+      "Study on no sleep is reading without seeing. Sleep tonight.",
+      "I'd rather you sleep than force a dull division.",
+      "Tired today, and the work waited. Tomorrow, rested, we try again."]},
+
+    {id:"fell_idle", tone:"criticism", when:function(f,x){ return x.fell && x.score<50 && f.min>=15*60; }, lines:[
+      "An empty afternoon, and Xeron's wall broke. Idle minds open gates.",
+      "The divisions were empty and the plateau fell. These are connected.",
+      "Idleness is an old ally of the Abyss. Give your hours to study.",
+      "What filled the space the work left? Xeron's realm knows.",
+      "A mind with no question finds the wrong answer. Find a question.",
+      "The fall came in the empty hours. Fill them tomorrow.",
+      "Xeron's realm isn't mine to judge, but I see what the empty day invited.",
+      "Work is a lamp. Without it, the dark had room today."]},
+
+    {id:"evening_empty", tone:"criticism", when:function(f,x){ return f.min>=18*60 && x.score<30; }, lines:[
+      "The day is nearly spent and little was learned. What took it?",
+      "Evening, and the divisions are mostly empty. One is still possible.",
+      "Not much today. Find the reason before tomorrow repeats it.",
+      "A quiet day for the mind. Too quiet.",
+      "The light is low, and so is the work. Ten minutes of English is still within reach.",
+      "Little was measured today. I'd like to know why.",
+      "An empty record isn't a verdict; it's a question. Answer it.",
+      "The Ahtuxasai have little to count tonight."]},
+
+    {id:"unfinished", tone:"advice", when:function(f,x){ return f.min>=19*60 && !x.full; }, lines:[
+      "Still open: {left}. The evening is long enough.",
+      "Left to do: {left}. Finish what's within reach.",
+      "Most of it is done. Add {left} and the picture is complete.",
+      "Before sleep: {left}.",
+      "You're close. Only {left} left.",
+      "Waiting for you: {left}.",
+      "One more push: {left}.",
+      "Close the gaps tonight: {left}."]},
+
+    {id:"work_light", tone:"advice", when:function(f,x){ return x.study && f.W<4 && f.min>=16*60; }, lines:[
+      "Study complete, work light. Knowledge needs a place to land.",
+      "The mind is fed; the work is thin. Align knowledge with execution.",
+      "All divisions done, but only {w} of eight work slots. Put the learning to use.",
+      "Learning without work is water without a channel.",
+      "{w} of eight work slots. The study deserves more application.",
+      "You learned well today. Now make it useful.",
+      "The divisions are sealed; the work isn't. Xenlil would ask for execution.",
+      "Study done. Work is where it proves itself."]},
+
+    {id:"comeback", tone:"encouragement", when:function(f,x){ return f.yScore!==null && f.yScore<50 && x.score>=70; }, lines:[
+      "Yesterday was thin; today isn't. That's a correction, and a good one.",
+      "You learned from yesterday. That's the whole point.",
+      "Low yesterday, strong today. The evidence favours you.",
+      "A poor day followed by a good one. That's how understanding moves.",
+      "Yesterday's gap is closing.",
+      "You took responsibility for yesterday. I saw it.",
+      "From little to much in a day. Keep this direction.",
+      "The trend turned. Note what you did differently."]},
+
+    {id:"strong", tone:"encouragement", when:function(f,x){ return x.score>=70; }, lines:[
+      "Most of the day's work is done. Good pace.",
+      "Strong progress. The rest is within reach.",
+      "The water's rising. Keep going.",
+      "Well along. What's left is small.",
+      "Good work so far. Finish with the same care.",
+      "Steady. The Eye approves.",
+      "Clear progress. Don't let the last part slip.",
+      "A good day taking shape."]},
+
+    {id:"morning", tone:"quiet", when:function(f){ return f.min<10*60; }, lines:[
+      "Morning. Start with the smallest division; momentum follows.",
+      "A clear mind in the morning. Spend it on Execution & Science.",
+      "The day is unwritten. What do you want to understand by tonight?",
+      "Early hours are the clearest water. Use them.",
+      "Begin. The first division is the hardest only until it isn't.",
+      "Good morning. The Ahtuxasai are ready to count.",
+      "Ask one good question this morning and chase it all day.",
+      "Light is coming up. So should the work."]},
+
+    {id:"nothing_yet", tone:"advice", when:function(f,x){ return x.score===0; }, lines:[
+      "Half the day gone and nothing measured yet. Begin with English; it's only ten minutes.",
+      "No divisions yet. What's in the way?",
+      "The record is blank so far. One division changes that.",
+      "Still empty. Curiosity starts with a single step.",
+      "Nothing yet. The Eye is waiting, patiently, for now.",
+      "Start anywhere. Starting is the only hard part.",
+      "An empty morning is recoverable. An empty day is not.",
+      "No work yet. Let's find out what you can do before evening."]},
+
+    {id:"started", tone:"quiet", when:function(){ return true; }, lines:[
+      "A beginning. Knowledge compounds; keep adding.",
+      "Something is done. Now build on it.",
+      "The first divisions are in. Keep the current flowing.",
+      "Good start. Don't let it stop here.",
+      "Progress. Small, but real.",
+      "The work has begun. I'm curious where it ends.",
+      "A few lights are on. Light more.",
+      "Under way. Keep going."]}
+  ];
+
+  function arPick(seed,n){ var h=0; for(var i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0; return h%n; }
+
+  function aruraelSpeaks(f, forceLine){
+    var x=aruraelRead(f);
+    for(var i=0;i<ARURAEL_SAYS.length;i++){
+      var sc=ARURAEL_SAYS[i];
+      if(!sc.when(f,x)) continue;
+      var k = forceLine!=null ? forceLine%sc.lines.length : arPick(f.date+sc.id, sc.lines.length);
+      var text=sc.lines[k].replace(/\{(\w+)\}/g,function(_,v){
+        return ({start:f.start, div:f.running, r:arWord(x.run), x:arWord(f.X), w:arWord(f.W), left:x.left})[v];
+      });
+      text=text.charAt(0).toUpperCase()+text.slice(1);
+      return {id:sc.id, tone:sc.tone, line:k, text:text, read:x};
+    }
+  }
+
+  /* full-day runs and yesterday, read the same way for Arurael and Xenlil */
+  function runBefore(isFull){
+    var today=dayKey(), run0=0, k=keyAdd(today,-1);
+    for(var n=0;n<3660;n++){ var r=past(k); if(!r || (k<CL_START && isBlank(r)) || !isFull(k,r)) break; run0++; k=keyAdd(k,-1); }
+    var best=0, run=0, prev=null;
+    state.history.forEach(function(r){
+      if(r.date>=today || (r.date<CL_START && isBlank(r))) return;
+      var dn=dayNum(r.date);
+      run = isFull(r.date,r) ? ((prev!==null && dn===prev+1) ? run+1 : 1) : 0;
+      best=Math.max(best,run); prev=dn;
+    });
+    return {run0:run0, best:best};
+  }
+  function sleepFacts(m){
+    var yr=past(keyAdd(dayKey(),-1)), wake=HABITS.filter(function(h){ return h.k==="wake"; })[0];
+    return {bedLast: yr && yr.habits ? !!yr.habits.bed : null,
+            awake: m>habCloses(wake) ? !!(state.day.habits && state.day.habits.wake) : null};
+  }
+  function ebabbarFacts(){
+    var today=dayKey(), d=new Date(), m=d.getHours()*60+d.getMinutes(), a=state.day.ar||{};
+    var y=keyAdd(today,-1), yr=past(y);
+    var runs=runBefore(function(k){ return DAY.arurael(k)>=99.999; }), sl=sleepFacts(m);
+    return {
+      locked: today<CL_START, start: clDate(CL_START,{weekday:"short",month:"short",day:"numeric"}),
+      date: today, min: m,
+      E: Math.min(2,cnt(a.exe)), S: Math.min(1,cnt(a.sci)), L: Math.min(1,cnt(a.eng)),
+      W: Math.min(8,workN(state.day.work)), X: Math.min(8,workN(state.day.extra)),
+      running: ART.blk ? arMission(ART.blk).name : "",
+      yScore: (yr && !(y<CL_START && isBlank(yr))) ? DAY.arurael(y) : null,
+      run0: runs.run0, best: runs.best, D: deps(state.day.xr), bedLast: sl.bedLast, awake: sl.awake
+    };
+  }
+  function renderEbabbar(){ speak("eSay","eWho",AR_SPEAKER,aruraelSpeaks(ebabbarFacts()).text); }
+
+  /* ---------- Voice of Ugarit ---------- */
+  /* ---------- Voice of Ugarit: Xenlil speaks ----------
+     Xenlil speaks for himself: the Victorious, king and lawgiver, once a Fedayi, who uproots
+     slackness and turns intention into kept order. Exacting but not cruel; feelings and bonds
+     are his too. He judges only his own realm (water, gym, core, supplements, sleep, care,
+     maintenance, checkups) but reads the others: Arurael's work, Xeron's falls. The Golden
+     Path is his: a failure in one realm must not doom the others.
+     The first situation that holds is spoken; its line is fixed by the date.
+
+     facts:
+       locked, start        before Cluster 1 begins, and when it does
+       date, min            "YYYY-MM-DD" (picks the line) and minutes since 00:00
+       water                glasses, 0-14
+       gymDue, gymName, gym today is a gym day, its session ("Quads"...), done
+       core, coreRunning    Core done today; Core counting down now
+       mv, cre              Multivitamin & Omega 3, Creatine & whey taken
+       d3Due, d3            the 1st of the month, D3 taken
+       skin, bed, wake      Skin & Hair routine, To bed (23:30), Awake (08:00)
+       maintName, maint     today's maintenance ("Car", "Outfit", "Room & appliances") or "", done
+       sealed               checkups sealed, 0-3
+       yScore               yesterday's Xenlil score, or null
+       run0, best           kingly days (90%+) in a row before today, and the longest such run
+       arurael              Arurael's score today, 0-100
+       D                    Xeron: depletions today
+  */
+  var XL_SPEAKER="Xenlil";
+  var XL_WORDS=["no","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen"];
+  function xlWord(n){ return n<XL_WORDS.length ? XL_WORDS[n] : String(n); }
+  function xlList(a){ return a.length<2 ? (a[0]||"") : a.slice(0,-1).join(", ")+" and "+a[a.length-1]; }
+
+  /* the day's score, weighted as the Golden Path weighs it: gym 30, core 20, rest & sleep 20,
+     water 10, supplements 10, checkups 5, maintenance 3, skin & hair 2, shared among what is due */
+  function xlScore(f){
+    var parts=[
+      [f.gymDue ? 30 : 0, f.gym ? 1 : 0],
+      [20, f.core ? 1 : 0],
+      [20, ((f.bed?1:0)+(f.wake?1:0))/2],
+      [10, Math.min(1,f.water/14)],
+      [10, ((f.mv?1:0)+(f.cre?1:0)+(f.d3Due ? (f.d3?1:0) : 0))/(f.d3Due ? 3 : 2)],
+      [5, f.sealed/3],
+      [f.maintName ? 3 : 0, f.maint ? 1 : 0],
+      [2, f.skin ? 1 : 0]
+    ], sum=0, w=0;
+    parts.forEach(function(p){ if(!p[0]) return; sum+=p[0]*p[1]; w+=p[0]; });
+    return 100*sum/w;
+  }
+
+  function xenlilRead(f){
+    var m=f.min, lapses=[];                                  /* what has slipped past its hour */
+    if(m>9*60 && !f.wake) lapses.push("wake");
+    if(f.gymDue && !f.gym && m>=20*60) lapses.push("gym");
+    if(!f.core && m>=21*60) lapses.push("core");
+    if(f.water<12 && m>=20*60) lapses.push("water");
+    if(!f.mv && m>=17*60) lapses.push("mv");
+    if(!f.cre && m>=22*60) lapses.push("cre");
+    if(f.d3Due && !f.d3 && m>=20*60) lapses.push("d3");
+    if(f.maintName && !f.maint && m>=20*60) lapses.push("maint");
+    if(!f.skin && m>=22*60) lapses.push("skin");
+    if(!f.bed && m>23*60+30) lapses.push("bed");
+    var supp=[]; if(!f.mv) supp.push("Multivitamin & Omega 3"); if(!f.cre) supp.push("Creatine & whey"); if(f.d3Due && !f.d3) supp.push("D3");
+    var score=xlScore(f), kingly=score>=90;
+    return {
+      score:score, kingly:kingly, crowned:score>=99.999,
+      run: kingly ? f.run0+1 : 0,                             /* kingly days in a row, today included */
+      lapses:lapses, n:lapses.length, supp:xlList(supp),
+      gymMissed: f.gymDue && !f.gym && m>=20*60,
+      busy: f.arurael>=80, idle: f.arurael<50
+    };
+  }
+
+  var XENLIL_SAYS=[
+    {id:"locked", tone:"quiet", when:function(f){ return f.locked; }, lines:[
+      "The law begins on {start}. Until then, nothing is recorded.",
+      "No order is kept before the cluster opens. Be ready on {start}.",
+      "The Fedaykin wait for {start}. So does the record.",
+      "Today stands outside the law. On {start}, it begins.",
+      "Rest while you can. On {start}, I'll expect order.",
+      "Prepare the body tonight. The count starts on {start}.",
+      "Nothing is owed yet. From {start}, everything is.",
+      "The banners go up on {start}."]},
+
+    {id:"core_running", tone:"focus", when:function(f){ return f.coreRunning; }, lines:[
+      "Core is under way. Hold the form; the clock does the rest.",
+      "Hold. Every second of Core is law kept.",
+      "The Fedaykin don't break a hold. Neither do you.",
+      "Core in progress. Breathe, and stay square.",
+      "Six seconds at a time. That's how order is built.",
+      "Hold steady. Slackness ends here.",
+      "Core running. Finish it without a single shortcut.",
+      "Stay in it. Strength is discipline, repeated."]},
+
+    {id:"run_18", tone:"inspiration", when:function(f,x){ return x.run>=18 && x.run%18===0; }, lines:[
+      "{r} kingly days. Eighteen stars in Taurus, and every one is yours.",
+      "{r} days in order. Eighteen billion Fedaykin salute you.",
+      "{r} days. The Golden Rider has nothing to correct.",
+      "{r} days without slack. This is what the law looks like, lived.",
+      "{r} days. I was a Fedayi once; I couldn't have done better.",
+      "{r} days of order. Taurus roars tonight.",
+      "{r} days. The crown sits lighter when the law is kept.",
+      "{r} days. Keep riding."]},
+
+    {id:"run_record", tone:"inspiration", when:function(f,x){ return x.run>=4 && x.run>f.best; }, lines:[
+      "{r} kingly days, your longest. The law is becoming habit.",
+      "A new record: {r} days. Don't celebrate; continue.",
+      "{r} days, further than ever. Courage carried you here.",
+      "Never this long in order: {r}. Keep the standard where it is.",
+      "{r} days. A record is only the law, held one more day.",
+      "Longest run yet: {r}. The Fedaykin would follow you.",
+      "{r} days. The wind is at your back now.",
+      "{r} straight. Perfectionism, working as intended."]},
+
+    {id:"crowned", tone:"praise", when:function(f,x){ return x.crowned; }, lines:[
+      "Every law kept today. Nothing to uproot.",
+      "A perfect day. Even the checkups stand sealed. Well ruled.",
+      "Body, water, sleep, care: all in order. I have no notes.",
+      "Complete. This is the Golden Path, walked.",
+      "Not one thing slack. The crown is yours tonight.",
+      "Perfect order. The Fedaykin would call you one of them.",
+      "Everything due, done. Rest; you've earned it.",
+      "A flawless day. Remember how it was built."]},
+
+    {id:"kingly", tone:"praise", when:function(f,x){ return x.kingly; }, lines:[
+      "A day in order. Small gaps; no slack.",
+      "Well kept. The law held almost everywhere.",
+      "Strong discipline today. The body thanks you.",
+      "Ninety and above. That's a ruler's day.",
+      "Order held. Finish tomorrow the same way.",
+      "A good day under the law. Tighten the last details.",
+      "The realm is in order. Sleep on time to keep it.",
+      "Kingly work. Nearly everything kept."]},
+
+    {id:"gym_missed_busy", tone:"understanding", when:function(f,x){ return x.gymMissed && x.busy; }, lines:[
+      "No gym today, but Arurael had you all day. I see it. Tomorrow, the body comes first.",
+      "{gym} was missed. The work was real; so is the debt. Repay it.",
+      "A full day elsewhere and no training. Understandable once. Not twice.",
+      "You chose the work over {gym}. I accept it today. I won't accept a habit of it.",
+      "Arurael's realm took the hours. Next gym day, guard one for the body.",
+      "Busy is a reason, not a law. {gym} waits for next time.",
+      "The mind was trained today; the body wasn't. Balance it.",
+      "Hard work, missed training. Plan the next session before you sleep."]},
+
+    {id:"gym_missed_idle", tone:"criticism", when:function(f,x){ return x.gymMissed && x.idle; }, lines:[
+      "The day had room, and {gym} still didn't happen. That's slackness, and I uproot slackness.",
+      "No work, no gym. What held you? Name it, then defeat it.",
+      "An empty day and an empty gym. The Fedaykin never miss for nothing.",
+      "{gym} was due and the hours were free. No excuse stands here.",
+      "Arurael's realm was quiet, and so was yours. Move.",
+      "Fear or fatigue? Either way, courage was needed and didn't come.",
+      "You had the time. Next gym day, there will be no discussion.",
+      "Nothing kept you from {gym}. That's what makes it a loss."]},
+
+    {id:"gym_missed", tone:"criticism", when:function(f,x){ return x.gymMissed; }, lines:[
+      "{gym} was due today. Missed is missed; make sure it's the last.",
+      "No training on a gym day. The law doesn't bend for moods.",
+      "The body was owed {gym}. Pay it next session, in full.",
+      "A missed session. Plan the next one now, while it stings.",
+      "Gym day, no gym. I expect better, and so should you.",
+      "{gym} slipped. Order is rebuilt one session at a time.",
+      "The Fedaykin don't skip drills. Neither do you, next time.",
+      "Missed. Be in the gym early on the next one."]},
+
+    {id:"fell_slack", tone:"advice", when:function(f,x){ return f.D>0 && f.min>=18*60 && ((f.gymDue && !f.gym) || !f.core); }, lines:[
+      "Xeron's realm fell today, and the body was left slack. A trained body steadies desire.",
+      "The fall isn't mine to judge, but an idle body invites it. Train.",
+      "Nothing kept the body busy, and something else filled it. Order the body first.",
+      "A failure in one realm must not doom the others. Keep my law, even today.",
+      "Xeron's wall broke. Mine doesn't have to. Do your Core.",
+      "Discipline here strengthens every throne. Start with the body.",
+      "That's the Golden Path: one fall must not spread. Hold the line in my realm.",
+      "Desire won one battle today. Win yours. Train."]},
+
+    {id:"bed_window", tone:"order", when:function(f){ return !f.bed && f.min>=22*60+30 && f.min<=23*60+30; }, lines:[
+      "The hour to bed is open. Close the day before 23:30.",
+      "22:30. The law of sleep begins now.",
+      "Go to bed. Tomorrow's order starts tonight.",
+      "Bed by 23:30. No negotiation.",
+      "The wind has dropped. So should you.",
+      "Sleep is a law, not a suggestion. The hour is open.",
+      "End the day now, and tomorrow begins strong.",
+      "The Fedaykin sleep on command. So do you."]},
+
+    {id:"slack", tone:"criticism", when:function(f,x){ return x.n>=3; }, lines:[
+      "{n} things slipped today. Slackness spreads; uproot it now.",
+      "{n} laws broken by evening. Pick the one you can still keep, and keep it.",
+      "Too much slack today: {n} lapses. Tomorrow, order first, comfort later.",
+      "{n} lapses. I'm not angry; I'm exacting. Fix them one at a time.",
+      "The day frayed in {n} places. Mend what's still open.",
+      "{n} lapses. A king reviews his failures; review yours.",
+      "Order slipped {n} times. Not a collapse, but close.",
+      "{n} things undone. Courage now: finish what's left."]},
+
+    {id:"woke_late", tone:"advice", when:function(f){ return !f.wake && f.min>9*60 && f.min<12*60; }, lines:[
+      "You missed the waking hour. Late rising makes a late day.",
+      "Awake after nine. Start anyway, and start hard.",
+      "The morning slipped. Don't let the rest follow.",
+      "A late start. Sleep earlier tonight; rise on time tomorrow.",
+      "You missed the dawn. The day isn't lost; the habit might be.",
+      "Rise at eight. The law is simple; keep it.",
+      "Late up. Let's see what you do with the hours left.",
+      "The morning law was broken. Win the afternoon."]},
+
+    {id:"water_low", tone:"advice", when:function(f){ return f.min>=18*60 && f.water<7; }, lines:[
+      "Water at {w} by evening. The body is dry; drink now.",
+      "Only {w}. Fix that before night.",
+      "Water is the simplest law, and you're at {w}.",
+      "{w} so far. Drink two now, two more later.",
+      "A dry day: {w}. The body pays for this tomorrow.",
+      "Even the Fedaykin drink on the march. {w} isn't enough.",
+      "{w}. Keep a glass within reach.",
+      "Low water at {w}. Start drinking: small, steady, now."]},
+
+    {id:"core_due", tone:"order", when:function(f){ return !f.core && f.min>=20*60; }, lines:[
+      "Core is still undone. Six minutes; no excuses.",
+      "The day isn't closed until Core is. Do it now.",
+      "Core waits. A disciplined body is built in small holds.",
+      "Evening, and no Core. Get on the floor.",
+      "Six minutes stand between you and a kept law. Core.",
+      "Core is the smallest duty of the day. Don't let it be the one you miss.",
+      "Before bed: Core.",
+      "No Core yet. The Fedaykin would already be holding."]},
+
+    {id:"maint_due", tone:"order", when:function(f){ return !!f.maintName && !f.maint && f.min>=14*60; }, lines:[
+      "{maint} is due today. Order begins with the things you own.",
+      "{maint} day. Keep your tools as you keep your law.",
+      "Don't forget {maint}. A king's house is kept, not admired.",
+      "{maint} is owed today. A small task; a real duty.",
+      "Today's maintenance: {maint}. Do it before evening.",
+      "Order in the small things: {maint}, today.",
+      "{maint} waits. Matter and means are mine too.",
+      "{maint} today. Neglect starts small."]},
+
+    {id:"supps_due", tone:"order", when:function(f,x){ return f.min>=21*60 && !!x.supp; }, lines:[
+      "Still to take: {supp}. A small law, kept daily.",
+      "Not yet taken: {supp}. Do it now, not at midnight.",
+      "Don't end the day without {supp}.",
+      "The body asked for {supp}. Answer it.",
+      "Still waiting: {supp}. A one-minute duty.",
+      "Before sleep: {supp}.",
+      "Missing: {supp}. Order is in the details.",
+      "Take {supp}, then close the day."]},
+
+    {id:"gym_today", tone:"order", when:function(f){ return f.gymDue && !f.gym && f.min>=10*60; }, lines:[
+      "Gym day: {gym}. Pick the hour and keep it.",
+      "{gym} today. Courage first, comfort after.",
+      "The body is owed {gym} today. Pay it before evening.",
+      "Training day: {gym}. No negotiation.",
+      "{gym} is the law today. Go early; the day only gets harder.",
+      "Gym day. The Fedaykin train before they fight.",
+      "{gym} awaits. Ride out.",
+      "Today: {gym}. Make it count."]},
+
+    {id:"comeback", tone:"encouragement", when:function(f,x){ return f.yScore!==null && f.yScore<50 && x.n===0 && f.min>=15*60; }, lines:[
+      "Yesterday was slack; today is in order. That's the law, restored.",
+      "You came back. That's courage, not luck.",
+      "A poor day yesterday, a clean one today. Keep the direction.",
+      "Order regained. Hold it.",
+      "Yesterday fell short; today hasn't. Good.",
+      "You fixed it in a day. That's discipline.",
+      "From slack to order overnight. I'm satisfied.",
+      "The law bends but doesn't break. You proved it today."]},
+
+    {id:"on_track", tone:"encouragement", when:function(f,x){ return x.n===0 && f.min>=15*60; }, lines:[
+      "Everything due so far is done. Keep riding.",
+      "The day is in order. Hold it until bed.",
+      "No slack so far. Good.",
+      "On track. The evening decides the rest.",
+      "Order holds. Finish strong.",
+      "Clean so far. The Fedaykin would approve.",
+      "Steady. Keep the law until the last hour.",
+      "Well kept so far. Don't loosen now."]},
+
+    {id:"checkups", tone:"advice", when:function(f){ return f.sealed<3 && (f.date.slice(8)==="01" || f.date.slice(8)==="15"); }, lines:[
+      "A checkup remains unsealed. Book it; health is a law too.",
+      "The checkups wait. One appointment keeps the realm for months.",
+      "Seal your checkups. Order includes what's easy to postpone.",
+      "Unsealed checkups are an open flank. Close it.",
+      "When did you last check your health? The law asks.",
+      "Book the checkup this week. Courage includes the doctor.",
+      "The body's audit is due. Seal it.",
+      "A ruler inspects the realm. Inspect yours: book the checkup."]},
+
+    {id:"morning", tone:"quiet", when:function(f){ return f.min<10*60; }, lines:[
+      "Morning. Set the order of the day before it sets you.",
+      "Rise, drink, move. The law is simple.",
+      "A new day in the realm. Begin with water.",
+      "The wind is up. So are you. Good.",
+      "Morning. Decide the day; then execute it.",
+      "First a glass of water, then everything else.",
+      "Another day of the law. Ride out.",
+      "Start clean. Order is easiest kept from the start."]},
+
+    {id:"steady", tone:"quiet", when:function(){ return true; }, lines:[
+      "Keep the law, one item at a time.",
+      "Keep moving; stagnation is the enemy.",
+      "Stay exact. Order is in the details.",
+      "Forward. The day isn't finished.",
+      "Hold the standard.",
+      "Discipline now, rest later.",
+      "Every kept duty is a brick in the realm.",
+      "Ride on."]}
+  ];
+
+  function xlPick(seed,n){ var h=0; for(var i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0; return h%n; }
+
+  function xenlilSpeaks(f, forceLine){
+    var x=xenlilRead(f);
+    for(var i=0;i<XENLIL_SAYS.length;i++){
+      var sc=XENLIL_SAYS[i];
+      if(!sc.when(f,x)) continue;
+      var k = forceLine!=null ? forceLine%sc.lines.length : xlPick(f.date+sc.id, sc.lines.length);
+      var text=sc.lines[k].replace(/\{(\w+)\}/g,function(_,v){
+        return ({start:f.start, r:xlWord(x.run), n:xlWord(x.n), w:f.water+"/14", gym:f.gymName,
+                 maint:f.maintName, supp:x.supp})[v];
+      });
+      text=text.charAt(0).toUpperCase()+text.slice(1);
+      return {id:sc.id, tone:sc.tone, line:k, text:text, read:x};
+    }
+  }
+
+  function ugaritFacts(){
+    var today=dayKey(), d=new Date(), m=d.getHours()*60+d.getMinutes(), h=state.day.habits||{};
+    var y=keyAdd(today,-1), yr=past(y), gn=gymNo();
+    var mt=HABITS.filter(function(x){ return x.card==="maint" && isDue(x,today); })[0];
+    var xs=function(k,r){ var sc=score(k,r); return sc ? 100*sc.done/sc.total : null; };
+    var runs=runBefore(function(k,r){ var v=xs(k,r); return v!==null && v>=90; });
+    return {
+      locked: today<CL_START, start: clDate(CL_START,{weekday:"short",month:"short",day:"numeric"}),
+      date: today, min: m, water: state.day.water||0,
+      gymDue: gn!==null, gymName: gn!==null ? GYM_NAMES[gn] : "", gym: !!state.day.gym,
+      core: !!state.day.core, coreRunning: !!CORE.run,
+      mv: !!h.mvom, cre: !!h.cre, d3Due: isFirst(today), d3: !!h.d3,
+      skin: !!h.skin, bed: !!h.bed, wake: !!h.wake,
+      maintName: mt ? mt.name : "", maint: mt ? !!h[mt.k] : false,
+      sealed: CHECKUPS.filter(function(c){ return hcCover(c,today); }).length,
+      yScore: (yr && !(y<CL_START && isBlank(yr))) ? xs(y,yr) : null,
+      run0: runs.run0, best: runs.best, arurael: DAY.arurael(today)||0, D: deps(state.day.xr)
+    };
+  }
+  function renderUgarit(){ speak("uSay","uWho",XL_SPEAKER,xenlilSpeaks(ugaritFacts()).text); }
 
   function renderXr(){
     var x=state.day.xr;
@@ -2643,6 +3296,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     setText("aHours",(Math.round(mins/6)/10).toString());
     setText("aFull",full);
     drawArChart();
+    renderEbabbar();
   }
   /* each day: the Golden Path's day score, min(100, 100·(10·(W+X)/8 + 6·S + 4·E/2 + 3·L)/23),
      stacked by what earned it; extra work only fills what the duty left, so it is trimmed at 100 */
