@@ -215,7 +215,9 @@ svg.dial{width:100%;max-width:450px;height:auto}
   background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.16),rgba(var(--vc),.04) 45%,transparent 72%),var(--panel)}
 .voice.v-ar{--vc:29,78,216;--va:110,150,245;--vt:var(--arurael-hot)}
 .voice.v-xen{--vc:253,197,0;--va:253,197,0;--vt:var(--xenlil)}
+.voice.v-dial{--vc:13,175,11;--va:13,175,11;--vt:var(--arexia-hot)}
 .voice.v-ar{border-color:rgba(var(--vc),.45);background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.24),rgba(var(--vc),.06) 45%,transparent 72%),var(--panel)}
+.voice.v-dial{border-color:rgba(var(--vc),.30);background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.12),rgba(var(--vc),.03) 45%,transparent 72%),var(--panel)}
 .voice.v-xen{border-color:rgba(var(--vc),.26);background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.11),rgba(var(--vc),.03) 45%,transparent 72%),var(--panel)}
 .voice::before{content:"";position:absolute;inset:5px;border:1px solid rgba(var(--vc),.14);border-radius:5px;pointer-events:none}
 .voice::after{content:"";position:absolute;left:50%;bottom:-60px;width:220px;height:90px;transform:translateX(-50%);
@@ -229,6 +231,7 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .v-eye .lid{fill:none;stroke:var(--vt);stroke-width:1.4}
 .v-eye .iris{fill:var(--vt)}
 .v-crownmark{width:22px;height:16px;fill:var(--xenlil)}
+.v-sword{width:12px;height:18px;fill:var(--arexia)}
 .v-title{margin:9px 0 0;padding-left:.34em;font-size:10.5px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--vt)}
 .v-say{position:relative;margin:13px auto 0;max-width:30em;
   font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Noto Serif",Georgia,serif;
@@ -241,11 +244,13 @@ svg.dial{width:100%;max-width:450px;height:auto}
   .v-flame{animation:vflick 3.4s ease-in-out infinite}
   .v-eye .iris{animation:vlook 7s ease-in-out infinite}
   .v-crownmark{animation:vglint 5s ease-in-out infinite}
+  .v-sword{animation:vcold 6s ease-in-out infinite}
   .v-say.in{animation:vin .6s ease both}
 }
 @keyframes vflick{0%,100%{transform:scale(1,1);opacity:1}30%{transform:scale(.94,1.06);opacity:.88}55%{transform:scale(1.04,.96);opacity:1}80%{transform:scale(.97,1.03);opacity:.92}}
 @keyframes vlook{0%,40%,100%{transform:translateX(0)}50%,60%{transform:translateX(-2.2px)}75%,85%{transform:translateX(2.2px)}}
 @keyframes vglint{0%,70%,100%{opacity:1;filter:none}80%{opacity:1;filter:brightness(1.45)}90%{opacity:.9}}
+@keyframes vcold{0%,100%{opacity:.75;filter:drop-shadow(0 0 3px rgba(13,175,11,.5))}50%{opacity:1;filter:drop-shadow(0 0 8px rgba(13,175,11,.95))}}
 @keyframes vin{from{opacity:0;filter:blur(3px);transform:translateY(4px)}to{opacity:1;filter:none;transform:none}}
 @media (max-width:420px){ .voice{padding:20px 18px 16px} .v-say{font-size:17px} }
 .xr-grid .ae-card{grid-column:1/-1}
@@ -474,6 +479,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   </header>
 
   <div id="viewDial">
+    <section class="voice v-dial" aria-label="Voice of Irkalla">
+      <div class="v-crown" aria-hidden="true">
+        <span class="v-rule"></span>
+        <svg class="v-sign v-sword" viewBox="0 0 16 24"><circle cx="8" cy="1.8" r="1.25"/><rect x="7.25" y="2.7" width="1.5" height="4"/><rect x="2.5" y="6.6" width="11" height="1.5" rx=".4"/><path d="M6.7 8.3h2.6v11.4L8 23.4l-1.3-3.7z"/></svg>
+        <span class="v-rule r"></span>
+      </div>
+      <h2 class="v-title">Voice of Irkalla</h2>
+      <p class="v-say" id="iSay" aria-live="polite"></p>
+      <p class="v-who" id="iWho">Arexia</p>
+    </section>
   <div class="stage">
     <div class="dialbox">
       <svg class="dial" viewBox="0 0 380 380" role="img" aria-label="The dial of the four gods">
@@ -1120,6 +1135,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     placeFlame(openGod,openIdx);
     drawChart();
     renderClock();
+    renderIrkalla();
   }
 
   /* ---------- fire ----------
@@ -2536,6 +2552,238 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     };
   }
   function renderEbabbar(){ speak("eSay","eWho",AR_SPEAKER,aruraelSpeaks(ebabbarFacts()).text); }
+
+  /* ---------- Voice of Irkalla ---------- */
+  /* ---------- Voice of Irkalla: Arexia speaks ----------
+     Arexia speaks for herself: the Sacred, judge of the dead, guardian of ritual. Cold and
+     dominant; she counts, she records, she does not tolerate abandonment, and praise from her
+     is rare and short. She judges only her own realm (the eight rites of the day and Nature)
+     but reads the others: falls from Xeron, work from Arurael, sleep from Xenlil.
+     The first situation that holds is spoken; its line is fixed by the date.
+
+     facts:
+       locked, start      before Cluster 1 begins, and when it does
+       date, min          "YYYY-MM-DD" (picks the line) and minutes since 00:00
+       kept               [8] rites sealed today, in the order of their windows (00-03, 03-06 ... 21-24)
+       nature             the day is given to Nature
+       yScore             yesterday's rites as a %, or null
+       run0, best         perfect days (8/8) in a row before today, and the longest such run
+       D                  Xeron: depletions today
+       arurael            Arurael's score today, 0-100
+       bedLast, awake     Xenlil: last night's To bed, today's Awake (true / false / null)
+  */
+  var AX_SPEAKER="Arexia";
+  var AX_RUNE=["ᚠ","ᚢ","ᚦ","ᚨ","ᚱ","ᚲ","ᚷ","ᚹ"];
+  var AX_WORDS=["no","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen"];
+  function axWord(n){ return n<AX_WORDS.length ? AX_WORDS[n] : String(n); }
+  function axHm(n){ n=((n%1440)+1440)%1440; return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0"); }
+
+  function arexiaRead(f){
+    var q=Math.min(7,Math.floor(f.min/180)), lapsed=[], keptN=0;
+    for(var i=0;i<8;i++){ if(f.kept[i]) keptN++; else if(i<q) lapsed.push(i); }
+    if(f.nature){ lapsed=[]; keptN=8; }
+    var perfect=keptN===8;
+    return {
+      q:q, open: !f.nature && !f.kept[q], closing: !f.nature && !f.kept[q] && f.min>=(q+1)*180-30,
+      n:lapsed.length, miss: lapsed.length ? AX_RUNE[lapsed[lapsed.length-1]] : "",
+      k:keptN, perfect:perfect, run: perfect ? f.run0+1 : 0,
+      rune:AX_RUNE[q], end:axHm(q*180+180),
+      tired: f.bedLast===false || f.awake===false, busy: f.arurael>=80, fell: f.D>0
+    };
+  }
+
+  var AREXIA_SAYS=[
+    {id:"locked", tone:"cold", when:function(f){ return f.locked; }, lines:[
+      "Nothing is observed before {start}. Wait.",
+      "The rites begin on {start}. Not before.",
+      "Irkalla does not count today. On {start}, it counts everything.",
+      "Until {start}, you are not yet bound.",
+      "The Cerpenin are silent until {start}.",
+      "Prepare. On {start}, the pledge begins.",
+      "No rite today. On {start}, every rite.",
+      "Rest. On {start}, I will be watching."]},
+
+    {id:"nature", tone:"cold", when:function(f){ return f.nature; }, lines:[
+      "Nature holds the day. I accept it.",
+      "The whole day is given. Nothing more is asked.",
+      "Nature. The rites are covered. Do not make it a habit.",
+      "A day surrendered to Nature. So be it.",
+      "Nature keeps the rites today. Tomorrow, you keep them.",
+      "I note the Nature day. I note them all.",
+      "The ground is quiet today. Return tomorrow.",
+      "Nature. Accepted."]},
+
+    {id:"run_9", tone:"cold praise", when:function(f,x){ return x.run>=9 && x.run%9===0; }, lines:[
+      "{r} days, every rite kept. Nine stars in Leo. Nine billion voices chanting.",
+      "{r} perfect days. The Cerpenin chant your name in Irkalla.",
+      "{r} days without a missed rite. The lioness is satisfied. For now.",
+      "{r} days. The pledge holds.",
+      "{r} days of complete observance. I expected nothing less, and you gave nothing less.",
+      "{r} days. Even the other gods take notice.",
+      "{r} days. The cycle is strong. Keep it from decaying.",
+      "{r} days, all rites. Continue."]},
+
+    {id:"run_record", tone:"cold praise", when:function(f,x){ return x.run>=4 && x.run>f.best; }, lines:[
+      "{r} perfect days. Longer than ever. Do not grow proud.",
+      "A record: {r} days. Records end. Rites do not.",
+      "{r} days, your longest. I will be watching the next.",
+      "{r} days unbroken. The pledge is becoming you.",
+      "Never this far: {r}. The dust remembers.",
+      "{r} perfect days. Do not let the cycle decay now.",
+      "{r} days. Acceptable. More is expected.",
+      "{r} days. The Cerpenin have not stopped chanting."]},
+
+    {id:"perfect", tone:"cold praise", when:function(f,x){ return x.perfect; }, lines:[
+      "Eight of eight. As it should be.",
+      "Every rite observed. You may rest.",
+      "All eight. The pledge is kept today.",
+      "Complete observance. I have nothing to take from you tonight.",
+      "Eight rites, eight seals. The ground is quiet.",
+      "All rites kept. This is the minimum. Remember that.",
+      "Eight of eight. Irkalla is closed to you tonight.",
+      "Complete. The cycle continues."]},
+
+    {id:"closing", tone:"command", when:function(f,x){ return x.closing; }, lines:[
+      "{rune} closes at {end}. Observe it now.",
+      "The rite of {rune} ends at {end}. Do not abandon it.",
+      "{end}. {rune} will not wait for you.",
+      "Before {end}: {rune}. I am counting.",
+      "{rune} is closing. Seal it.",
+      "Minutes remain for {rune}. Use them.",
+      "{rune}. Now.",
+      "Do not let {rune} die unobserved."]},
+
+    {id:"abandoned", tone:"judgment", when:function(f,x){ return x.n>=4; }, lines:[
+      "{n} rites abandoned today. Irkalla opens for those who abandon ritual.",
+      "{n} rites left in the dust. I do not forgive this; I record it.",
+      "{n} abandoned. The Cerpenin have stopped chanting your name.",
+      "You abandoned {n} rites. Abandonment is the one thing I do not tolerate.",
+      "{n}. The ground is opening. Observe the next one.",
+      "{n} rites missed. A cycle that decays like this is ended.",
+      "{n} abandoned. The pledge was made. Keep it, or be judged by it.",
+      "{n} rites. Do not test my patience twice."]},
+
+    {id:"lapsed_fell", tone:"judgment", when:function(f,x){ return x.n>=1 && x.fell; }, lines:[
+      "A rite abandoned and the plateau lost. Ritual is a wall; you left it open.",
+      "Xeron's realm fell on a day you abandoned my rites. That is not chance.",
+      "Without ritual, there is no aim. Without aim, the Abyss chooses for you.",
+      "The fall is not mine to judge. The abandoned rite is.",
+      "Concentration around the purpose: you had neither today.",
+      "Rites keep the mind gathered. Scattered, it falls.",
+      "You lost the rite, then the plateau. Keep the rite.",
+      "Order with ritual, or neither. Today, neither."]},
+
+    {id:"lapsed_tired", tone:"cold", when:function(f,x){ return x.n>=1 && x.tired; }, lines:[
+      "You were tired. The rite was not. Sleep is Xenlil's concern; observance is mine.",
+      "Fatigue explains the missed rite. It does not excuse it.",
+      "A broken night, a broken rhythm. Repair both.",
+      "Tired is a condition, not a defence. Sleep, then observe.",
+      "I see the sleepless night. I still count the missed rite.",
+      "Rest tonight. The rites will not lower themselves to meet you.",
+      "Fatigue is noted. The debt remains.",
+      "Sleep is part of the rhythm. You broke it, and the rite followed."]},
+
+    {id:"lapsed_busy", tone:"cold", when:function(f,x){ return x.n>=1 && x.busy; }, lines:[
+      "You worked well and abandoned a rite. Work is not a reason.",
+      "Arurael had your hours. A rite needs only a moment of them.",
+      "The work was full. The rite was empty. Both were yours.",
+      "Busy is not exempt. Nothing is exempt.",
+      "Even the busiest day has room for a rite. You found none.",
+      "Knowledge without ritual forgets its purpose.",
+      "The work is noted. So is the abandoned rite.",
+      "A moment of observance was all I asked. You gave it to work."]},
+
+    {id:"lapsed_many", tone:"judgment", when:function(f,x){ return x.n>=2; }, lines:[
+      "{n} rites missed. I am counting.",
+      "{n} abandoned today. Do not let it become four.",
+      "{n} rites lost to heedlessness. The pledge exists against exactly this.",
+      "{n} rites. The cycle weakens.",
+      "{n} missed. Gathered attention keeps the rites. Gather it.",
+      "{n} rites gone. Observe the rest. All of them.",
+      "{n} abandoned. The dust is patient. I am not.",
+      "{n}. Correct it."]},
+
+    {id:"open_now", tone:"command", when:function(f,x){ return x.open; }, lines:[
+      "{rune} is open until {end}. Observe it.",
+      "The rite of {rune} stands open. Seal it.",
+      "{rune} is waiting. Do not keep it waiting long.",
+      "{rune}, until {end}.",
+      "The window of {rune} is open. You know what to do.",
+      "Observe {rune}.",
+      "{rune}. The Cerpenin are already chanting.",
+      "{rune} is open. Aim, attention, rite."]},
+
+    {id:"lapsed_one", tone:"cold", when:function(f,x){ return x.n===1; }, lines:[
+      "{miss} was missed. I noticed.",
+      "One rite abandoned: {miss}. One.",
+      "{miss} passed unobserved. Do not let it happen again.",
+      "You missed {miss}. The rest of the day is still yours to keep.",
+      "{miss}. Lost. Keep the others.",
+      "A single rite missed. A single crack. Cracks spread.",
+      "{miss} is gone. I do not forget.",
+      "One rite: {miss}. Mark it."]},
+
+    {id:"comeback", tone:"cold", when:function(f,x){ return f.yScore!==null && f.yScore<50 && x.n===0 && x.k>=2; }, lines:[
+      "Yesterday you abandoned the rites. Today you have not. Continue.",
+      "The rhythm returns. Do not lose it again.",
+      "Yesterday decayed. Today is observed. Acceptable.",
+      "You came back to the rites. Good. Stay.",
+      "Yesterday was weak. Today is not. Remember the difference.",
+      "Observance restored. I will hold you to it.",
+      "A poor yesterday, a kept today. The cycle continues.",
+      "Return accepted."]},
+
+    {id:"all_so_far", tone:"cold", when:function(f,x){ return x.n===0 && x.k>=2; }, lines:[
+      "Every rite so far observed. Continue.",
+      "{k} of {k} so far. None abandoned. As it should be.",
+      "No rite missed today. Do not start now.",
+      "The rhythm holds.",
+      "All observed so far. The day is not finished.",
+      "{k} of {k}. Keep counting.",
+      "Clean. Continue.",
+      "Nothing abandoned. Yet."]},
+
+    {id:"watching", tone:"cold", when:function(){ return true; }, lines:[
+      "The rites continue.",
+      "Observe. Always.",
+      "The pledge stands.",
+      "I am watching.",
+      "Aim. Attention. Rite.",
+      "The ground waits.",
+      "Keep the rhythm.",
+      "Continue."]}
+  ];
+
+  function axPick(seed,n){ var h=0; for(var i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0; return h%n; }
+
+  function arexiaSpeaks(f, forceLine){
+    var x=arexiaRead(f);
+    for(var i=0;i<AREXIA_SAYS.length;i++){
+      var sc=AREXIA_SAYS[i];
+      if(!sc.when(f,x)) continue;
+      var k = forceLine!=null ? forceLine%sc.lines.length : axPick(f.date+sc.id, sc.lines.length);
+      var text=sc.lines[k].replace(/\{(\w+)\}/g,function(_,v){
+        return ({start:f.start, rune:x.rune, end:x.end, n:axWord(x.n), r:axWord(x.run), k:axWord(x.k), miss:x.miss})[v];
+      });
+      text=text.charAt(0).toUpperCase()+text.slice(1);
+      return {id:sc.id, tone:sc.tone, line:k, text:text, read:x};
+    }
+  }
+
+  function irkallaFacts(){
+    var today=dayKey(), d=new Date(), m=d.getHours()*60+d.getMinutes(), c=state.day.checks||{};
+    var y=keyAdd(today,-1), yr=past(y), yc=recordFor(y), sl=sleepFacts(m);
+    var kept=[]; for(var q=0;q<8;q++){ var g=GODS[q%4]; kept.push(!!(c[g.key] && c[g.key][q<4?0:1])); }
+    var runs=runBefore(function(k){ var r=recordFor(k); return !!r && total(r)===8; });
+    return {
+      locked: today<CL_START, start: clDate(CL_START,{weekday:"short",month:"short",day:"numeric"}),
+      date: today, min: m, kept: kept, nature: !!state.day.nature,
+      yScore: (yr && yc && !(y<CL_START && isBlank(yr))) ? 100*total(yc)/8 : null,
+      run0: runs.run0, best: runs.best, D: deps(state.day.xr), arurael: DAY.arurael(today)||0,
+      bedLast: sl.bedLast, awake: sl.awake
+    };
+  }
+  function renderIrkalla(){ speak("iSay","iWho",AX_SPEAKER,arexiaSpeaks(irkallaFacts()).text); }
 
   /* ---------- Voice of Ugarit ---------- */
   /* ---------- Voice of Ugarit: Xenlil speaks ----------
