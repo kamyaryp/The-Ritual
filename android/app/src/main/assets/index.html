@@ -783,20 +783,20 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     for(var i=0;i<HABITS.length;i++) if(HABITS[i].k===it) return HABITS[i].card;
     return "care";
   }
+  /* a day's Xenlil score, weighted exactly as the Golden Path weighs it (XEN_W):
+     each part scores done/due, and the weights are shared out among the parts that were due.
+     A sealed checkup counts as kept on every day of its span. */
+  var XEN_SEC={g:"gym",c:"core",r:"care",w:"water",s:"supp",h:"health",m:"maint",k:"care"};
   function score(k,r){
     if(!r || r.xen===false || (r.water===undefined && !r.habits && r.gym===undefined && r.core===undefined)) return null;
-    var items=dayItems(k), done=0, parts={water:0,gym:0,supp:0,care:0,core:0,maint:0,health:0};
-    /* days recorded before the routine existed aren't marked down for it */
-    if(r.core===undefined) items=items.filter(function(it){ return it!=="core"; });
-    items.forEach(function(it){
-      var v = it==="water" ? Math.min(1,(r.water||0)/WATER_TARGET)
-            : it==="gym"   ? (r.gym?1:0)
-            : it==="core"  ? (r.core?1:0)
-            : it.indexOf("hc:")===0 ? (hcCover(CHECKUPS.filter(function(c){ return "hc:"+c.k===it; })[0],k)?1:0)
-            : ((r.habits&&r.habits[it])?1:0);
-      done+=v; parts[sectionOf(it)]+=v;
+    var t=tXenlil([k]), done=0, total=0, parts={water:0,gym:0,supp:0,care:0,core:0,maint:0,health:0};
+    XEN_W.forEach(function(x){
+      var d=t.due[x[0]]; if(!d) return;
+      if(x[0]==="c" && r.core===undefined) return;      /* days recorded before the routine existed aren't marked down for it */
+      var v=x[1]*Math.min(1,t.got[x[0]]/d);
+      done+=v; total+=x[1]; parts[XEN_SEC[x[0]]]+=v;
     });
-    return {done:done, total:items.length, parts:parts};
+    return total ? {done:done, total:total, parts:parts} : null;
   }
   var XR=[
     {k:"d", grp:"dep", name:"Depletion", color:"var(--x-endoin)"},
@@ -978,7 +978,14 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     });
   }
 
+  /* recording only happens inside the cluster system: before Cluster 1 begins, nothing is taken */
+  function shut(){
+    if(dayKey()>=CL_START) return false;
+    fb("deny"); toast("Recording opens with Cluster 1 · "+clDate(CL_START,{weekday:"short",month:"short",day:"numeric"})+".");
+    return true;
+  }
   function attempt(god,i){
+    if(shut()) return;
     if(state.day.nature){ fb("deny"); toast("Nature holds the whole day."); return; }
     var st=riteState(god,i);
     if(st!=="open"){
@@ -1342,6 +1349,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         var b=document.createElement("button");
         b.type="button"; b.className="pip"; b.setAttribute("aria-label","Glass "+(n+1));
         b.addEventListener("click",function(){
+          if(shut()) return;
           var was=state.day.water;
           state.day.water = (state.day.water===n+1) ? n : n+1;
           fb(state.day.water>was?"on":"off");
@@ -1360,6 +1368,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         '<span class="rname">'+c.name+'</span><span class="win"></span>';
       function flip(ev){
         if(ev) ev.stopPropagation();
+        if(shut()) return;
         var today=dayKey(), cov=hcCover(c,today);
         if(cov){ fb("deny"); toast(c.name+" is sealed until "+fmtLong(addMonths(cov,c.months))+"."); return; }
         fb("tap");
@@ -1397,6 +1406,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var wh=document.createElement("span"); wh.className="win"; wh.textContent=h.when;
       row.appendChild(b); row.appendChild(nm); row.appendChild(wh);
       function flip(){
+        if(shut()) return;
         if(!isDue(h)){ fb("deny"); toast(h.name+(h.monthly ? " is on the 1st of the month." : " is on "+h.when+".")); return; }
         var st=habState(h);
         if(st && st!=="open"){
@@ -1712,7 +1722,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       }
       bar.appendChild(g);
     }
-    document.getElementById("corePlay").addEventListener("click",function(){ fb("tap"); corePlay(); });
+    document.getElementById("corePlay").addEventListener("click",function(){ if(!CORE.run && shut()) return; fb("tap"); corePlay(); });
     document.getElementById("coreReset").addEventListener("click",function(){ fb("off"); coreReset(); });
   }
   function renderCore(){
@@ -1849,8 +1859,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         '<button type="button" class="step" aria-label="One fewer">−</button>'+
         '<button type="button" class="step plus" aria-label="One more">+</button>';
       var b=row.querySelectorAll(".step");
-      b[0].addEventListener("click",function(){ if(state.day.xr[x.k]>0){ state.day.xr[x.k]--; fb("off"); save(); renderXr(); } });
-      b[1].addEventListener("click",function(){ state.day.xr[x.k]=(state.day.xr[x.k]||0)+1; fb("on"); save(); renderXr(); });
+      b[0].addEventListener("click",function(){ if(shut()) return; if(state.day.xr[x.k]>0){ state.day.xr[x.k]--; fb("off"); save(); renderXr(); } });
+      b[1].addEventListener("click",function(){ if(shut()) return; state.day.xr[x.k]=(state.day.xr[x.k]||0)+1; fb("on"); save(); renderXr(); });
       document.getElementById(x.grp==="dep"?"depCard":"thrCard").appendChild(row);
     });
   }
@@ -1964,6 +1974,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(AET.run){                                         /* pause */
       AET.left=Math.max(0, AET.endsAt-Date.now()); AET.run=false; aeSave(); awake(false); aePush(); renderAe(); return;
     }
+    if(shut()) return;
     var i=aeOpen();
     if(i<0){ var n=aeNext(); fb("deny"); toast(n<0 ? "No binding is left today." : "The next binding opens at "+hm(n*180)+"."); return; }
     if(state.day.ae[i]){ fb("deny"); toast("Aeshma is already bound for "+RUNE[i]+"."); return; }
@@ -2116,6 +2127,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function mmss(ms){ var s=Math.ceil(ms/1000); return String(Math.floor(s/60)).padStart(2,"0")+":"+String(s%60).padStart(2,"0"); }
   function arStart(id){
     if(ART.blk===id){ arPause(); return; }
+    if(shut()) return;
     if(ART.blk) arPause();
     audio();
     var left=arLeft(id);                 /* read before it counts as running */
@@ -2219,6 +2231,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           var b=document.createElement("button"); b.type="button"; b.className="pip slot";
           b.setAttribute("role","checkbox"); b.setAttribute("aria-checked","false"); b.setAttribute("aria-label",row[2]+(n+1));
           b.addEventListener("click",function(){
+            if(shut()) return;
             var was=workN(state.day[row[0]]), now=(was===n+1) ? n : n+1;   /* like the water: fill up to here */
             state.day[row[0]]=workArr(now);
             fb(now>was?"on":"off"); save(); renderAr();
@@ -2489,7 +2502,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var start=keyAdd(dayKey(),1);
       ask("Reset the Golden Path?",
         "Everything is erased: every daily record in every tab, today included, and the sealed checkups. "+
-        "Cluster 1 begins at 00:00 tomorrow, "+clDate(start,{weekday:"long",month:"short",day:"numeric"})+". It cannot be undone.",
+        "Cluster 1 begins at 00:00 tomorrow, "+clDate(start,{weekday:"long",month:"short",day:"numeric"})+", and nothing can be recorded until then. It cannot be undone.",
         "Reset",function(){
           /* stop anything running, then start from nothing */
           if(ART.blk) awake(false);
@@ -2755,6 +2768,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(!ev.target.closest || !ev.target.closest(".chartbox")) hideTip();
   });
   function toggleGym(n,ev){ if(ev) ev.stopPropagation();
+    if(shut()) return;
     if(gymNo()!==n){ fb("deny"); toast(GYM_NAMES[n]+" is on "+["Mon","Wed","Thu"][n]+"."); return; }
     state.day.gym=!state.day.gym; fb(state.day.gym?"on":"off"); save(); renderXen(); }
   [0,1,2].forEach(function(n){
@@ -2803,6 +2817,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   function toggleNature(ev){
     if(ev) ev.stopPropagation();
+    if(shut()) return;
     state.day.nature=!state.day.nature; fb(state.day.nature?"on":"off"); save(); render();
     if(state.day.nature) toast("Nature holds the whole day.");
   }
