@@ -1828,7 +1828,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   /* ---------- Xeron ---------- */
   function plural(n,w){ return n+" "+w+(n===1?"":"s"); }
   function xrDays(){                     /* every day with a Xeron record, oldest first */
-    return state.history.filter(function(r){ return r.xr; })
+    return state.history.filter(function(r){ return r.xr && (r.date>=CL_START || !isBlank(r)); })
       .concat([{date:state.day.date, xr:state.day.xr}])
       .sort(function(a,b){ return a.date<b.date?-1:1; });
   }
@@ -1846,6 +1846,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     return {cur:cur, best:best};
   }
   function xrSubtitle(){
+    if(dayKey()<CL_START){
+      document.getElementById("holder").textContent="Recording opens with Cluster 1 · "+clDate(CL_START,{weekday:"short",month:"short",day:"numeric"});
+      return;
+    }
     var st=xrStreak(), h;
     if(st.cur>0) h=plural(st.cur,"day")+" without depletion";
     else h="Depleted today • streak starts again tomorrow";
@@ -1887,7 +1891,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var svg=document.getElementById("zchart");
     while(svg.firstChild) svg.removeChild(svg.firstChild);
     var days=lastDays(SPAN);
-    var any=days.some(function(k){ return !!rec(k); });
+    /* a day counts once it is inside the cluster system, or if something was actually recorded on it */
+    var counts=function(k){ var r=rec(k); return !!r && (k>=CL_START || !isBlank(r)); };
+    var any=days.some(counts);
     document.getElementById("zEmpty").hidden=any;
     svg.style.display=any?"block":"none";
     if(!any){ CH.zchart=null; return; }
@@ -1907,7 +1913,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         var lab=el("text",{x:cx.toFixed(1),y:(H-6).toFixed(1),class:"daylabel"+(last?" today":""),"text-anchor":"middle"});
         lab.textContent=Number(k.slice(8,10)); svg.appendChild(lab);
       }
-      var v=r ? DAY.xeron(k) : 0;
+      var v=counts(k) ? DAY.xeron(k) : 0;
       if(!v){ svg.appendChild(el("rect",{x:x.toFixed(1),y:(base-2).toFixed(1),width:bw.toFixed(1),height:2,class:"emptybar"})); return; }
       var h=(v/100)*plotH;
       svg.appendChild(el("rect",{x:x.toFixed(1),y:(base-h).toFixed(1),width:bw.toFixed(1),height:h.toFixed(1),fill:"var(--xeron)"}));
@@ -1956,9 +1962,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(!NT) return;
     if(AET.idx<0 || (!AET.run && AET.left==null)){ ntSend({kind:"ae", op:"clear"}); return; }
     ntSend({kind:"ae", op:"set", id:"ae"+AET.idx, run:AET.run, el:Math.max(0, AE_FULL-aeLeft()), total:AE_FULL,
-            title:"The Binding of Aeshma", sub:RUNE[AET.idx]+" · until "+hm(AET.idx*180+AE_END),
+            title:"Aeshma", sub:"",
             deadline:aeClosesAt(AET.idx, AET.date), color:"#B3141C", arm:0,
-            doneTitle:"Aeshma is bound", doneBody:RUNE[AET.idx]+" · 13 minutes, held"});
+            doneTitle:"Aeshma \u2713", doneBody:""});
   }
   function aeClear(){ AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false); aePush(); }
   function aeToggle(){
@@ -2087,23 +2093,23 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     function at(day,h,m){ var d=new Date(day); d.setHours(h,m||0,0,0); return d.getTime(); }
     for(var n=0;n<14;n++){
       var day=new Date(base.getFullYear(), base.getMonth(), base.getDate()+n), k=dayKey(day), isToday=(k===today);
+      if(k<CL_START) continue;                         /* nothing to remind of before Cluster 1 */
       GODS.forEach(function(g){
         [0,1].forEach(function(i){
           var w=windowOf(g,i);
           out.push({id:"g"+k+"-"+w[0], at:at(day,w[0]), color:HEX[g.key],
             ch: w[0]<8 ? "quiet" : "hours",                /* 00, 03 and 06 come silently */
-            title:g.name+" holds the hour",
-            body:(i?"Second":"First")+" rite · "+fmt(w[0])+"–"+fmt(w[1])+" • Bind Aeshma "+RUNE[w[0]/3]+" · "+aeWords(w[0]/3)});
+            title:g.name,
+            body:fmt(w[0])+"–"+fmt(w[1])});
         });
       });
       var hb=isToday ? (state.day.habits||{}) : {};
-      if(!hb.bed) out.push({id:"bed"+k, at:at(day,22,30), ch:"remind", color:"#EC4899", title:"To bed", body:"23:30 · the day is done"});
+      if(!hb.bed) out.push({id:"bed"+k, at:at(day,22,30), ch:"remind", color:"#EC4899", title:"To bed", body:""});
     }
     if(!NT && typeof ART!=="undefined" && ART && ART.blk){
       var m=arMission(ART.blk), i=+ART.blk.slice(m.k.length);
       out.push({id:"ar-"+ART.blk+"-"+ART.endsAt, at:ART.endsAt, ch:"remind", color:"#2563EB", fg:true,
-        title:m.name+" · "+(m.blocks>1 ? "Division "+(i+1) : "Division")+" done",
-        body:m.min+" minutes of focus, sealed"});
+        title:m.name+" \u2713", body:""});
     }
     var js=JSON.stringify(out);
     if(js===PLAN_SENT) return;
@@ -2139,7 +2145,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(!NT || !id) return;
     var m=arMission(id), i=+id.slice(m.k.length), full=m.min*60000;
     ntSend({kind:"ar", op:"set", id:id, run:run, el:Math.max(0, full-arLeft(id)), total:full,
-            title:m.name, sub:m.blocks>1 ? "Division "+(i+1) : "Division"});
+            title:m.name, sub:""});
   }
   /* take up what the phone has: paused, played or reset from the lock screen, or finished */
   function arSync(){

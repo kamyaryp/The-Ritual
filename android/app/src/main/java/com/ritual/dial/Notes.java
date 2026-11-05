@@ -116,11 +116,12 @@ final class Notes {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(c, ch) : new Notification.Builder(c);
         b.setSmallIcon(R.drawable.ic_stat)
          .setContentTitle(in.getStringExtra("title"))
-         .setContentText(in.getStringExtra("body"))
          .setContentIntent(tap)
          .setAutoCancel(true)
          .setShowWhen(true)
          .setWhen(System.currentTimeMillis());
+        String body = in.getStringExtra("body");
+        if (body != null && !body.isEmpty()) b.setContentText(body);
         try { b.setColor(Color.parseColor(in.getStringExtra("color"))); } catch (Exception ignored) { }
         if (Build.VERSION.SDK_INT < 26) {
             if ("quiet".equals(ch)) b.setPriority(Notification.PRIORITY_LOW);
