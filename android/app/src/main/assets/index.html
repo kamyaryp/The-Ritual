@@ -713,12 +713,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     {k:"mvom", card:"supp", name:"Multivitamin & Omega 3", when:"after lunch"},
     {k:"cre",  card:"supp", name:"Creatine & whey",  when:"evening"},
     {k:"d3",   card:"supp", name:"D3 50,000",        when:"1st",  monthly:true},
-    {k:"skin", card:"care", name:"Skin routine",     when:"once a day"},
+    {k:"skin", card:"care", name:"Skin & Hair routine", when:"once a day"},
     {k:"bed",  card:"care", name:"To bed",           when:"23:30",       at:23*60+30, before:60, after:0},
     {k:"wake", card:"care", name:"Awake",            when:"08:00",       at:8*60,     before:0,  after:60},
     {k:"room", card:"maint",name:"Room & appliances",when:"Sat", days:[6]},
-    {k:"shoe", card:"maint",name:"Shoe care",        when:"Sun", days:[0]},
-    {k:"car",  card:"maint",name:"Car care",         when:"Thu", days:[4]}
+    {k:"shoe", card:"maint",name:"Outfit",           when:"Sun", days:[0]},
+    {k:"car",  card:"maint",name:"Car",              when:"Thu", days:[4]}
   ];
   /* a timed habit can be checked from h.before minutes ahead of its time to h.after minutes past it:
      to bed in the hour leading up to 23:30, awake in the hour after 08:00 */
@@ -2374,7 +2374,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function tXeron(days){ var t={D:0,T:0,clean:0,bound:0,n:days.length};
     days.forEach(function(k){ var r=rec(k)||{}, d=deps(r.xr), th=thrs(r.xr); t.D+=d; t.T+=th; if(!d&&!th) t.clean++; t.bound+=aeCount(r.ae); });
     return t; }
-  var XEN_W=[["g",30,"Gym"],["c",20,"Core"],["r",20,"Rest & sleep"],["w",10,"Water"],["s",10,"Supplements"],["h",5,"Checkups"],["m",3,"Maintenance"],["k",2,"Skin care"]];
+  var XEN_W=[["g",30,"Gym"],["c",20,"Core"],["r",20,"Rest & sleep"],["w",10,"Water"],["s",10,"Supplements"],["h",5,"Checkups"],["m",3,"Maintenance"],["k",2,"Skin & Hair routine"]];
   function tXenlil(days){
     var due={},got={}; XEN_W.forEach(function(x){ due[x[0]]=0; got[x[0]]=0; });
     days.forEach(function(k){
