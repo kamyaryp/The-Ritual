@@ -245,6 +245,48 @@ svg.dial{width:100%;max-width:450px;height:auto}
 @keyframes vcold{0%,100%{opacity:.75;filter:drop-shadow(0 0 3px rgba(13,175,11,.5))}50%{opacity:1;filter:drop-shadow(0 0 8px rgba(13,175,11,.95))}}
 @keyframes vin{from{opacity:0;filter:blur(3px);transform:translateY(4px)}to{opacity:1;filter:none;transform:none}}
 @media (max-width:420px){ .voice{padding:20px 18px 16px} .v-say{font-size:17px} }
+/* the panel follows the line: hot (anger, judgment) burns, bright (praise) glows, dim (quiet) recedes */
+.voice{transition:border-color .6s ease,background .6s ease}
+.voice[data-mood="hot"]{border-color:rgba(var(--vc),.6)}
+.voice[data-mood="hot"] .v-zod{animation-duration:1.4s!important;filter:drop-shadow(0 0 9px rgba(var(--va),.95))}
+.voice[data-mood="bright"]{background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.26),rgba(var(--vc),.07) 45%,transparent 72%),var(--panel)}
+.voice[data-mood="bright"] .v-zod{filter:drop-shadow(0 0 10px rgba(var(--va),.9))}
+.voice[data-mood="dim"] .v-zod{opacity:.55;animation-duration:9s!important}
+.voice.v-dial[data-mood="hot"] .v-zod{opacity:.3;animation:none!important;filter:none}           /* Arexia judging: the lioness goes dark */
+/* Xeron himself: the panel turns to gold for his few words */
+.voice.v-allfather{--vc:255,190,80;--va:255,205,110;--vt:#ffcf6b;--vs:#ffcf6b;border-color:rgba(255,190,80,.6)!important;
+  background:radial-gradient(120% 95% at 50% 0%,rgba(255,190,80,.22),rgba(255,120,40,.06) 45%,transparent 72%),var(--panel)!important}
+.voice.v-allfather .v-say{font-size:20px;letter-spacing:.01em}
+/* Xenlil's decree of the day */
+.v-decree{margin:11px auto 0;font-size:10.5px;letter-spacing:.16em;text-transform:uppercase;color:var(--ink-3)}
+.v-decree b{font-weight:600;color:var(--vt)}
+.v-decree .ok{color:#7fd17a}
+.v-decree .no{color:#ff5a5a}
+/* the Landsraad: the four voices on the cluster as a whole */
+.council{position:relative;padding:18px 18px 8px;border:1px solid var(--line);border-radius:8px;
+  background:radial-gradient(120% 90% at 50% 0%,rgba(237,235,229,.06),transparent 70%),var(--panel)}
+.c-head{display:flex;align-items:center;justify-content:center;gap:10px}
+.c-rule{flex:0 1 64px;height:1px;background:linear-gradient(90deg,transparent,rgba(237,235,229,.35))}
+.c-rule.r{background:linear-gradient(270deg,transparent,rgba(237,235,229,.35))}
+.c-title{margin:0;padding-left:.34em;font-size:10.5px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-2)}
+.c-rows{display:flex;flex-direction:column;margin-top:8px}
+.c-row{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-top:1px solid var(--line-2)}
+.c-row:first-child{border-top:0}
+.c-sign{flex:0 0 auto;width:20px;height:18px;margin-top:3px;fill:none;stroke:var(--hue);stroke-width:1.7;stroke-linecap:round;stroke-linejoin:round}
+.c-txt{display:flex;flex-direction:column;gap:2px;min-width:0}
+.c-who{font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-3)}
+.c-say{font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Noto Serif",Georgia,serif;font-style:italic;font-size:15.5px;line-height:1.45;color:var(--ink)}
+/* the ceremony at the end of a cluster */
+.rite-end{position:fixed;inset:0;z-index:50;display:flex;align-items:center;justify-content:center;padding:24px;
+  background:radial-gradient(90% 70% at 50% 40%,rgba(13,175,11,.10),rgba(0,0,0,.92) 70%),rgba(0,0,0,.9);
+  opacity:0;transition:opacity .45s ease;cursor:pointer}
+.rite-end.in{opacity:1}
+.re-in{width:100%;max-width:440px;text-align:center}
+.re-title{margin:0 0 14px;font-size:11px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--arexia-hot)}
+.re-in .c-rows{text-align:left;border-top:1px solid var(--line);border-bottom:1px solid var(--line)}
+.re-close{margin:22px 0 0;font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Noto Serif",Georgia,serif;font-style:italic;font-size:21px;color:var(--ink)}
+.re-tap{margin:18px 0 0;font-size:10.5px;letter-spacing:.24em;text-transform:uppercase;color:var(--ink-3)}
+@media (prefers-reduced-motion:reduce){ .rite-end{transition:none} }
 .xr-grid .ae-card{grid-column:1/-1}
 @media (max-width:560px){ .cards.xr-grid{grid-template-columns:1fr 1fr} }
 .xr-ctr .ctr{gap:8px;min-height:0}
@@ -553,6 +595,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       <h2 class="v-title">Voice of Ugarit</h2>
       <p class="v-say" id="uSay" aria-live="polite"></p>
       <p class="v-who" id="uWho">Xenlil</p>
+      <p class="v-decree" id="uDecree" hidden></p>
     </section>
     <div class="cards">
       <div class="card" id="waterCard" style="--hue:var(--c-water)">
@@ -636,6 +679,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     </section>
   </div>
   <div id="viewCl" hidden>
+    <section class="council" aria-label="Landsraad">
+      <div class="c-head"><span class="c-rule"></span><h2 class="c-title">Landsraad</h2><span class="c-rule r"></span></div>
+      <div class="c-rows" id="councilRows"></div>
+    </section>
     <section class="chron">
       <div class="sec-head"><h2>Performance</h2><div class="stats" id="clNowStat"></div></div>
       <div class="chartbox">
@@ -732,6 +779,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         <div class="empty" id="aEmpty" hidden>Nothing recorded yet.</div>
       </div>
     </section>
+  </div>
+</div>
+
+<div class="rite-end" id="riteEnd" hidden>
+  <div class="re-in">
+    <p class="re-title" id="reTitle"></p>
+    <div class="c-rows" id="reRows"></div>
+    <p class="re-close" id="reClose"></p>
+    <p class="re-tap">Tap to begin</p>
   </div>
 </div>
 
@@ -1981,7 +2037,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   var V_REACT_MS=20*60000;                                  /* how long a voice answers what you just did */
 
   function vCtxTokens(c){
-    return {time:c.time, weekday:c.weekday, date:c.dateText, holder:c.holder, qrune:c.qrune, qwin:c.qwin,
+    return {time:c.time, weekday:c.weekday, date:c.dateText, holder:c.holder, qrune:c.qrune, qwin:c.qwin, qend:c.qend,
       cluster:String(c.cluster), day:vWord(c.day), dayn:String(c.day), left:vWord(c.left),
       leftd: c.left===1 ? "one day" : vWord(c.left)+" days",
       pastc: c.past===1 ? "one cluster" : vWord(c.past)+" clusters",
@@ -2006,25 +2062,45 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(!pool || !pool.length) return "";
     return vFill(pool[(h>>>8)%pool.length],tok);
   }
-  /* one voice, one moment: a reaction, or an opener and a situation */
+  /* tones that warn, scold or command: yesterday's of these is remembered */
+  var V_NEG={anger:1,grief:1,criticism:1,warning:1,judgment:1,advice:1,order:1,command:1};
+  /* how a line feels, for the panel: hot (anger, judgment), bright (praise), dim (quiet), or plain */
+  function vMood(t){ return /^(anger|judgment|criticism|warning)$/.test(t) ? "hot" : /praise|inspiration/.test(t) ? "bright" : /^(quiet|cold)$/.test(t) ? "dim" : "plain"; }
+  /* one voice, one moment. In order: what you just did; the hour turning over to this god;
+     otherwise the first situation that holds, with an opener (or a reminder that it was said
+     yesterday too), and now and then a line of lore in place of a quiet one */
   function voiceSay(spec, f, ev, force){
-    var c=f.ctx, x=spec.read(f), tok=vCtxTokens(c), own=spec.tokens(f,x,ev||{});
+    var c=f.ctx, x=spec.read(f), tok=vCtxTokens(c), own=spec.tokens(f,x,ev||{}), L=spec.v2||{};
     for(var k in own) tok[k]=own[k];
+    if(f.vt) for(var k2 in f.vt) tok[k2]=f.vt[k2];
+    var out=function(id,tone,line,text,pool){ return {id:id, tone:tone, mood:vMood(tone), line:line, text:vCap(text), read:x, pool:pool}; };
     if(!f.locked && ev && c.now-ev.at>=0 && c.now-ev.at<V_REACT_MS){
       var pool=spec.react(f,x,ev);
       if(pool && pool.length){
-        var i = force!=null ? force%pool.length : vHash(ev.kind+"|"+ev.at)%pool.length;
-        return {id:"react:"+ev.kind, tone:"reaction", line:i, opener:"", text:vCap(vFill(pool[i],tok)), read:x, pool:pool};
+        var h=vHash(ev.kind+"|"+ev.at), i = force!=null ? force%pool.length : h%pool.length, t=vFill(pool[i],tok);
+        var evMin=new Date(ev.at).getHours()*60+new Date(ev.at).getMinutes(), ph=vPhase(evMin);
+        if(L.late && (ph==="night" || ph==="late") && (h>>>5)%2===0) t=vFill(L.late[(h>>>9)%L.late.length],{time:axHm2(evMin)})+" "+vCap(t);
+        return out("react:"+ev.kind,"reaction",i,t,pool);
       }
+    }
+    if(!f.locked && L.holder && spec.god===c.holder && c.min-c.q*180<20){
+      var hh=vHash(c.date+"|holder|"+c.q), hl=force!=null ? force%L.holder.length : hh%L.holder.length;
+      return out("holder:"+c.q,"plain",hl,vFill(L.holder[hl],tok),L.holder);
     }
     for(var j=0;j<spec.says.length;j++){
       var sc=spec.says[j];
       if(!sc.when(f,x)) continue;
-      var n = force!=null ? force%sc.lines.length : vHash(c.date+"|"+sc.id+"|"+c.q)%sc.lines.length;
-      var core=vCap(vFill(sc.lines[n],tok)), op=vOpener(spec,c,sc,tok);
-      return {id:sc.id, tone:sc.tone, line:n, opener:op, text:vCap(op ? op+" "+core : core), read:x, pool:sc.lines};
+      var seed=c.date+"|"+sc.id+"|"+c.q, n = force!=null ? force%sc.lines.length : vHash(seed)%sc.lines.length;
+      var core=vCap(vFill(sc.lines[n],tok)), op="", tone=sc.tone;
+      if(!sc.bare && L.lore && /^(quiet|praise|encouragement|cold|cold praise)$/.test(tone) && force==null && vHash(seed+"|lore")%50===0){
+        core=vCap(vFill(L.lore[vHash(seed+"|lore#")%L.lore.length],tok)); tone="lore";
+      }
+      if(f.mem && f.mem.id===sc.id && V_NEG[sc.tone] && L.again) op=L.again[vHash(seed+"|again")%L.again.length];
+      else op=vOpener(spec,c,sc,tok);
+      return out(sc.id,tone,n,op ? op+" "+core : core,sc.lines);
     }
   }
+  function axHm2(n){ n=((n%1440)+1440)%1440; return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0"); }
 
   /* the moment every voice reads: the hour, the quarter, the date, the cluster */
   var V_DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
@@ -2033,13 +2109,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var started=today>=CL_START, c=started ? clIndex(today) : 0, seen=started ? clElapsed(clDays(c)).length : 0;
     return {now:Date.now(), date:today, min:m, time:hm(m), phase:vPhase(m),
       weekday:V_DAYS[d.getDay()], dateText:d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}),
-      q:q, holder:GODS[q%4].name, qrune:RUNE[q], qwin:hm(q*180)+"\u2013"+hm(q*180+180),
+      q:q, holder:GODS[q%4].name, qrune:RUNE[q], qwin:hm(q*180)+"\u2013"+hm(q*180+180), qend:hm(q*180+180),
       started:started, cluster:c+1, past:c, day:seen, of:CL_LEN, cycle: seen<=CY_LEN ? 1 : 2,
       cday: seen>0 ? ((seen-1)%CY_LEN)+1 : 0, left:CL_LEN-seen};
   }
   /* the last thing you did in each realm; its voice answers for twenty minutes */
   var VOICE_EV={xeron:null, arurael:null, xenlil:null, arexia:null};
-  function voiceEvent(god,kind,detail){ VOICE_EV[god]={kind:kind, at:Date.now(), detail:detail||{}}; }
   function withCtx(f){ f.ctx=voiceCtx(); return f; }
 
   /* ---------- Voice of Qartaq ---------- */
@@ -2460,19 +2535,6 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       arurael: DAY.arurael(today)||0, rites: total(recordFor(today)||{})
     };
   }
-  /* set a voice's line; it fades in only when the words change */
-  var VOICE_SAID={};
-  function speak(sayId, whoId, who, text){
-    if(VOICE_SAID[sayId]===text) return;
-    VOICE_SAID[sayId]=text;
-    var el=document.getElementById(sayId);
-    /* runes set in the rune face, like the dial's */
-    el.innerHTML=text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
-      .replace(/[\u16A0-\u16FF]/g,'<span class="v-rune">$&</span>');
-    setText(whoId,who);
-    el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
-  }
-  function renderQartaq(){ speak("qSay","qWho",XR_SPEAKER,xeronSpeaks(withCtx(qartaqFacts()),null,VOICE_EV.xeron).text); }
 
   /* ---------- Voice of Ebabbar ---------- */
   /* ---------- Voice of Ebabbar: Arurael speaks ----------
@@ -2863,7 +2925,6 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       run0: runs.run0, best: runs.best, D: deps(state.day.xr), bedLast: sl.bedLast, awake: sl.awake
     };
   }
-  function renderEbabbar(){ speak("eSay","eWho",AR_SPEAKER,aruraelSpeaks(withCtx(ebabbarFacts()),null,VOICE_EV.arurael).text); }
 
   /* ---------- Voice of Irkalla ---------- */
   /* ---------- Voice of Irkalla: Arexia speaks ----------
@@ -3168,7 +3229,6 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       bedLast: sl.bedLast, awake: sl.awake
     };
   }
-  function renderIrkalla(){ speak("iSay","iWho",AX_SPEAKER,arexiaSpeaks(withCtx(irkallaFacts()),null,VOICE_EV.arexia).text); }
 
   /* ---------- Voice of Ugarit ---------- */
   /* ---------- Voice of Ugarit: Xenlil speaks ----------
@@ -3619,7 +3679,639 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       run0: runs.run0, best: runs.best, arurael: DAY.arurael(today)||0, D: deps(state.day.xr)
     };
   }
-  function renderUgarit(){ speak("uSay","uWho",XL_SPEAKER,xenlilSpeaks(withCtx(ugaritFacts()),null,VOICE_EV.xenlil).text); }
+
+  /* ---------- The Voices, deeper ---------- */
+  /* ---------- The Voices, deeper: lines ----------
+     Per voice: situations shared by all four (each in its own voice), situations of its own,
+     time-pattern lines (from the hours you actually act), memory prefixes, the hour's handover,
+     rare lore, and how it answers late at night. Tokens: the usual ones, plus
+     {cnow} {cprev} this cycle and the last, {clprev} the last cluster, {top} {bottom} the leading
+     and trailing realms, {brk} a run broken yesterday, {ph} a habitual hour, {away} days away. */
+  var V2={};
+
+  V2.xeron={
+    shared:{
+      returned:["You were gone {away} days. The walls didn't stop being attacked. Back to your post.",
+        "{away} days away. I kept the line; now you keep it.","Welcome back. Don't explain; bind.",
+        "You've returned. The daughters noticed you were missing.","Gone {away} days. Start with the next window.","Back. Good. The war waited for no one."],
+      all_four:["All four realms kept today. Even the Allfather lifted his eyes.","Every throne held. I've rarely seen it. Rest.",
+        "Four realms, no gaps. The Lattice is whole tonight.","A perfect day across the axis. The daughters are singing.","All four. This is what the Quatrian alignment looks like.","Everything kept, everywhere. Well fought."],
+      verdict_high:["Cluster {clprev}: the throne held at {score}. Carry that into this one.","Last cluster, {score}. The daughters remember it with pride.",
+        "{score} last cluster. A fine defence. Now do it again.","The last cluster ended strong. Don't spend that credit; add to it.","We held well last cluster. New walls, same war.","A good cluster behind us. Begin the next as if it weren't."],
+      verdict_mid:["Last cluster: {score}. We held, barely. Not good enough.","{score}. The throne stood, but it bled. Tighten up.",
+        "Cluster {clprev} ended at {score}. Middling is how walls start to crack.","We survived the last cluster. Surviving isn't the goal.","{score} last time. I want more from this one.","A half-held cluster. Learn from it, then forget it."],
+      verdict_low:["Last cluster: {score}. I won't soften it; that was a rout.","{score}. The plateau fell too often. This cluster, it doesn't.",
+        "Cluster {clprev} is lost. This one isn't, yet.","We lost the last cluster. I've counted every sister. Now we rebuild.","{score}. Grieve it today, and fight tomorrow.","A bad cluster. Every war has them. Not twice in a row."],
+      cycle_up:["This cycle: {cnow}, up from {cprev}. The line is moving forward.","Better than the last cycle. {cprev} then, {cnow} now.",
+        "{cnow} this cycle. The daughters feel the difference.","You're winning more than last cycle. Keep pressing.","Up from {cprev}. That's what regrouping looks like.","The cycle is stronger than the last. Hold the gains."],
+      cycle_down:["This cycle: {cnow}, down from {cprev}. The line is slipping.","Worse than the last cycle. Find out why, today.",
+        "{cprev} last cycle, {cnow} now. I don't like the direction.","The cycle is weaker. Tighten the bindings.","Down from {cprev}. The Abyss is gaining ground; take it back.","This cycle is losing to the last one. Fix it before it ends."],
+      best_day:["The best day of this cluster for the throne. Mark it.","Today beats every other day this cluster. Well fought.",
+        "No day this cluster has been cleaner. Remember how you did it.","The strongest day yet. The daughters will talk about it.","Your best defence this cluster. Sleep proud.","A record for the cluster. Hold it."],
+      weakest:["The throne is the weakest realm this cluster. {top} leads; we trail. Not acceptable.","Every other realm is ahead of mine. That ends now.",
+        "{top} is at {topscore}; we're behind. Close the gap.","My realm drags the cluster down. Bind, and hold.","The Abyss has found the weakest wall, and it's mine. Reinforce it.","Last of four. Ishtar does not finish last."],
+      strongest:["The throne leads all four realms this cluster. Keep it there.","First of four. The daughters stand taller.",
+        "No realm is stronger than the throne this cluster.","We lead. {bottom} trails; help it, but don't slow down.","The strongest wall in the Lattice is ours.","Top of the council. Earned, not given."],
+      broke_run:["Yesterday broke a run of {brk}. Today is day one again. Make it count.","{brk} days ended yesterday. Grief is allowed; idleness isn't.",
+        "The {brk}-day run is gone. Build the next one longer.","After {brk} days, a fall. Today, the first stone of a new wall.","We lost {brk} days yesterday. Not today.","Day one, after {brk}. Begin."],
+      heeded:["Yesterday I gave an order. Today you followed it. Good.","You listened. The throne is better for it.",
+        "I warned you yesterday. You heard. That matters.","Yesterday's correction, made. Well done.","Order given, order kept.","You took yesterday's words seriously. I noticed."]
+    },
+    own:{
+      weak_window:["{rune} is the window you leave open most. Not today.","This is the one you usually miss: {rune}. Bind it.",
+        "Your weakest window is open now. Prove it isn't weak.","{rune} again. Most of your gaps are here. Close it.","The window Aeshma counts on. Take it from him.","You miss {rune} more than any other. Bind it early."],
+      thr_cycle:["{tc} thresholds this cycle. You keep walking to the edge. Stop.","The edge again and again this cycle. One day you won't turn back.",
+        "{tc} near-breaches this cycle. Change the ground.","Too many thresholds this cycle. Find what leads you there.","The cycle is clean of falls but full of edges. Fix the cause.","{tc} close calls. Luck is not a wall."]
+    },
+    time:{
+      late_falls:["Your falls usually come around {ph}. It's {time}. Guard these hours.","Most breaches happen near {ph}. That's soon. Be ready.",
+        "The hour you usually fall is close: {ph}. Be somewhere else.","{ph} is when the gate tends to break. Not tonight.","I know your dangerous hour: {ph}. So does he.","Watch the next hours. {ph} is his favourite."],
+      bind_late:["You usually bind in the last part of the window. Do it early this time.","Late bindings are a habit of yours. Bind {rune} now.",
+        "You wait too long with the bindings. Not today.","Most of your bindings come at the edge of the window. Start now.","Don't leave {rune} to the last hour, as usual.","Bind early. The habit of late is a door."]
+    },
+    again:["Again.","I said this yesterday.","Twice now.","Same as yesterday.","Yesterday too."],
+    holder:["The hour is the Allfather's now. {qrune}, until {qend}.","Xeron holds the hour. The daughters take the wall.",
+      "The Allfather's quarter begins. Bind {qrune}.","Our hour now. Hold it well.","Xeron's quarter: {qwin}. Every gate watched.","The throne holds the hour. I'm at the wall."],
+    lore:["Sherilum asked about you today. I told her you were holding.","I divided the daughters into a hundred and thirty groups once. He hates fighting on many fronts.",
+      "Sayeon keeps a count of your clean days. She doesn't tell me why.","We chain the daughters together so no one is taken alone. Bind yourself to something good.",
+      "I stood in Qartaq and demanded answers once. He gave me silence, and then the truth.","Hawiya opens wherever it wants. That's why we watch everywhere.",
+      "The Prophet once carried an order without asking me. I won't let that happen again.","Thirteen billion daughters, and every one of them knows your name."],
+    late:["At {time}?","{time}, and still awake.","This late?"]
+  };
+
+  V2.arurael={
+    shared:{
+      returned:["You were gone {away} days. The questions waited for you.","{away} days unmeasured. Let's measure today.",
+        "Welcome back. Start with the smallest division.","An absence of {away} days. No judgment; only a restart.","Back. What did you learn while away?","{away} days. The Ahtuxasai kept the ledger open."],
+      all_four:["All four realms complete today. The axis is perfectly aligned.","Knowledge, order, ritual, restraint: all kept. Rare, and beautiful.",
+        "Every realm full. I can find nothing missing anywhere.","A perfect day across the Lattice. An explosion of light.","All four thrones agree tonight. So do I.","Complete, everywhere. Study how it happened."],
+      verdict_high:["Last cluster: {score}. A clear record. Keep the method.","{score} last cluster. The evidence is strong.",
+        "Cluster {clprev} closed at {score}. Something worked; repeat it.","A strong cluster behind you. Build on it, don't rest on it.","{score}. The Ahtuxasai filed it with pride.","Good numbers last cluster. Now improve on them."],
+      verdict_mid:["Last cluster: {score}. Adequate. Find the weak days and study them.","{score}. Neither failure nor success; a question.",
+        "Cluster {clprev}: {score}. Where did the missing points go?","Middling last cluster. The pattern is in the data; look.","{score}. You can do better, and you know it.","Half-lit last cluster. Light the rest."],
+      verdict_low:["Last cluster: {score}. Low. Let's find the cause, not the blame.","{score}. The record is thin. This cluster, thicken it.",
+        "Cluster {clprev} was weak: {score}. What got in the way?","A poor cluster. Understand it; then leave it behind.","{score}. Ignorance won that one. Not this one.","Low numbers last time. Start this cluster with one full day."],
+      cycle_up:["This cycle: {cnow}, up from {cprev}. The method is improving.","Better than the last cycle. The evidence favours you.",
+        "{cprev} last cycle, {cnow} now. Note what changed.","An upward trend. Keep the variables that caused it.","{cnow} this cycle. Clearer water.","Improvement, measured. Continue."],
+      cycle_down:["This cycle: {cnow}, down from {cprev}. What changed?","Weaker than the last cycle. Investigate before it hardens.",
+        "{cprev} then, {cnow} now. A question worth answering today.","The trend is down. Find the cause.","Lower than last cycle. The data is asking you something.","Down from {cprev}. Correct course while the cycle is young."],
+      best_day:["Your best day this cluster. Record what you did differently.","The highest score of the cluster. Clear water.",
+        "No day this cluster has been fuller. Study it.","A personal best for this cluster. Remember the method.","The strongest day yet. The Ahtuxasai noticed.","Best of the cluster. A small explosion of light."],
+      weakest:["My realm trails the others this cluster. {top} leads at {topscore}.","The other realms are ahead of mine. The mind is lagging.",
+        "Knowledge is the weakest realm this cluster. Feed it.","Last of four. Ignorance is winning here.","{top} leads; learning trails. Close the gap with one full day.","The weakest realm is mine. A question to answer today."],
+      strongest:["My realm leads the four this cluster. Knowledge first.","First among the realms. The light spreads.",
+        "The strongest realm this cluster is knowledge. Keep it so.","We lead. {bottom} trails; a wise mind helps it.","The highest score in the council is ours.","Leading the cluster. Don't let it make you careless."],
+      broke_run:["Yesterday ended a run of {brk} full days. Start the next one today.","{brk} days, broken. The method still works; resume it.",
+        "A {brk}-day run ended. Understand why, then begin again.","After {brk} full days, a gap. Close it today.","The run of {brk} is over. A new one starts with today.","{brk} days were real. So is today."],
+      heeded:["Yesterday I raised a question. Today you answered it.","You took yesterday's advice. The evidence shows it.",
+        "Yesterday's gap is filled. Good.","You listened, and the record improved.","Advice given, advice used. Rare and welcome.","I noted the problem yesterday. You fixed it today."]
+    },
+    own:{
+      skip_streak:["{item} has been skipped {skip} days running. Today, break the pattern.","{skip} days without {item}. That's a pattern now.",
+        "{item}, missed {skip} days in a row. Why?","The data shows {item} slipping for {skip} days. Do it today.","{skip} days. {item} is becoming the thing you avoid.","{item} has waited {skip} days. Give it ten minutes."]
+    },
+    time:{
+      div_late:["Your divisions usually come late at night. Start earlier today.","Most of your study happens after {ph}. Try the evening instead.",
+        "Late divisions are a habit of yours. Break it now.","You tend to study around {ph}. It's {time}; begin now and sleep earlier.","The data says you study late. The mind says study now.","Start a division before the night claims it."],
+      div_morning:["Your best divisions come before noon. Begin now.","Mornings are when you study best. Use this one.",
+        "The record says you learn early. Start.","Before noon is your window. Open the book.","Your strongest hours are now. Don't spend them elsewhere.","You learn best in the morning. Prove it again."]
+    },
+    again:["Again.","As yesterday.","The same question as yesterday.","Twice now.","Still."],
+    holder:["The hour is mine now. Clear water until {qend}.","Arurael holds the hour. Study well.",
+      "My quarter begins: {qwin}. A good time to learn.","The Sun is mine for these hours. Use them.","My hour. The Ahtuxasai are counting.","The quarter of knowledge: {qwin}."],
+    lore:["The Ahtuxasai are fifteen billion, and every one of them is still a student.","Fifteen stars in Aquarius. I count them when I think.",
+      "Ebaad's Eyes see further than mine, some nights. They never stop looking.","The Explosion of Light was only knowledge arriving all at once.",
+      "I inherited something from Enki: the habit of asking one more question.","The Ahtuxasai keep the measure of all four thrones. Even Xeron's.",
+      "Knowledge itself is not humble. Those who carry it must be.","My enemies are ignorant. I have never once envied them."],
+    late:["At {time}?","{time}. Late.","Still awake at {time}."]
+  };
+
+  V2.xenlil={
+    shared:{
+      returned:["You were gone {away} days. The law didn't pause. Resume it.","{away} days away. Back in formation.",
+        "Welcome back. Water, then everything else.","Gone {away} days. Today, order from the start.","You've returned. The realm needs its ruler.","{away} days. No excuses; just begin."],
+      all_four:["All four realms in order today. The Golden Path, walked.","Every law, every rite, every division. A sovereign day.",
+        "All four thrones kept. The Fedaykin raise their banners.","A perfect day across the Lattice. Well ruled.","Nothing slack anywhere today.","The whole axis in order. Rare. Remember it."],
+      verdict_high:["Last cluster: {score}. A ruler's cluster. Repeat it.","{score}. The Fedaykin salute the last cluster.",
+        "Cluster {clprev} closed at {score}. Order held.","A strong cluster behind you. Raise the standard.","{score} last time. Don't let the next one fall below it.","The last cluster was kept. Keep this one."],
+      verdict_mid:["Last cluster: {score}. Order, with slack in it.","{score}. Acceptable is not victorious.",
+        "Cluster {clprev}: {score}. Uproot the weak days.","A middling cluster. The law expects more.","{score}. You know which laws slipped. Fix them now.","Half-kept last cluster. This one, fully."],
+      verdict_low:["Last cluster: {score}. Too much slack.","{score}. The realm frayed. Rebuild it, starting today.",
+        "Cluster {clprev} was lost to slackness. Not this one.","A poor cluster. Courage now: begin clean.","{score}. I uproot slackness; help me.","The last cluster failed the law. This one won't."],
+      cycle_up:["This cycle: {cnow}, up from {cprev}. The law is taking hold.","Better than last cycle. Keep riding.",
+        "{cprev} then, {cnow} now. Victory, measured.","An upward cycle. Don't loosen now.","{cnow}. The realm is stronger than last cycle.","Up from {cprev}. Good discipline."],
+      cycle_down:["This cycle: {cnow}, down from {cprev}. Slack is creeping in.","Weaker than last cycle. Uproot it now.",
+        "{cprev} last cycle, {cnow} now. Not acceptable.","The cycle is slipping. Tighten every law.","Down from {cprev}. Courage: fix it before the cycle ends.","This cycle trails the last. Correct it."],
+      best_day:["The best day of this cluster for my realm. Well ruled.","No day this cluster was in better order.",
+        "Your best day yet in this cluster. The law, lived.","A record day for the realm. Remember how it was built.","Top day of the cluster. The Fedaykin approve.","Best of the cluster. Keep it as the standard."],
+      weakest:["My realm trails the others this cluster. {top} leads at {topscore}.","The body and its laws are the weakest realm right now. Fix it.",
+        "Last of four. Slackness is winning here.","{top} leads; my realm lags. Close the gap.","The weakest realm is mine. Order begins with the body.","Every other throne is ahead. Not for long."],
+      strongest:["My realm leads all four this cluster. Order first.","First of the four. The crown fits.",
+        "The strongest realm this cluster is the law. Keep it.","We lead. {bottom} trails; lend it some discipline.","Top of the council. Earned.","The Golden Rider leads. Don't slow the march."],
+      broke_run:["Yesterday ended a run of {brk} kingly days. Begin the next.","{brk} days of order, broken. Rebuild today.",
+        "The {brk}-day run is gone. Courage, and start again.","After {brk} days, a lapse. Not two.","A run of {brk} ended. A new one starts now.","{brk} days were real. Today is day one."],
+      heeded:["Yesterday I gave a law. Today you kept it.","You heard yesterday's order. Good.",
+        "Yesterday's correction is in today's record.","The law was spoken, and kept.","You listened. That's what a Fedayi does.","Yesterday's warning, answered."]
+    },
+    own:{
+      core_paused:["Core is paused mid-session. Finish it.","You stopped in the middle of Core. Back to the floor.",
+        "A half-done Core is no Core. Resume.","The hold was broken. Pick it up again.","Core paused. The Fedaykin don't stop mid-drill.","Finish the session you started."],
+      gym_week:["Only {gwd} of {gwn} sessions this week so far. {gym} today, no exceptions.","The week is behind on training. Catch up today.",
+        "{gwd} of {gwn} this week. Today's session matters twice.","Training slipped this week. Not today.","The week's gym count is short. Go.","Behind for the week. {gym} today."],
+      core_streak:["{cs} days of Core in a row. Discipline, repeated.","Core, {cs} days running. The body knows the law now.",
+        "{cs}-day Core streak. Keep it.","Every day for {cs} days. That's how order is built.","{cs} days of Core. Strong.","The Core run is {cs} days. Don't break it."],
+      hc_expiring:["{hc} runs out in {hcd} days. Book it now.","The seal on {hc} ends soon: {hcd} days.",
+        "{hcd} days until {hc} is unsealed. Plan it.","{hc} expires in {hcd} days. Order includes the doctor.","Don't let {hc} lapse. {hcd} days left.","{hc}: {hcd} days. Book it this week."],
+      d3_day:["The 1st of the month: D3 today.","D3 day. Don't let the month start without it.",
+        "Monthly law: D3, today.","It's the 1st. Take the D3.","D3 is due today. One pill, one month.","Start the month correctly: D3."],
+      water_week:["Your water this week averages {wa}. Low. Today, fix the pattern.","A dry week: {wa} a day on average. Drink now.",
+        "Seven days of too little water. Start the correction.","The week's water is short. Fourteen today.","Average {wa} this week. The body notices.","Water has been weak all week. Not today."]
+    },
+    time:{
+      bed_late:["You usually go to bed at the very edge of the window. Go now.","Bed has been a last-minute habit. Not tonight.",
+        "You tend to sleep around {ph}. Earlier tonight.","The data says late to bed. The law says now.","Don't wait for the last minute again. Bed.","Late beds make late mornings. Go."],
+      water_late:["You drink late in the day. Start now.","Most of your water comes after 14:00. Front-load it.",
+        "Morning water is the habit you lack. Drink.","You usually catch up on water late. Don't wait today.","Water early, not in a rush at night.","The day's water starts now, not this evening."]
+    },
+    again:["Again.","As I said yesterday.","Twice now.","The same law, again.","Still."],
+    holder:["The hour is mine now. Order until {qend}.","Xenlil holds the hour. Execute.",
+      "My quarter: {qwin}. Ride.","The Golden Rider takes the hour.","My hour. No slack in it.","The quarter of order begins."],
+    lore:["Eighteen billion Fedaykin, and not one of them has ever complained of the conditions.","I was a Fedayi once. I still remember the weight of the banner.",
+      "The Golden Path cuts the bonds that drag one throne down with another.","Eighteen stars in Taurus. Each one a promise kept.",
+      "I separated earth from heaven so each could stand on its own. Do the same with your days.","My roar uproots slackness. Most days it's only a whisper.",
+      "In Ugarit the law is not written; it is done.","The Fedaykin never lose. They also never skip a drill."],
+    late:["At {time}?","{time}. Late.","Still up at {time}."]
+  };
+
+  V2.arexia={
+    shared:{
+      returned:["You were gone {away} days. The rites were not.","{away} days abandoned. Begin again.",
+        "Back. The dead do not wait; neither do the rites.","{away} days. I counted each one.","You return. Observe.","Gone {away} days. The pledge did not leave with you."],
+      all_four:["All four realms kept. Even I have nothing to take.","Every throne observed today. Acceptable.",
+        "The whole axis, kept. The Cerpenin are silent in approval.","All four. The pledge holds everywhere.","A complete day. Rare. Remember it.","Nothing abandoned anywhere. As it should be."],
+      verdict_high:["Last cluster: {score}. Observed. Do not grow proud.","{score}. The rites held. Continue.",
+        "Cluster {clprev} closed at {score}. Acceptable.","A kept cluster. The next will be judged the same way.","{score}. The Cerpenin chanted it into Irkalla.","The last cluster passed judgment."],
+      verdict_mid:["Last cluster: {score}. Half observed is half abandoned.","{score}. The rites decayed in places.",
+        "Cluster {clprev}: {score}. I expect more.","A cluster with cracks. Do not repeat it.","{score}. Mediocre observance.","The last cluster was judged. Lightly."],
+      verdict_low:["Last cluster: {score}. Abandoned.","{score}. Irkalla received much of it.",
+        "Cluster {clprev} is dead. It died badly.","{score}. That cycle decayed. This one will not.","A failed cluster. The pledge remains.","Judged and found wanting: {score}."],
+      cycle_up:["This cycle: {cnow}, up from {cprev}. Continue.","Better than the last cycle. Noted.",
+        "{cprev}, then {cnow}. The rhythm returns.","The cycle improves. Do not stop.","{cnow}. Acceptable progress.","Up from {cprev}. I am still counting."],
+      cycle_down:["This cycle: {cnow}, down from {cprev}. Decay.","Worse than the last cycle. Correct it.",
+        "{cprev}, then {cnow}. The rhythm is breaking.","The cycle weakens. I see it.","Down from {cprev}. The dust is rising.","Lower than last cycle. Do not let it rot."],
+      best_day:["The best day of this cluster. Acceptable.","No day this cluster was better observed.",
+        "Your best observance this cluster. Do not stop here.","A record day. The Cerpenin noticed.","Best of the cluster. It is now the minimum.","The highest day yet. Continue."],
+      weakest:["The rites are the weakest realm this cluster. Unacceptable.","{top} leads at {topscore}. My realm trails. Correct it.",
+        "Last of four. The rites are being abandoned.","My realm is the weakest. Observe.","Every throne is ahead of mine. That will change.","The pledge is failing here first."],
+      strongest:["The rites lead all four realms. As they should.","First of four. The pledge holds.",
+        "The strongest realm this cluster is ritual.","We lead. {bottom} trails. It will be judged.","Top of the council. Do not loosen.","Ritual first. Always."],
+      broke_run:["Yesterday ended a run of {brk} perfect days. Begin again.","{brk} days, broken. The pledge was not.",
+        "A run of {brk} died yesterday. Bury it, and start.","{brk} days ended. Day one.","After {brk}, a crack. Seal it.","The {brk}-day run is in Irkalla now."],
+      heeded:["Yesterday I warned you. Today you observed.","Correction accepted.",
+        "You heard me yesterday. Good.","Yesterday's abandonment did not repeat.","The warning was heeded.","Noted: you listened."]
+    },
+    own:{
+      weak_rite_open:["{rune}. The rite you abandon most. Not today.","Your weakest rite is open: {rune}.",
+        "{rune} again. You miss it more than any other.","This is the rite you fail. Observe it.","The weak rite, {rune}. I am watching it closely.","{rune}. Prove me wrong about it."],
+      weak_rite_again:["{wrune} again. Your weakest rite, abandoned once more.","The same rite, missed again: {wrune}.",
+        "{wrune}. Always {wrune}.","You abandon {wrune} more than any other. Today too.","Again, {wrune}. A pattern is a choice.","{wrune} is dying of neglect."]
+    },
+    time:{
+      last_minute:["You seal rites at the last moment. Not this one.","Your habit is the final half hour. Observe {rune} now.",
+        "Early, for once. {rune}.","Do not wait for the edge of the window again.","The rite is open now. Not later.","You always come late to the rite. Come now."]
+    },
+    again:["Again.","As yesterday.","Twice.","Still.","The same."],
+    holder:["The hour is mine. {qrune}, until {qend}.","Arexia holds the hour. Observe.",
+      "My quarter begins: {qwin}.","The Underworld hour. Mine.","The hour turns to me.","My hour. The Cerpenin begin."],
+    lore:["Nine billion Cerpenin. Their tongues never stop.","When Ishkaroth sounds the trumpet, all four communities perish. Then they live again.",
+      "The other gods fear me. They are right to.","My flame is green. It ends even the imperishable.",
+      "Ereshkigal ruled the dead before me. I keep her habits.","Irkalla is cold. It is meant to be.",
+      "Arshvar ends everything, and everything begins again.","The Veil of Irkalla does not silence a thought. It lets it die young."],
+    late:["{time}.","At this hour.","{time}. Late."]
+  };
+
+  /* the Allfather, rarely */
+  var V2_ALLFATHER=["My soul is thirsty.","روحی متعطشه","I see you.","Thirteen. Good.","My daughters are proud. So am I.","Hold.",
+    "The flame is yours tonight.","I am silent because you are doing well.","Continue.","I am watching. Gladly."];
+
+  /* Xenlil's decree of the day: the law, then its judgment */
+  var V2_DECREE={
+    water_noon:{law:"Seven glasses before noon", weak:"water"},
+    water_full:{law:"All fourteen glasses", weak:"water"},
+    core_early:{law:"Core before 20:00", weak:"core"},
+    wake:{law:"Awake by 09:00", weak:"wake"},
+    bed:{law:"To bed by 23:30", weak:"bed"},
+    gym:{law:"Today's session, no excuses", weak:"gym"},
+    supps:{law:"Both supplements today", weak:"supps"},
+    skin:{law:"Skin & Hair routine today", weak:"skin"}
+  };
+  V2.xenlil.decree={
+    kept:["Yesterday's decree, {law}, was kept. Good.","The law of yesterday held: {law}.","Decree kept: {law}. That's a Fedayi.",
+          "{law}: done yesterday. Today's law is new.","Yesterday's decree stands fulfilled.","You kept yesterday's decree."],
+    broken:["Yesterday's decree was broken: {law}. Today's is new; keep it.","The law of yesterday failed: {law}.","Decree broken: {law}. Not twice.",
+            "{law}, yesterday. Broken. Remember it.","Yesterday's decree did not hold.","You broke yesterday's decree. Today, keep this one."]
+  };
+
+  /* the Landsraad: each realm's voice on the cluster as a whole */
+  var V2_COUNCIL={
+    xeron:{
+      lead:["The throne leads the council. Keep it so.","First of four. The daughters stand tall."],
+      strong:["The throne holds at {score}.","{score}. A well-defended cluster so far."],
+      steady:["{score}. The wall holds, with cracks.","The throne stands at {score}. Not enough."],
+      weak:["{score}. The plateau falls too often.","The throne is failing: {score}."],
+      none:["The throne waits for the cluster to begin.","No battle yet."]},
+    arurael:{
+      lead:["Knowledge leads the council.","First of four. The light spreads."],
+      strong:["Knowledge at {score}. Clear water.","{score}. The measure is strong."],
+      steady:["{score}. Adequate. Not yet enlightened.","Knowledge at {score}. More is possible."],
+      weak:["{score}. Ignorance is winning in my realm.","The mind trails at {score}."],
+      none:["Nothing is measured yet.","The ledger is still blank."]},
+    xenlil:{
+      lead:["The law leads the council.","First of four. The crown fits."],
+      strong:["The law holds at {score}.","{score}. Order in the realm."],
+      steady:["{score}. Order, with slack.","The law stands at {score}. Tighten it."],
+      weak:["{score}. Slackness rules my realm.","The law is failing at {score}."],
+      none:["The banners are not yet raised.","The law begins with the cluster."]},
+    arexia:{
+      lead:["The rites lead. As they should.","First of four."],
+      strong:["The rites at {score}. Observed.","{score}. The pledge holds."],
+      steady:["{score}. The rites decay in places.","Observance at {score}. Insufficient."],
+      weak:["{score}. Abandonment.","The rites are dying: {score}."],
+      none:["Nothing has been observed yet.","The rites await the cluster."]}
+  };
+  /* the ceremony that ends a cluster */
+  var V2_CEREMONY={
+    xeron:{high:["The throne held: {score}. The daughters will remember it."], mid:["The throne stood at {score}, and bled for it."], low:["The plateau fell too often: {score}. We rebuild."]},
+    arurael:{high:["Knowledge: {score}. A clear record."], mid:["Knowledge: {score}. A question, not an answer."], low:["Knowledge: {score}. Ignorance won this one."]},
+    xenlil:{high:["The law: {score}. A ruler's cluster."], mid:["The law: {score}. Order, with slack."], low:["The law: {score}. Slackness ruled."]},
+    arexia:{high:["The rites: {score}. Observed."], mid:["The rites: {score}. Partly abandoned."], low:["The rites: {score}. Abandoned."]},
+    close:["The cycle is dead. Begin again.","The cluster is buried in Irkalla. Rise.","Ended. Judged. Begin.","What decayed is gone. Observe the new cycle."]
+  };
+
+  /* ---------- The Voices, deeper: where the new situations sit ----------
+     Each voice gets the shared situations (in its own words), its own, and the ones learned
+     from the hours you act. They read f.G (the world: all four realms, cycles, clusters, patterns)
+     and f.mem (what this voice said yesterday). Missing facts simply never match. */
+  function v2R(f,god){ return f.G && f.G.realm ? f.G.realm[god] : null; }
+  function v2Day1(f){ return f.ctx.started && f.ctx.day===1 && f.min>=5*60 && f.min<15*60; }
+  function v2Insert(says, beforeId, list){
+    var i=-1; for(var k=0;k<says.length;k++) if(says[k].id===beforeId){ i=k; break; }
+    if(i<0) i=says.length-1;
+    Array.prototype.splice.apply(says,[i,0].concat(list));
+  }
+  function v2Shared(god, lines, good){
+    /* good(f): today in this realm is going well enough to count as "listened" */
+    var S=lines.shared;
+    return {
+      top:[
+        {id:"returned", tone:"advice", when:function(f){ return !!f.G && f.G.away>=2; }, lines:S.returned},
+        {id:"verdict_high", tone:"praise", when:function(f){ var r=v2R(f,god); return v2Day1(f) && r && r.clPrev!=null && r.clPrev>=80; }, lines:S.verdict_high},
+        {id:"verdict_mid", tone:"advice", when:function(f){ var r=v2R(f,god); return v2Day1(f) && r && r.clPrev!=null && r.clPrev>=55; }, lines:S.verdict_mid},
+        {id:"verdict_low", tone:"criticism", when:function(f){ var r=v2R(f,god); return v2Day1(f) && r && r.clPrev!=null; }, lines:S.verdict_low},
+        {id:"all_four", tone:"praise", when:function(f){ return !!f.G && f.G.allPerfect; }, lines:S.all_four}
+      ],
+      mid:[
+        {id:"heeded", tone:"encouragement", when:function(f){ return !!f.mem && !!V_NEG[f.mem.tone] && f.min>=12*60 && good(f); }, lines:S.heeded},
+        {id:"broke_run", tone:"encouragement", when:function(f){ var r=v2R(f,god); return !!r && r.brk>=5 && f.min<18*60; }, lines:S.broke_run},
+        {id:"best_day", tone:"praise", when:function(f){ var r=v2R(f,god); return !!r && r.best && r.today>=70 && f.min>=18*60; }, lines:S.best_day},
+        {id:"weakest", tone:"warning", when:function(f){ var G=f.G; return !!G && G.bottom===god && G.top && G.top!==god && G.gap>=15 && f.ctx.day>=2; }, lines:S.weakest},
+        {id:"strongest", tone:"praise", when:function(f){ var G=f.G, r=v2R(f,god); return !!G && G.top===god && !!r && r.clNow>=80 && f.ctx.day>=2; }, lines:S.strongest},
+        {id:"cycle_up", tone:"encouragement", when:function(f){ var r=v2R(f,god); return !!r && r.cycNow!=null && r.cycPrev!=null && f.ctx.cday>=2 && r.cycNow>=r.cycPrev+10; }, lines:S.cycle_up},
+        {id:"cycle_down", tone:"warning", when:function(f){ var r=v2R(f,god); return !!r && r.cycNow!=null && r.cycPrev!=null && f.ctx.cday>=2 && r.cycNow<=r.cycPrev-10; }, lines:S.cycle_down}
+      ]
+    };
+  }
+  function v2Sit(id,tone,when,lines){ return {id:id, tone:tone, when:when, lines:lines}; }
+
+  /* ---- Xeron, through Ishtar ---- */
+  (function(){
+    var L=V2.xeron, sh=v2Shared("xeron",L,function(f){ return f.D===0 && f.T===0; });
+    XERON_SPEC.god="Xeron"; XERON_SPEC.v2=L;
+    v2Insert(XERON_SAYS,"fall_many",sh.top);
+    v2Insert(XERON_SAYS,"night_watch",[
+      v2Sit("bind_late","advice",function(f,x){ var P=f.G&&f.G.pat; return !!P && P.bindLate && !f.bound[x.q] && !f.running && f.min-x.q*180<60; }, L.time.bind_late),
+      v2Sit("weak_window","order",function(f,x){ var w=f.G&&f.G.weakWin; return !!w && w.n>=3 && w.q===x.q && !f.bound[x.q] && !f.running; }, L.own.weak_window)]);
+    v2Insert(XERON_SAYS,"edge_held",[
+      v2Sit("late_falls","warning",function(f){ var P=f.G&&f.G.pat; return !!P && P.depHour!=null && f.D===0 && f.min>=P.depHour-120 && f.min<P.depHour; }, L.time.late_falls),
+      v2Sit("thr_cycle","warning",function(f){ return !!f.G && f.G.tCycle>=5 && f.D===0; }, L.own.thr_cycle)]);
+    v2Insert(XERON_SAYS,"morning",sh.mid);
+  })();
+
+  /* ---- Arurael ---- */
+  (function(){
+    var L=V2.arurael, sh=v2Shared("arurael",L,function(f){ return arDayScore(f)>=80; });
+    ARURAEL_SPEC.god="Arurael"; ARURAEL_SPEC.v2=L;
+    v2Insert(ARURAEL_SAYS,"night_study",sh.top);
+    v2Insert(ARURAEL_SAYS,"unfinished",[
+      v2Sit("skip_streak","advice",function(f){ var s=f.G&&f.G.skip; return !!s && s.days>=3 && !s.doneToday && f.min>=15*60; }, L.own.skip_streak)]);
+    v2Insert(ARURAEL_SAYS,"comeback",[
+      v2Sit("div_late","advice",function(f,x){ var P=f.G&&f.G.pat; return !!P && P.divLate && f.min>=17*60 && f.min<21*60 && x.score<70 && !f.running; }, L.time.div_late)]);
+    v2Insert(ARURAEL_SAYS,"morning",sh.mid.concat([
+      v2Sit("div_morning","advice",function(f,x){ var P=f.G&&f.G.pat; return !!P && P.divEarly && f.ctx.phase==="morning" && x.score<30 && !f.running; }, L.time.div_morning)]));
+  })();
+
+  /* ---- Xenlil ---- */
+  (function(){
+    var L=V2.xenlil, sh=v2Shared("xenlil",L,function(f){ return xlScore(f)>=80; });
+    XENLIL_SPEC.god="Xenlil"; XENLIL_SPEC.v2=L;
+    v2Insert(XENLIL_SAYS,"core_running",sh.top);
+    v2Insert(XENLIL_SAYS,"night",[
+      v2Sit("core_paused","order",function(f){ return !!f.corePaused; }, L.own.core_paused)]);
+    v2Insert(XENLIL_SAYS,"bed_window",[
+      v2Sit("bed_late","order",function(f){ var P=f.G&&f.G.pat; return !!P && P.bedLate && !f.bed && f.min>=22*60+30 && f.min<=23*60+30; }, L.time.bed_late)]);
+    v2Insert(XENLIL_SAYS,"woke_late",[
+      v2Sit("decree_kept","praise",function(f){ return !!f.decreeY && f.decreeY.v==="kept" && f.min>=5*60 && f.min<12*60; }, L.decree.kept),
+      v2Sit("decree_broken","criticism",function(f){ return !!f.decreeY && f.decreeY.v==="broken" && f.min>=5*60 && f.min<12*60; }, L.decree.broken)]);
+    v2Insert(XENLIL_SAYS,"supps_due",[
+      v2Sit("d3_day","order",function(f){ return f.d3Due && !f.d3 && f.min>=8*60; }, L.own.d3_day)]);
+    v2Insert(XENLIL_SAYS,"gym_today",[
+      v2Sit("gym_week","order",function(f){ var g=f.G&&f.G.gymWeek; return !!g && f.gymDue && !f.gym && g.done<g.dueBefore && f.min>=10*60; }, L.own.gym_week),
+      v2Sit("water_late","advice",function(f){ var P=f.G&&f.G.pat; return !!P && P.waterLate && f.min>=10*60 && f.min<14*60 && f.water<4; }, L.time.water_late)]);
+    v2Insert(XENLIL_SAYS,"woke_well",[
+      v2Sit("core_streak","praise",function(f,x){ return !!f.G && f.core && f.G.coreStreak>=5 && f.min>=12*60 && x.n===0; }, L.own.core_streak)]);
+    v2Insert(XENLIL_SAYS,"comeback",[
+      v2Sit("hc_expiring","advice",function(f){ var h=f.G&&f.G.hcExp; return !!h && h.days<=14 && f.min>=9*60; }, L.own.hc_expiring)]);
+    v2Insert(XENLIL_SAYS,"water_ahead",[
+      v2Sit("water_week","advice",function(f){ return !!f.G && f.G.water7!=null && f.G.water7<9 && f.water<7 && f.min>=12*60 && f.min<18*60; }, L.own.water_week)]);
+    v2Insert(XENLIL_SAYS,"morning",sh.mid);
+  })();
+
+  /* ---- Arexia ---- */
+  (function(){
+    var L=V2.arexia, sh=v2Shared("arexia",L,function(f){ var x=arexiaRead(f); return x.n===0 && x.k>=4; });
+    AREXIA_SPEC.god="Arexia"; AREXIA_SPEC.v2=L;
+    v2Insert(AREXIA_SAYS,"nature",sh.top);
+    v2Insert(AREXIA_SAYS,"midnight_rite",[
+      v2Sit("weak_rite_open","command",function(f,x){ var w=f.G&&f.G.weakRite; return !!w && w.n>=3 && w.q===x.q && x.open; }, L.own.weak_rite_open),
+      v2Sit("last_minute","command",function(f,x){ var P=f.G&&f.G.pat; return !!P && P.riteLate && x.open && f.min-x.q*180<120; }, L.time.last_minute)]);
+    v2Insert(AREXIA_SAYS,"lapsed_one",[
+      v2Sit("weak_rite_again","judgment",function(f,x){ var w=f.G&&f.G.weakRite; if(!w || w.n<3 || f.nature) return false; return w.q<x.q && !f.kept[w.q]; }, L.own.weak_rite_again)]);
+    v2Insert(AREXIA_SAYS,"half_kept",sh.mid);
+  })();
+
+  /* ---------- The Voices, deeper: what they know ----------
+     Every positive act is written into the day with its minute (day.log), so the voices can
+     learn your hours. From the record they read the whole world: each realm's day, cycle and
+     cluster, who leads and who trails, the days you were away, runs broken, your weakest rite
+     and window, skipped studies, the gym week, Core streaks, expiring checkups, water habits.
+     They remember what they said yesterday. Xenlil issues a decree each day and judges it.
+     Xeron himself speaks, rarely. The Landsraad sits on the Golden Path, and a cluster that
+     ends is closed with a ceremony. */
+  var V2_GODS=["xeron","arurael","xenlil","arexia"];
+  var V2_NAMES={xeron:"Xeron",arurael:"Arurael",xenlil:"Xenlil",arexia:"Arexia"};
+  var V2_LOG={rite:function(d){ return "r"+d.q; }, nature:"nat", dep:"dep", thr:"thr", bound:function(d){ return "b"+d.q; },
+    bind_start:function(d){ return "bs"+d.q; }, div_start:"ds", div_done:"dv", work:"wk", extra:"xt", water:"w", gym:"gym",
+    habit:function(d){ return "h:"+d.k; }, seal:"hc", core_start:"cs", core_done:"core"};
+  function voiceEvent(god,kind,detail){
+    VOICE_EV[god]={kind:kind, at:Date.now(), detail:detail||{}};
+    var code=V2_LOG[kind];
+    if(code && state && state.day){
+      var d=new Date(), m=d.getHours()*60+d.getMinutes();
+      if(!Array.isArray(state.day.log)) state.day.log=[];
+      if(state.day.log.length<160){ state.day.log.push([m, typeof code==="function" ? code(detail||{}) : code]); save(); }
+    }
+  }
+
+  /* memory: what each voice said, today and the day before */
+  var VMEM={}; try{ VMEM=JSON.parse(localStorage.getItem("dial.vmem")||"{}")||{}; }catch(e){ VMEM={}; }
+  function vMemPrev(god){
+    var m=VMEM[god], y=keyAdd(dayKey(),-1); if(!m) return null;
+    if(m.cur && m.cur.date===y) return m.cur;
+    if(m.prev && m.prev.date===y) return m.prev;
+    return null;
+  }
+  function vMemNote(god,r){
+    if(!r || /^(react|holder):/.test(r.id) || r.tone==="lore") return;
+    var d=dayKey(), m=VMEM[god]||{};
+    if(m.cur && m.cur.date===d && m.cur.id===r.id && m.cur.tone===r.tone) return;
+    if(m.cur && m.cur.date!==d) m.prev=m.cur;
+    m.cur={date:d, id:r.id, tone:r.tone}; VMEM[god]=m;
+    try{ localStorage.setItem("dial.vmem",JSON.stringify(VMEM)); }catch(e){}
+  }
+
+  /* a realm's day counted as full, for runs */
+  function v2Full(god,k,r){
+    if(!r) return false;
+    if(god==="arexia"){ var c=r.nature ? ALL_KEPT : r.checks; return !!c && total(c)===8; }
+    if(god==="xeron") return deps(r.xr)===0;
+    if(god==="arurael") return DAY.arurael(k)>=99.999;
+    var sc=score(k,r); return !!sc && 100*sc.done/sc.total>=90;
+  }
+  function v2Median(a){ if(!a.length) return null; a=a.slice().sort(function(x,y){ return x-y; }); return a[Math.floor(a.length/2)]; }
+
+  /* the world, as all four voices read it */
+  function voiceWorld(){
+    var today=dayKey(), c=voiceCtx(), G={realm:{}, away:0, pat:{}};
+    if(!c.started) return G;
+    for(var i=1;i<=7;i++){ var k=keyAdd(today,-i), r=past(k); if(!r || k<CL_START) break; if(isBlank(r)) G.away++; else break; }
+    var ci=c.cluster-1, days=clDays(ci), half=c.day<=CY_LEN ? 0 : 1, scNow=clusterScores(ci), scPrev=ci>0 ? clusterScores(ci-1) : null;
+    var y=keyAdd(today,-1), yr=past(y);
+    V2_GODS.forEach(function(g){
+      var t=DAY[g](today), best=true, any=false;
+      days.forEach(function(k){ if(k>=today || !past(k)) return; any=true; var v=DAY[g](k); if(v!=null && t!=null && v>=t) best=false; });
+      var brk=0;
+      if(yr && !v2Full(g,y,yr)){ var k2=keyAdd(y,-1); for(var n=0;n<400;n++){ var r2=past(k2); if(!r2 || k2<CL_START || !v2Full(g,k2,r2)) break; brk++; k2=keyAdd(k2,-1); } }
+      G.realm[g]={today:t, best:any && best && t!=null, brk:brk,
+        cycNow:cycleScore(g, days.slice(half*CY_LEN, half*CY_LEN+CY_LEN)),
+        cycPrev: half===1 ? cycleScore(g, days.slice(0,CY_LEN)) : (ci>0 ? cycleScore(g, clDays(ci-1).slice(CY_LEN)) : null),
+        clNow:scNow[g].all, clPrev: scPrev ? scPrev[g].all : null};
+    });
+    var ranked=V2_GODS.filter(function(g){ return G.realm[g].clNow!=null; }).sort(function(a,b){ return G.realm[b].clNow-G.realm[a].clNow; });
+    if(ranked.length===4){ G.top=ranked[0]; G.bottom=ranked[3]; G.gap=G.realm[G.top].clNow-G.realm[G.bottom].clNow; }
+    var xs=score(today,state.day);
+    G.allPerfect = DAY.arexia(today)>=99.9 && deps(state.day.xr)===0 && thrs(state.day.xr)===0 && DAY.arurael(today)>=99.9 && !!xs && 100*xs.done/xs.total>=99.9;
+    /* the last two weeks of record */
+    var hist=[]; for(var j=1;j<=14;j++){ var kk=keyAdd(today,-j), rr=past(kk); if(rr && !(kk<CL_START && isBlank(rr))) hist.push({k:kk, r:rr}); }
+    var mr=[0,0,0,0,0,0,0,0], mw=[0,0,0,0,0,0,0,0];
+    hist.forEach(function(h){
+      var cc=h.r.checks;
+      if(!h.r.nature && cc) for(var q=0;q<8;q++){ var g=GODS[q%4]; if(!(cc[g.key] && cc[g.key][q<4?0:1])) mr[q]++; }
+      if(Array.isArray(h.r.ae)) for(var q2=0;q2<8;q2++) if(!h.r.ae[q2]) mw[q2]++;
+    });
+    var arg=function(a){ var b=0; for(var i2=1;i2<8;i2++) if(a[i2]>a[b]) b=i2; return {q:b, n:a[b]}; };
+    G.weakRite=arg(mr); G.weakWin=arg(mw);
+    G.tCycle=0; days.slice(half*CY_LEN, half*CY_LEN+CY_LEN).forEach(function(k){ if(k>today) return; var r=rec(k); if(r) G.tCycle+=thrs(r.xr); });
+    /* studies skipped day after day */
+    var best2=null;
+    [["exe","Execution & Science",2],["sci","Share",1],["eng","English",1]].forEach(function(it){
+      var n=0, k=y; for(var i3=0;i3<60;i3++){ var r=past(k); if(!r || k<CL_START) break; if(cnt((r.ar||{})[it[0]])>=it[2]) break; n++; k=keyAdd(k,-1); }
+      var done=cnt((state.day.ar||{})[it[0]])>=it[2];
+      if(!best2 || n>best2.days) best2={item:it[1], days:n, doneToday:done};
+    });
+    G.skip=best2;
+    /* the gym week, from Monday */
+    var dow=(new Date().getDay()+6)%7, gw={done:0, dueBefore:0};
+    for(var i4=dow;i4>=1;i4--){ var k4=keyAdd(today,-i4); if(isGymDay(k4)){ gw.dueBefore++; var r4=past(k4); if(r4 && r4.gym) gw.done++; } }
+    G.gymWeek=gw;
+    var cs=state.day.core ? 1 : 0; if(cs){ var k5=y; for(var i5=0;i5<400;i5++){ var r5=past(k5); if(!r5 || !r5.core) break; cs++; k5=keyAdd(k5,-1); } }
+    G.coreStreak=cs;
+    G.hcExp=null;
+    CHECKUPS.forEach(function(ch){ var cov=hcCover(ch,today); if(!cov) return; var left=dayNum(addMonths(cov,ch.months))-dayNum(today);
+      if(left>=0 && left<=14 && (!G.hcExp || left<G.hcExp.days)) G.hcExp={name:ch.name, days:left}; });
+    var w7=hist.slice(0,7).filter(function(h){ return typeof h.r.water==="number"; });
+    G.water7 = w7.length>=4 ? w7.reduce(function(s2,h){ return s2+h.r.water; },0)/w7.length : null;
+    /* the hours you act in */
+    var L={dep:[], bind:[], dv:[], bed:[], w:[], rite:[]};
+    hist.forEach(function(h){ (h.r.log||[]).forEach(function(e){
+      var m=e[0], cd=e[1];
+      if(cd==="dep") L.dep.push(m);
+      else if(/^b\d$/.test(cd)) L.bind.push(m-(+cd[1])*180);
+      else if(cd==="dv") L.dv.push(m);
+      else if(cd==="h:bed") L.bed.push(m);
+      else if(cd==="w") L.w.push(m);
+      else if(/^r\d$/.test(cd)) L.rite.push(m-(+cd[1])*180);
+    }); });
+    var P=G.pat, late=function(a,lim){ return a.filter(function(v){ return v>=lim; }).length/a.length; };
+    if(L.dep.length>=3){ P.depHour=v2Median(L.dep); P.depPh=hm(P.depHour); }
+    if(L.bind.length>=5) P.bindLate=late(L.bind,150)>=.5;
+    if(L.dv.length>=5){ var md=v2Median(L.dv); P.divLate=md>=21*60; P.divEarly=md<=12*60; P.divPh=hm(md); }
+    if(L.bed.length>=4){ var mb=v2Median(L.bed); P.bedLate=mb>=23*60+15; P.bedPh=hm(mb); }
+    if(L.w.length>=20) P.waterLate=L.w.filter(function(v){ return v<14*60; }).length/L.w.length<.3;
+    if(L.rite.length>=8) P.riteLate=late(L.rite,150)>=.5;
+    return G;
+  }
+
+  /* Xenlil's decree: chosen each morning from the weakest of the last seven days, judged by its hour */
+  function v2DecreeChoose(today){
+    var keys=["water","core_early","wake","bed","supps","skin"]; if(isGymDay(today)) keys.push("gym");
+    var rate={}, n={}; keys.forEach(function(k){ rate[k]=0; n[k]=0; });
+    for(var i=1;i<=7;i++){ var k=keyAdd(today,-i), r=past(k); if(!r || isBlank(r)) continue; var h=r.habits||{};
+      var add=function(key,ok){ if(rate[key]===undefined) return; n[key]++; if(ok) rate[key]++; };
+      add("water",(r.water||0)>=14); add("core_early",!!r.core); add("wake",!!h.wake); add("bed",!!h.bed);
+      add("supps",!!(h.mvom && h.cre)); add("skin",!!h.skin); if(isGymDay(k)) add("gym",!!r.gym); }
+    var hsh=vHash(today+"|decree"), bestK=null, bestV=2;
+    keys.forEach(function(k,i){ var v=n[k] ? rate[k]/n[k] : .5; v+=((hsh>>>i)%7)/1000; if(v<bestV){ bestV=v; bestK=k; } });
+    if(bestK==="water") bestK = hsh%2 ? "water_noon" : "water_full";
+    return bestK;
+  }
+  function v2Judge(key, r, minNow, final){
+    var h=r.habits||{}, log=r.log||[], m=final ? 1440 : minNow;
+    var logged=function(code,before){ return log.filter(function(e){ return e[1]===code && e[0]<before; }).length; };
+    switch(key){
+      case "water_noon": return logged("w",720)>=7 ? "kept" : (m>=720 ? "broken" : "pending");
+      case "water_full": return (r.water||0)>=14 ? "kept" : (final || m>=23*60+30 ? "broken" : "pending");
+      case "core_early": return (r.core && (logged("core",1200) || !log.some(function(e){ return e[1]==="core"; }))) ? "kept" : (m>=1200 ? "broken" : "pending");
+      case "wake": return h.wake ? "kept" : (m>540 ? "broken" : "pending");
+      case "bed": return h.bed ? "kept" : (m>1410 ? "broken" : "pending");
+      case "gym": return r.gym ? "kept" : (m>=1200 ? "broken" : "pending");
+      case "supps": return (h.mvom && h.cre) ? "kept" : (m>=1320 ? "broken" : "pending");
+      case "skin": return h.skin ? "kept" : (m>=1320 ? "broken" : "pending");
+    }
+    return "pending";
+  }
+
+  /* the extra words each voice can use */
+  function v2Tokens(god,f){
+    var G=f.G||{}, r=G.realm ? G.realm[god] : null, P=G.pat||{}, t={};
+    t.away=vWord(G.away||0); t.clprev=String(Math.max(1,(f.ctx.cluster||1)-1));
+    if(r){ t.score=pct(r.clPrev); t.cnow=pct(r.cycNow); t.cprev=pct(r.cycPrev); t.brk=vWord(r.brk); }
+    if(G.top){ t.top=V2_NAMES[G.top]; t.bottom=V2_NAMES[G.bottom]; t.topscore=pct(G.realm[G.top].clNow); }
+    if(god==="xeron"){ t.ph=P.depPh||""; t.tc=vWord(G.tCycle||0); }
+    if(god==="arurael"){ t.ph=P.divPh||""; if(G.skip){ t.item=G.skip.item; t.skip=vWord(G.skip.days); } }
+    if(god==="xenlil"){ t.ph=P.bedPh||""; var gw=G.gymWeek||{}; t.gwd=vWord(gw.done||0); t.gwn=vWord(gw.dueBefore||0);
+      t.cs=vWord(G.coreStreak||0); if(G.hcExp){ t.hc=G.hcExp.name; t.hcd=vWord(G.hcExp.days); } if(G.water7!=null) t.wa=(Math.round(G.water7*10)/10)+"/14";
+      if(f.decreeY) t.law=V2_DECREE[f.decreeY.k].law; }
+    if(god==="arexia" && G.weakRite) t.wrune=RUNE[G.weakRite.q];
+    return t;
+  }
+  function v2Facts(god,f){ f=withCtx(f); f.G=voiceWorld(); f.mem=vMemPrev(god); return f; }
+  function v2Finish(god,f){ f.vt=v2Tokens(god,f); return f; }
+
+  /* Xeron himself: a few words, on remarkable days, and very rarely on any clean one */
+  function v2Allfather(f,r){
+    if(f.locked || !r || /^(react|holder):/.test(r.id)) return null;
+    var x=xeronRead(f), G=f.G||{}, h=vHash(f.date+"|allfather");
+    var remarkable=(x.s>=13 && x.s%13===0) || (x.boundN===8 && f.D===0 && f.T===0) || !!G.allPerfect;
+    if((remarkable && h%4===0) || (f.D===0 && h%300===0)) return V2_ALLFATHER[(h>>>4)%V2_ALLFATHER.length];
+    return null;
+  }
+
+  /* set a voice's line and mood; it fades in only when the words change */
+  var VOICE_SAID={};
+  function speak(sayId, whoId, who, text, mood){
+    var el=document.getElementById(sayId), panel=el.closest(".voice");
+    if(panel && mood) panel.dataset.mood=mood;
+    if(VOICE_SAID[sayId]===text+"|"+who) return;
+    VOICE_SAID[sayId]=text+"|"+who;
+    el.innerHTML=text.replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;")
+      .replace(/[ᚠ-᛿]/g,'<span class="v-rune">$&</span>');
+    el.dir = /[؀-ۿ]/.test(text) ? "rtl" : "auto";
+    setText(whoId,who);
+    el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
+  }
+  function renderQartaq(){
+    var f=v2Finish("xeron",v2Facts("xeron",qartaqFacts())), r=xeronSpeaks(f,null,VOICE_EV.xeron), af=v2Allfather(f,r);
+    var panel=document.querySelector(".voice.v-xr"); if(panel) panel.classList.toggle("v-allfather",!!af);
+    if(af) speak("qSay","qWho","Xeron",af,"bright");
+    else { speak("qSay","qWho",XR_SPEAKER,r.text,r.mood); vMemNote("xeron",r); }
+  }
+  function renderEbabbar(){
+    var f=v2Finish("arurael",v2Facts("arurael",ebabbarFacts())), r=aruraelSpeaks(f,null,VOICE_EV.arurael);
+    speak("eSay","eWho",AR_SPEAKER,r.text,r.mood); vMemNote("arurael",r);
+  }
+  function renderIrkalla(){
+    var f=v2Finish("arexia",v2Facts("arexia",irkallaFacts())), r=arexiaSpeaks(f,null,VOICE_EV.arexia);
+    speak("iSay","iWho",AX_SPEAKER,r.text,r.mood); vMemNote("arexia",r);
+  }
+  function renderUgarit(){
+    var f=v2Facts("xenlil",ugaritFacts()), today=dayKey(), el=document.getElementById("uDecree");
+    f.corePaused = CORE.el>0 && !CORE.run && CORE.el<CORE.total;
+    var yk=keyAdd(today,-1), yr=past(yk);
+    if(yr && yr.decree && V2_DECREE[yr.decree]) f.decreeY={k:yr.decree, v:v2Judge(yr.decree, yr, 1440, true)};
+    if(!f.locked){
+      if(!state.day.decree || !V2_DECREE[state.day.decree]) state.day.decree=v2DecreeChoose(today);
+      var v=v2Judge(state.day.decree, state.day, f.min, false);
+      el.hidden=false;
+      el.innerHTML='Decree · <b>'+V2_DECREE[state.day.decree].law+'</b>'+(v==="kept" ? ' <span class="ok">· kept</span>' : v==="broken" ? ' <span class="no">· broken</span>' : '');
+    } else el.hidden=true;
+    f=v2Finish("xenlil",f);
+    var r=xenlilSpeaks(f,null,VOICE_EV.xenlil);
+    speak("uSay","uWho",XL_SPEAKER,r.text,r.mood); vMemNote("xenlil",r);
+  }
+
+  /* ---------- the Landsraad, on the Golden Path ---------- */
+  var V2_ZOD={
+    xeron:['var(--xeron)','<path d="M2.5 6.5V17 M2.5 9c0-3.4 4.6-3.4 4.6 0v8 M7.1 9c0-3.4 4.6-3.4 4.6 0v6.6c0 2.6 2.6 3.6 5 2.2l3.3-2.2 M16.8 14.2l3.6 1.4-0.9 3.7"/>'],
+    arurael:['var(--arurael-hot)','<path d="M2 9l3.3-3 3.3 3 3.3-3 3.3 3 3.3-3 3.3 3 M2 15l3.3-3 3.3 3 3.3-3 3.3 3 3.3-3 3.3 3"/>'],
+    xenlil:['var(--xenlil)','<circle cx="12" cy="14" r="5.2"/><path d="M3.5 3.2c1.6 4.4 4.6 5.6 8.5 5.6s6.9-1.2 8.5-5.6"/>'],
+    arexia:['var(--arexia)','<circle cx="6.6" cy="14.6" r="3.2"/><path d="M9.6 13.6C8.6 9.4 9.4 3.4 14 3.4c4.2 0 5 4.2 3.4 7.8-1.4 3.2-3.6 5.6-1.6 8.2 1 1.2 2.8 1 3.8-.4"/>']
+  };
+  var V2_SPEAKS_FOR={xeron:"Ishtar", arurael:"Arurael", xenlil:"Xenlil", arexia:"Arexia"};
+  function v2Row(g,line){
+    return '<div class="c-row" style="--hue:'+V2_ZOD[g][0]+'"><svg class="c-sign" viewBox="0 0 24 22" aria-hidden="true">'+V2_ZOD[g][1]+'</svg>'+
+      '<div class="c-txt"><span class="c-who">'+V2_SPEAKS_FOR[g]+(g==="xeron" ? ' · for Xeron' : '')+'</span><span class="c-say">'+line+'</span></div></div>';
+  }
+  function renderCouncil(){
+    var host=document.getElementById("councilRows"); if(!host) return;
+    var c=voiceCtx(), G=c.started ? voiceWorld() : {realm:{}}, html="";
+    V2_GODS.forEach(function(g){
+      var r=G.realm[g], v=r ? r.clNow : null, cat;
+      if(!c.started || v==null) cat="none";
+      else if(G.top===g && v>=70) cat="lead";
+      else cat = v>=80 ? "strong" : v>=60 ? "steady" : "weak";
+      var pool=V2_COUNCIL[g][cat], line=pool[vHash(c.date+"|"+g+"|"+c.q+"|council")%pool.length];
+      html+=v2Row(g, vFill(line,{score:pct(v)}).replace(/&/g,"&amp;").replace(/</g,"&lt;"));
+    });
+    host.innerHTML=html;
+  }
+
+  /* ---------- the end of a cluster: one ceremony, on the first open after it ---------- */
+  function v2Ceremony(){
+    var c=voiceCtx(), box=document.getElementById("riteEnd");
+    if(!box || !c.started || c.cluster<2 || state.cerSeen===c.cluster) return;
+    var prev=clusterScores(c.cluster-2), rows="";
+    V2_GODS.forEach(function(g){
+      var v=prev[g].all, lvl = v==null ? "mid" : v>=80 ? "high" : v>=55 ? "mid" : "low";
+      var pool=V2_CEREMONY[g][lvl]; rows+=v2Row(g, vFill(pool[vHash(c.date+g)%pool.length],{score:pct(v)}));
+    });
+    document.getElementById("reTitle").textContent="Cluster "+(c.cluster-1)+" has ended";
+    document.getElementById("reRows").innerHTML=rows;
+    document.getElementById("reClose").textContent=V2_CEREMONY.close[vHash(c.date+"close")%V2_CEREMONY.close.length];
+    box.hidden=false; void box.offsetWidth; box.classList.add("in");
+    var shut=function(){ state.cerSeen=c.cluster; save(); box.classList.remove("in"); setTimeout(function(){ box.hidden=true; },420); box.removeEventListener("click",shut); };
+    box.addEventListener("click",shut);
+  }
+
 
   function renderXr(){
     var x=state.day.xr;
@@ -4333,6 +5025,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       host.appendChild(row);
     });
     renderReport(seen, sc);
+    renderCouncil();
   }
   function buildCl(){
     document.getElementById("clReset").addEventListener("click",function(){
@@ -4347,6 +5040,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           ART={date:dayKey(), blk:null, endsAt:0, left:{}}; arSave(); if(NT) ntSend({kind:"ar", op:"clear"});
           aeClear(); coreReset();
           state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start};
+          VMEM={}; try{ localStorage.removeItem("dial.vmem"); }catch(e){}
           CL_START=start; CLSEL=null; save(); hideTip();
           render(); renderXen(); renderXr(); renderAr(); renderCl();
           toast("Everything is erased. Cluster 1 begins tomorrow.");
@@ -4504,6 +5198,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   render(); renderXen(); renderXr(); renderAr(); arTick();
   if(NT){ coreSync(); setInterval(function(){ if(!CORE.run) coreSync(); }, 500); }
   planNotes();
+  v2Ceremony();
   document.getElementById("achart").addEventListener("click",function(ev){ pickDay("achart",ev); });
   document.getElementById("clchart").addEventListener("click",function(ev){
     pickDay("clchart",ev);
@@ -4662,7 +5357,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   document.getElementById("natRow").addEventListener("click",toggleNature);
   document.getElementById("natBox").addEventListener("click",toggleNature);
 
-  function renderNow(){ if(VIEW==="dial") render(); else RENDER[VIEW](); }
+  function renderNow(){ if(VIEW==="dial") render(); else RENDER[VIEW](); v2Ceremony(); }
   document.addEventListener("pointerdown",function(){ if(rollover()) renderNow(); },true);
   document.addEventListener("visibilitychange",function(){ if(!document.hidden && rollover()) renderNow(); });
   setInterval(function(){
