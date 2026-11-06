@@ -1079,6 +1079,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     }
     var now=!state.day.checks[god.key][i];
     state.day.checks[god.key][i]=now;
+    voiceEvent("arexia", now ? "rite" : "unrite", {q:riteNo(god,i)-1});
     fb(now?"on":"off");
     stareAt(god,i, now?3.0:2.2);
     feel(now?"excited":"upset", now?3.2:2.0);
@@ -1435,6 +1436,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           if(shut()) return;
           var was=state.day.water;
           state.day.water = (state.day.water===n+1) ? n : n+1;
+          voiceEvent("xenlil", state.day.water>was ? "water" : "undo");
           fb(state.day.water>was?"on":"off");
           save(); renderXen();
         });
@@ -1457,7 +1459,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         fb("tap");
         ask("Seal "+c.name+"?","Done today. It stays sealed for "+(c.months<12?c.months+" months":c.months/12+(c.months===12?" year":" years"))+
             ", until "+fmtLong(addMonths(today,c.months))+", and every day until then counts as kept.","Seal",function(){
-          state.hc[c.k]=hcLog(c).concat([today]); fb("on"); save(); renderXen();
+          state.hc[c.k]=hcLog(c).concat([today]); voiceEvent("xenlil","seal",{habit:c.name}); fb("on"); save(); renderXen();
         });
       }
       row.addEventListener("click",flip);
@@ -1497,7 +1499,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           toast(st==="awaiting" ? h.name+" opens at "+hm(habOpens(h))+"." : h.name+" closed at "+hm(habCloses(h))+".");
           return;
         }
-        state.day.habits[h.k]=!state.day.habits[h.k]; fb(state.day.habits[h.k]?"on":"off"); save(); renderXen();
+        state.day.habits[h.k]=!state.day.habits[h.k];
+        voiceEvent("xenlil", state.day.habits[h.k] ? "habit" : "undo", {habit:h.name, k:h.k});
+        fb(state.day.habits[h.k]?"on":"off"); save(); renderXen();
       }
       row.addEventListener("click",flip);
       b.addEventListener("click",function(ev){ ev.stopPropagation(); flip(); });
@@ -1767,7 +1771,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(NT) ntSend({kind:"core", op:"clear"}); else fb("done");
     rollover();
     var r=(day && rec(day)) || state.day;
-    if(!r.core){ r.core=true; save(); renderXen(); toast("Core session recorded."); }
+    if(!r.core){ r.core=true; save(); voiceEvent("xenlil","core_done"); renderXen(); toast("Core session recorded."); }
     else toast("Done. Today's session was already recorded.");
     renderCore();
   }
@@ -1806,7 +1810,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       }
       bar.appendChild(g);
     }
-    document.getElementById("corePlay").addEventListener("click",function(){ if(!CORE.run && shut()) return; fb("tap"); corePlay(); });
+    document.getElementById("corePlay").addEventListener("click",function(){ if(!CORE.run && shut()) return; fb("tap"); var was=CORE.run; corePlay();
+      if(!was && CORE.run && CORE.el<1){ voiceEvent("xenlil","core_start"); renderUgarit(); } });
     document.getElementById("coreReset").addEventListener("click",function(){ fb("off"); coreReset(); });
   }
   function renderCore(){
@@ -1947,11 +1952,96 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         '<button type="button" class="step" aria-label="One fewer">−</button>'+
         '<button type="button" class="step plus" aria-label="One more">+</button>';
       var b=row.querySelectorAll(".step");
-      b[0].addEventListener("click",function(){ if(shut()) return; if(state.day.xr[x.k]>0){ state.day.xr[x.k]--; fb("off"); save(); renderXr(); } });
-      b[1].addEventListener("click",function(){ if(shut()) return; state.day.xr[x.k]=(state.day.xr[x.k]||0)+1; fb("on"); save(); renderXr(); });
+      b[0].addEventListener("click",function(){ if(shut()) return; if(state.day.xr[x.k]>0){ state.day.xr[x.k]--; voiceEvent("xeron","undo"); fb("off"); save(); renderXr(); } });
+      b[1].addEventListener("click",function(){ if(shut()) return; state.day.xr[x.k]=(state.day.xr[x.k]||0)+1; voiceEvent("xeron", x.k==="d" ? "dep" : "thr"); fb("on"); save(); renderXr(); });
       document.getElementById(x.grp==="dep"?"depCard":"thrCard").appendChild(row);
     });
   }
+  /* ---------- The Voices ---------- */
+  /* ---------- The Voices: how each one speaks ----------
+     A voice speaks in layers:
+       1. for twenty minutes after you act in its realm, it answers that act;
+       2. otherwise, the first situation that holds;
+       3. and most of the time an opener comes first: the hour of the day, or where you
+          stand in the cluster (day 2 of 8, the last day, the second cycle, clusters behind you).
+     Which line, and which opener, is fixed by the date and the quarter of the day, so a voice
+     doesn't flicker, but it does move on every three hours and whenever the facts change.
+
+     ctx (shared by all four): now, date, min, time, phase, weekday, dateText,
+       q (quarter 0-7), holder (the god who holds the hour), qrune, qwin,
+       started, cluster, past (clusters before this one), day (1-8), of (8), cycle (1-2), cday (1-4), left
+  */
+  var V_WORDS=["no","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen","sixteen","seventeen","eighteen"];
+  function vWord(n){ return n>=0 && n<V_WORDS.length ? V_WORDS[n] : String(n); }
+  function vHash(s){ var h=0; s=String(s); for(var i=0;i<s.length;i++) h=(h*31+s.charCodeAt(i))>>>0; return h; }
+  function vCap(t){ return t.charAt(0).toUpperCase()+t.slice(1); }
+  function vFill(t,tok){ return t.replace(/\{(\w+)\}/g,function(m,v){ return tok[v]!==undefined && tok[v]!==null ? tok[v] : m; }); }
+  var V_PHASES=[[0,"night"],[300,"dawn"],[480,"morning"],[720,"noon"],[840,"afternoon"],[1080,"evening"],[1260,"late"]];
+  function vPhase(min){ var p="night"; for(var i=0;i<V_PHASES.length;i++) if(min>=V_PHASES[i][0]) p=V_PHASES[i][1]; return p; }
+  var V_REACT_MS=20*60000;                                  /* how long a voice answers what you just did */
+
+  function vCtxTokens(c){
+    return {time:c.time, weekday:c.weekday, date:c.dateText, holder:c.holder, qrune:c.qrune, qwin:c.qwin,
+      cluster:String(c.cluster), day:vWord(c.day), dayn:String(c.day), left:vWord(c.left),
+      leftd: c.left===1 ? "one day" : vWord(c.left)+" days",
+      pastc: c.past===1 ? "one cluster" : vWord(c.past)+" clusters",
+      cyc: c.cycle===1 ? "one" : "two", cday:vWord(c.cday)};
+  }
+  /* where the day stands in the cluster */
+  function vCalKind(c){
+    if(!c.started || !(c.day>=1)) return null;
+    if(c.day===1) return "first";
+    if(c.day===c.of) return "last";
+    if(c.day===c.of/2+1) return "cycleStart";
+    if(c.day===c.of/2) return "cycleEnd";
+    return "mid";
+  }
+  function vOpener(spec,c,sc,tok){
+    if(sc.bare) return "";
+    var h=vHash(c.date+"|"+c.q+"|"+sc.id+"|open"), r=h%100, cal=vCalKind(c), pool=null;
+    if(cal && cal!=="mid" && r<50) pool=spec.open.cal[cal];          /* a day that matters in the cluster */
+    else if(r<62) pool=spec.open.phase[c.phase];                       /* the hour */
+    else if(cal && r<80) pool=spec.open.cal.mid;                       /* day n of 8 */
+    else if(cal && c.past>0 && r<88) pool=spec.open.cal.past;          /* clusters behind */
+    if(!pool || !pool.length) return "";
+    return vFill(pool[(h>>>8)%pool.length],tok);
+  }
+  /* one voice, one moment: a reaction, or an opener and a situation */
+  function voiceSay(spec, f, ev, force){
+    var c=f.ctx, x=spec.read(f), tok=vCtxTokens(c), own=spec.tokens(f,x,ev||{});
+    for(var k in own) tok[k]=own[k];
+    if(!f.locked && ev && c.now-ev.at>=0 && c.now-ev.at<V_REACT_MS){
+      var pool=spec.react(f,x,ev);
+      if(pool && pool.length){
+        var i = force!=null ? force%pool.length : vHash(ev.kind+"|"+ev.at)%pool.length;
+        return {id:"react:"+ev.kind, tone:"reaction", line:i, opener:"", text:vCap(vFill(pool[i],tok)), read:x, pool:pool};
+      }
+    }
+    for(var j=0;j<spec.says.length;j++){
+      var sc=spec.says[j];
+      if(!sc.when(f,x)) continue;
+      var n = force!=null ? force%sc.lines.length : vHash(c.date+"|"+sc.id+"|"+c.q)%sc.lines.length;
+      var core=vCap(vFill(sc.lines[n],tok)), op=vOpener(spec,c,sc,tok);
+      return {id:sc.id, tone:sc.tone, line:n, opener:op, text:vCap(op ? op+" "+core : core), read:x, pool:sc.lines};
+    }
+  }
+
+  /* the moment every voice reads: the hour, the quarter, the date, the cluster */
+  var V_DAYS=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  function voiceCtx(){
+    var d=new Date(), m=d.getHours()*60+d.getMinutes(), today=dayKey(), q=Math.min(7,Math.floor(m/180));
+    var started=today>=CL_START, c=started ? clIndex(today) : 0, seen=started ? clElapsed(clDays(c)).length : 0;
+    return {now:Date.now(), date:today, min:m, time:hm(m), phase:vPhase(m),
+      weekday:V_DAYS[d.getDay()], dateText:d.toLocaleDateString("en-US",{weekday:"short",month:"short",day:"numeric"}),
+      q:q, holder:GODS[q%4].name, qrune:RUNE[q], qwin:hm(q*180)+"\u2013"+hm(q*180+180),
+      started:started, cluster:c+1, past:c, day:seen, of:CL_LEN, cycle: seen<=CY_LEN ? 1 : 2,
+      cday: seen>0 ? ((seen-1)%CY_LEN)+1 : 0, left:CL_LEN-seen};
+  }
+  /* the last thing you did in each realm; its voice answers for twenty minutes */
+  var VOICE_EV={xeron:null, arurael:null, xenlil:null, arexia:null};
+  function voiceEvent(god,kind,detail){ VOICE_EV[god]={kind:kind, at:Date.now(), detail:detail||{}}; }
+  function withCtx(f){ f.ctx=voiceCtx(); return f; }
+
   /* ---------- Voice of Qartaq ---------- */
   /* ---------- Xeron's realm speaks, through Ishtar ----------
      The Allfather is silent, so Ishtar speaks for his realm: his battlefield commander,
@@ -1997,7 +2087,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   /* in order: the first that holds is spoken */
   var XERON_SAYS=[
-    {id:"locked", tone:"quiet", when:function(f){ return f.locked; }, lines:[
+    {id:"locked", tone:"quiet", bare:true, when:function(f){ return f.locked; }, lines:[
       "No orders before the cluster opens. Be ready at {start}.",
       "The throne isn't counting yet. At {start}, we fight again.",
       "Until {start}, rest your sling. Nothing is written.",
@@ -2016,6 +2106,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "{d} falls in a day is a rout, not a slip. Pull back, sleep, and we rebuild at dawn.",
       "I lost {d} lines of sisters today. Close the gates. Nothing more tonight.",
       "{d} falls. Aeshma is feasting. Starve him tomorrow."]},
+
+    {id:"two_days", tone:"anger", when:function(f){ return f.D>=1 && f.yFell; }, lines:[
+      "Two days running. This is a pattern, not a slip. Break it tonight.",
+      "Yesterday and today. The Abyss has found a door; find it first.",
+      "Two breaches on two days. I'm not angry yet. Don't make me be.",
+      "Back to back. Change something tomorrow: sleep, work, anything.",
+      "Two days. Stop, sleep, and start clean.",
+      "The plateau has fallen twice in two days. Regroup.",
+      "Again. Find what's repeating and cut it out.",
+      "Two in a row. The third is the one we don't allow."]},
 
     {id:"fall_broke_run", tone:"grief", when:function(f){ return f.D===1 && f.s0>=3; }, lines:[
       "{s0} days we held, and one hour broke the line. The days still stand. Rebuild the count from one.",
@@ -2067,6 +2167,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "The flame dipped today; it didn't die. Tend it.",
       "Aeshma won an hour. Don't give him the night as well."]},
 
+    {id:"binding_now", tone:"order", when:function(f){ return f.running; }, lines:[
+      "Hold him. Thirteen minutes, and every one counts.",
+      "The binding is on. Don't look away until it's done.",
+      "Chains are going on. Keep still, keep steady.",
+      "Good. Bind him slowly and completely.",
+      "{rune} is being bound. Finish it.",
+      "The daughters are pulling the chains tight. Hold.",
+      "Aeshma is struggling. Let him; you hold.",
+      "Don't stop now. A half-bound demon is worse than a free one."]},
+
     {id:"edge_many", tone:"warning", when:function(f){ return f.T>=3; }, lines:[
       "{t} times at the edge today. Stop patrolling there; the edge is already his ground.",
       "{t} thresholds. My sisters held each one, and they're tiring. Pull back.",
@@ -2087,6 +2197,26 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "{rune} is closing. Thirteen minutes, and he's chained.",
       "Aeshma is waiting for {end}. Bind him before {startBy}."]},
 
+    {id:"night_watch", tone:"quiet", bare:true, when:function(f,x){ return f.ctx.phase==="night" && f.D===0 && f.T===0; }, lines:[
+      "Night watch. These are his hours; the gate stays shut.",
+      "{time}. Desire is loudest in the dark. Stay on the wall.",
+      "Past midnight. Sleep is the best wall I know.",
+      "The dead hours. Bind {rune} and go to sleep.",
+      "Nobody wins anything at this hour. Rest.",
+      "Night. The daughters keep watch; you keep still.",
+      "Aeshma walks at night. Don't meet him awake.",
+      "It's late, and late is where breaches happen. Bed."]},
+
+    {id:"last_window", tone:"order", when:function(f,x){ return x.q===7 && !f.bound[7] && f.min>=21*60; }, lines:[
+      "Last window of the day: {rune}. Close the day bound.",
+      "One window left. Make it count.",
+      "{rune}, the last one tonight. Bind him and sleep.",
+      "The final binding before midnight. Don't skip it.",
+      "Last chance today. Start {rune} before {startBy}.",
+      "End the day with him in chains.",
+      "The day's last gate. Shut it.",
+      "One more binding, then the night is yours."]},
+
     {id:"edge_held", tone:"encouragement", when:function(f){ return f.T>=1; }, lines:[
       "He pushed, you stood. That's persistence, and I saw it.",
       "A threshold, not a fall. Good. Hold that ground.",
@@ -2096,6 +2226,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "He reached for you and caught nothing. Good.",
       "The edge, and no further. That's a defender's day.",
       "Temptation came; discipline answered. Keep answering."]},
+
+    {id:"unbroken", tone:"praise", when:function(f,x){ return x.missed===0 && x.q>=4 && x.boundN>=x.q && x.boundN<8 && f.D===0; }, lines:[
+      "Every window so far, bound. That's a clean line.",
+      "{b} of {b} so far. Not one gap.",
+      "No gaps in the line today. Keep it that way.",
+      "The bindings are holding, window after window.",
+      "Aeshma hasn't had one free hour today.",
+      "Unbroken so far. The daughters notice.",
+      "Window by window, you're winning.",
+      "Clean bindings all day. Finish the set."]},
 
     {id:"aeshma_free", tone:"warning", when:function(f,x){ return x.missed>=3; }, lines:[
       "{m} windows left unbound. Every one is a gate I have to cover. Bind him.",
@@ -2116,6 +2256,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Aeshma spent the whole day in chains. Well done.",
       "Every binding kept. This is how wars are won, one window at a time.",
       "Eight of eight. Tonight even I can rest."]},
+
+    {id:"last_day", tone:"order", when:function(f){ var c=f.ctx; return c.started && c.day===c.of && f.D===0 && f.min>=12*60; }, lines:[
+      "Final day of Cluster {cluster}. End it clean.",
+      "Last day of the cluster. Leave nothing for the Abyss.",
+      "Cluster {cluster} closes at midnight. Close it unbroken.",
+      "One day left in this cluster: today. Hold.",
+      "The last day. The record will remember how it ended.",
+      "Finish Cluster {cluster} on the wall, not under it.",
+      "Tonight the cluster is sealed. Make it worth sealing.",
+      "Last day. Bind every window."]},
 
     {id:"run_13", tone:"inspiration", when:function(f,x){ return x.s>=13 && x.s%13===0; }, lines:[
       "{s} days, the Allfather's number. The daughters are weeping for joy. Hold.",
@@ -2187,7 +2337,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Arexia's rites and the Allfather's flame, both honoured.",
       "Kept the rites, kept the line. A good day."]},
 
-    {id:"morning", tone:"order", when:function(f){ return f.min<10*60; }, lines:[
+    {id:"morning", tone:"order", bare:true, when:function(f){ return f.min>=5*60 && f.min<11*60; }, lines:[
       "Morning. No breach. Bind Aeshma before {end} and keep it that way.",
       "Quiet hours. Use them; the evening is where he strikes.",
       "New day, same wall. Take your post.",
@@ -2215,22 +2365,76 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   /* a small steady hash, so a date always picks the same line */
   function xrPick(seed,n){ var h=0; for(var i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0; return h%n; }
 
-  function xeronSpeaks(f, forceLine){
-    var x=xeronRead(f);
-    for(var i=0;i<XERON_SAYS.length;i++){
-      var sc=XERON_SAYS[i];
-      if(!sc.when(f,x)) continue;
-      var k = forceLine!=null ? forceLine%sc.lines.length : xrPick(f.date+sc.id, sc.lines.length);
-      var text=sc.lines[k].replace(/\{(\w+)\}/g,function(_,v){
-        return ({d:xrWord(f.D), t:xrWord(f.T), s0:xrWord(f.s0), s:xrWord(x.s), m:xrWord(x.missed),
-                 start:f.start, rune:x.rune, end:x.end, startBy:x.startBy})[v];
-      });
-      text=text.charAt(0).toUpperCase()+text.slice(1);
-      return {id:sc.id, tone:sc.tone, line:k, text:text, read:x};
-    }
-  }
+  var XERON_REACT={
+    dep:["A breach, logged. Thank you for the truth; now close the gate.",
+         "Recorded. Honesty is the first defence. Bind Aeshma next.",
+         "Marked. Don't let one become two.",
+         "I saw it. Stand up; the next window is coming.",
+         "A fall, written down. That takes courage too.",
+         "Logged. Drink water, step outside, change the room.",
+         "It counts. So does what you do in the next hour.",
+         "Noted. The daughters close ranks."],
+    thr:["A threshold, logged. You stopped. Good.",
+         "Close, but no breach. That's the job.",
+         "You turned back. I saw it.",
+         "Marked as a threshold. Now get away from the edge.",
+         "Logged. Every turn back makes the next one easier.",
+         "The line held. Leave the place that brought you there.",
+         "A near thing. Breathe, and move.",
+         "Recorded. Persistence, in action."],
+    undo:["Corrected.","Fixed. Keep the record honest.","Adjusted.","Record amended.","Changed. Accuracy is discipline too.","Noted, and corrected."],
+    bind_start:["Binding {rune}. Thirteen minutes. Go.",
+         "Chains on. Hold him.",
+         "Good. Start strong, finish stronger.",
+         "The binding begins. Keep your eyes on it.",
+         "{rune} is being bound. I'm watching.",
+         "He'll fight it. Let him.",
+         "Thirteen minutes, start to finish.",
+         "That's it. Bind him."],
+    bind_pause:["Paused? Don't leave him half-bound.",
+         "Hold position, but come back fast.",
+         "A pause, not a retreat.",
+         "Resume before the window closes at {end}.",
+         "He's straining at a half-tied chain. Finish it.",
+         "Paused. The daughters are holding the slack for you."],
+    bound:["{brune} is bound. Well done.",
+         "Aeshma is chained for {brune}. Good.",
+         "Bound. One more window held.",
+         "That's {b} today.",
+         "Chained. The daughters breathe easier.",
+         "Done. He's quiet, for now.",
+         "Thirteen minutes, held. Excellent.",
+         "{brune}, sealed. On to the next."],
+    bind_reset:["Reset. Start again when you're ready.","Cleared. The window is still open.","Fine. Begin again, properly.","Reset. Don't wait too long."]
+  };
+  var XERON_OPEN={
+    phase:{
+      night:["Night watch, {time}.","{time}. His hours.","Past midnight.","The dead hours."],
+      dawn:["First light.","Dawn on the ramparts.","{time}. Dawn.","Morning's coming."],
+      morning:["Morning, {weekday}.","{time}. Morning watch.","Morning.","{weekday} morning."],
+      noon:["Noon.","Midday, {holder}'s quarter.","{time}. Midday.","High noon on the wall."],
+      afternoon:["Afternoon watch.","{time}.","{holder} holds the hour.","Afternoon, {weekday}."],
+      evening:["Evening.","{time}. The light's going.","Evening watch.","Dusk on the ramparts."],
+      late:["{time}. Last watch.","Late.","Night is close.","{time}, and the day is nearly done."]},
+    cal:{
+      first:["Cluster {cluster}, day one.","Day one of eight. New cluster, clean slate.","Cluster {cluster} begins today."],
+      last:["Final day of Cluster {cluster}.","Day eight. The cluster closes tonight.","Last day of the cluster."],
+      cycleStart:["Second cycle, day one.","Day five: the second cycle begins.","Halfway. The second cycle opens."],
+      cycleEnd:["Last day of the first cycle.","Day four: the first cycle closes tonight.","End of the first cycle."],
+      mid:["Day {day} of eight.","Cluster {cluster}, day {day}.","{leftd} left in this cluster.","Cycle {cyc}, day {cday}."],
+      past:["{pastc} behind us.","Cluster {cluster}, with {pastc} already fought.","After {pastc}, you know the drill."]}
+  };
+  var XERON_SPEC={
+    says:XERON_SAYS, open:XERON_OPEN, read:xeronRead,
+    tokens:function(f,x,ev){
+      return {d:xrWord(f.D), t:xrWord(f.T), s0:xrWord(f.s0), s:xrWord(x.s), m:xrWord(x.missed), b:xrWord(x.boundN),
+              start:f.start, rune:x.rune, end:x.end, startBy:x.startBy,
+              brune: ev.detail && ev.detail.q!=null ? XR_RUNE[ev.detail.q] : x.rune};
+    },
+    react:function(f,x,ev){ return XERON_REACT[ev.kind]; }
+  };
+  function xeronSpeaks(f, forceLine, ev){ return voiceSay(XERON_SPEC, f, ev, forceLine); }
 
-  /* the facts the Voice needs, read from the record */
   function qartaqFacts(){
     var today=dayKey(), d=new Date(), y=keyAdd(today,-1), yr=past(y);
     var s0=0, k=y;
@@ -2268,7 +2472,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     setText(whoId,who);
     el.classList.remove("in"); void el.offsetWidth; el.classList.add("in");
   }
-  function renderQartaq(){ speak("qSay","qWho",XR_SPEAKER,xeronSpeaks(qartaqFacts()).text); }
+  function renderQartaq(){ speak("qSay","qWho",XR_SPEAKER,xeronSpeaks(withCtx(qartaqFacts()),null,VOICE_EV.xeron).text); }
 
   /* ---------- Voice of Ebabbar ---------- */
   /* ---------- Voice of Ebabbar: Arurael speaks ----------
@@ -2314,7 +2518,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
 
   var ARURAEL_SAYS=[
-    {id:"locked", tone:"quiet", when:function(f){ return f.locked; }, lines:[
+    {id:"locked", tone:"quiet", bare:true, when:function(f){ return f.locked; }, lines:[
       "Nothing is measured before the cluster begins. On {start}, the Ahtuxasai begin counting.",
       "Until {start}, I only observe. Then we learn together.",
       "The record opens on {start}. Use today to decide what you want to understand.",
@@ -2323,6 +2527,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Rest the mind until {start}. Curiosity keeps.",
       "The Eye is open, but the record is closed until {start}.",
       "Prepare the question tonight; answer it from {start}."]},
+
+    {id:"night_study", tone:"advice", bare:true, when:function(f){ return f.ctx.phase==="night" && !!f.running; }, lines:[
+      "Studying at {time}? Admirable, and unwise. Finish, then sleep.",
+      "A division past midnight. Make it the last one.",
+      "Curiosity at night is still curiosity. Keep it short.",
+      "I see the lamp lit at {time}. Finish, then rest.",
+      "Late work counts for tomorrow's record. Sleep soon after.",
+      "The night shift. Focus, then close the books.",
+      "Water runs clearer by day. Wrap this up.",
+      "One division, then bed."]},
 
     {id:"running", tone:"focus", when:function(f){ return !!f.running; }, lines:[
       "{div} is under way. Stay with it until the water settles.",
@@ -2333,6 +2547,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "One division at a time. This one is {div}.",
       "While {div} runs, the rest of the world can wait.",
       "{div} is the only question right now."]},
+
+    {id:"night", tone:"quiet", bare:true, when:function(f){ return f.ctx.phase==="night"; }, lines:[
+      "It's {time}. Even knowledge needs sleep to settle.",
+      "Past midnight. The mind files what it learned only while you sleep.",
+      "Night. Close the books; the water needs to settle.",
+      "The Ahtuxasai rest at this hour. So should you.",
+      "Late questions keep. Sleep, and ask them in daylight.",
+      "Night. Nothing learned now will stay; rest.",
+      "The Eye sees you awake. Sleep is part of the work.",
+      "Dark hours. Let the day's knowledge sink in."]},
 
     {id:"run_15", tone:"inspiration", when:function(f,x){ return x.run>=15 && x.run%15===0; }, lines:[
       "{r} full days. Fifteen stars in Aquarius, and you've lit every one.",
@@ -2414,6 +2638,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Xeron's realm isn't mine to judge, but I see what the empty day invited.",
       "Work is a lamp. Without it, the dark had room today."]},
 
+    {id:"last_day", tone:"order", when:function(f,x){ var c=f.ctx; return c.started && c.day===c.of && !x.full && f.min>=12*60; }, lines:[
+      "Last day of Cluster {cluster}. Every division counts double in memory.",
+      "The cluster closes tonight. Finish strong.",
+      "Final day. Leave the record better than you found it.",
+      "Day eight. What do you want this cluster to say about you?",
+      "Last chance in Cluster {cluster}. Use it.",
+      "Tonight the Ahtuxasai close the cluster's books.",
+      "The final day. Measure carefully, finish completely.",
+      "End the cluster with a full day."]},
+
     {id:"evening_empty", tone:"criticism", when:function(f,x){ return f.min>=18*60 && x.score<30; }, lines:[
       "The day is nearly spent and little was learned. What took it?",
       "Evening, and the divisions are mostly empty. One is still possible.",
@@ -2433,6 +2667,26 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Waiting for you: {left}.",
       "One more push: {left}.",
       "Close the gaps tonight: {left}."]},
+
+    {id:"work_no_study", tone:"advice", when:function(f){ return f.W>=5 && f.E+f.S+f.L===0 && f.min>=15*60; }, lines:[
+      "Plenty of work, no study. Knowledge feeds the work; don't starve it.",
+      "{w} work slots and not one division. Make room for learning.",
+      "The hands were busy; the mind waited. Give it ten minutes of English.",
+      "Work without study repeats itself. Learn something today.",
+      "You executed well. Now understand something new.",
+      "Work done, study empty. Balance them.",
+      "The work is real. So is the gap in your study.",
+      "Busy hands, idle mind. Fix the second."]},
+
+    {id:"extra_first", tone:"advice", when:function(f){ return f.X>=2 && f.W<8 && f.min>=15*60; }, lines:[
+      "Extra before duty? Fill the work slots first.",
+      "Extra counts, but the duty comes first.",
+      "You're past the measure in one place and short in another. Order it.",
+      "The extra is welcome. The missing work slots are still owed.",
+      "Ambition, good. Order, better: duty first.",
+      "Extra is a surplus. Don't build it on a deficit.",
+      "Fill the work slots, then go beyond them.",
+      "Generous, but uneven. Close the duty first."]},
 
     {id:"work_light", tone:"advice", when:function(f,x){ return x.study && f.W<4 && f.min>=16*60; }, lines:[
       "Study complete, work light. Knowledge needs a place to land.",
@@ -2464,7 +2718,17 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Clear progress. Don't let the last part slip.",
       "A good day taking shape."]},
 
-    {id:"morning", tone:"quiet", when:function(f){ return f.min<10*60; }, lines:[
+    {id:"halfway", tone:"encouragement", when:function(f,x){ return x.score>=40 && f.min>=12*60 && f.min<18*60; }, lines:[
+      "About halfway. The afternoon decides the rest.",
+      "Half the measure is in. Keep the current flowing.",
+      "Halfway there. What's next on your list?",
+      "Half done. Good enough is not done.",
+      "The day is half measured. Finish the other half.",
+      "Midway. The hardest division is usually the next one.",
+      "Half full. Fill it.",
+      "Halfway. Keep the method."]},
+
+    {id:"morning", tone:"quiet", bare:true, when:function(f){ return f.min>=5*60 && f.min<11*60; }, lines:[
       "Morning. Start with the smallest division; momentum follows.",
       "A clear mind in the morning. Spend it on Execution & Science.",
       "The day is unwritten. What do you want to understand by tonight?",
@@ -2497,21 +2761,77 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   function arPick(seed,n){ var h=0; for(var i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0; return h%n; }
 
-  function aruraelSpeaks(f, forceLine){
-    var x=aruraelRead(f);
-    for(var i=0;i<ARURAEL_SAYS.length;i++){
-      var sc=ARURAEL_SAYS[i];
-      if(!sc.when(f,x)) continue;
-      var k = forceLine!=null ? forceLine%sc.lines.length : arPick(f.date+sc.id, sc.lines.length);
-      var text=sc.lines[k].replace(/\{(\w+)\}/g,function(_,v){
-        return ({start:f.start, div:f.running, r:arWord(x.run), x:arWord(f.X), w:arWord(f.W), left:x.left})[v];
-      });
-      text=text.charAt(0).toUpperCase()+text.slice(1);
-      return {id:sc.id, tone:sc.tone, line:k, text:text, read:x};
+  var ARURAEL_REACT={
+    div_start:["{div} begins. Attention narrow, water still.",
+         "Starting {div}. I'm curious what you'll find.",
+         "Good. {div}, from the first minute.",
+         "The clock runs for {div}. So does your focus.",
+         "Begin. Questions first, answers after.",
+         "{div}: go.",
+         "A division starts. Let nothing else in.",
+         "Open the book. {div} is running."],
+    div_pause:["Paused. Note where you stopped.",
+         "A pause. Come back while the thought is warm.",
+         "Stopped mid-division. Resume soon.",
+         "Pause noted. The water is still moving.",
+         "Breathe, then return to {div}.",
+         "Half a division is still a question left open."],
+    div_done:["{div}, sealed. Good.",
+         "Division done. What did you learn?",
+         "Complete. The Ahtuxasai record it.",
+         "{div} finished. Clear water.",
+         "Sealed. Another light is on.",
+         "Done. Rest your eyes a minute.",
+         "That's one more. The day is filling.",
+         "Finished cleanly. Next?"],
+    div_reset:["Reset. Start fresh.","Cleared. Begin when ready.","A clean slate for {div}.","Reset. No harm done."],
+    work:["Work slot {w} of eight.",
+         "Another slot. Knowledge, applied.",
+         "Logged. Work is how learning proves itself.",
+         "{w} of eight. Steady.",
+         "Good. Keep the hands busy.",
+         "Work marked. Keep going.",
+         "One more slot filled.",
+         "{w} slots. The day is taking shape."],
+    work_full:["All eight work slots. Duty done.","Eight of eight. The work is complete.","Work, full. Anything more is surplus.","The duty is filled. Well executed."],
+    extra:["Extra, beyond duty. That's curiosity talking.",
+         "An extra slot. The light spreads further.",
+         "{x} extra. Generous.",
+         "Surplus logged. Don't burn out.",
+         "Beyond the measure. Good.",
+         "Extra counted. It fills what's missing, if anything is."],
+    undo:["Corrected.","Adjusted. Keep the record exact.","Fixed. Accuracy matters.","Record amended."]
+  };
+  var ARURAEL_OPEN={
+    phase:{
+      night:["{time}.","Night, {time}.","Past midnight.","Dark hours."],
+      dawn:["First light.","{time}, early.","Dawn. Clear water.","Early."],
+      morning:["Good morning.","{weekday} morning.","{time}.","Morning light."],
+      noon:["Noon.","Midday. The sun is highest.","{time}, midday.","Noon, {weekday}."],
+      afternoon:["Afternoon.","{time}.","{holder} holds the hour.","The afternoon light."],
+      evening:["Evening.","{time}. The light lowers.","Dusk.","Evening, {weekday}."],
+      late:["{time}, late.","Late.","The day is closing.","Nearly midnight."]},
+    cal:{
+      first:["Cluster {cluster} begins. A clean page.","Day one of eight.","A new cluster. What will you learn in it?"],
+      last:["The last day of Cluster {cluster}.","Day eight of eight.","The cluster closes tonight."],
+      cycleStart:["Day five: the second cycle.","The second cycle begins.","Halfway through the cluster."],
+      cycleEnd:["Day four: the first cycle ends tonight.","The first cycle closes today.","End of the first cycle."],
+      mid:["Day {day} of eight.","Cluster {cluster}, day {day}.","{leftd} left in the cluster.","Cycle {cyc}, day {cday}."],
+      past:["{pastc} measured so far.","After {pastc}, the evidence accumulates.","Cluster {cluster}, with {pastc} behind it."]}
+  };
+  var ARURAEL_SPEC={
+    says:ARURAEL_SAYS, open:ARURAEL_OPEN, read:aruraelRead,
+    tokens:function(f,x,ev){
+      return {start:f.start, div:(ev.detail && ev.detail.div) || f.running || "the division",
+              r:arWord(x.run), x:arWord(f.X), w:arWord(f.W), left:x.left};
+    },
+    react:function(f,x,ev){
+      if(ev.kind==="work" && f.W>=8) return ARURAEL_REACT.work_full;
+      return ARURAEL_REACT[ev.kind];
     }
-  }
+  };
+  function aruraelSpeaks(f, forceLine, ev){ return voiceSay(ARURAEL_SPEC, f, ev, forceLine); }
 
-  /* full-day runs and yesterday, read the same way for Arurael and Xenlil */
   function runBefore(isFull){
     var today=dayKey(), run0=0, k=keyAdd(today,-1);
     for(var n=0;n<3660;n++){ var r=past(k); if(!r || (k<CL_START && isBlank(r)) || !isFull(k,r)) break; run0++; k=keyAdd(k,-1); }
@@ -2543,7 +2863,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       run0: runs.run0, best: runs.best, D: deps(state.day.xr), bedLast: sl.bedLast, awake: sl.awake
     };
   }
-  function renderEbabbar(){ speak("eSay","eWho",AR_SPEAKER,aruraelSpeaks(ebabbarFacts()).text); }
+  function renderEbabbar(){ speak("eSay","eWho",AR_SPEAKER,aruraelSpeaks(withCtx(ebabbarFacts()),null,VOICE_EV.arurael).text); }
 
   /* ---------- Voice of Irkalla ---------- */
   /* ---------- Voice of Irkalla: Arexia speaks ----------
@@ -2585,7 +2905,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
 
   var AREXIA_SAYS=[
-    {id:"locked", tone:"cold", when:function(f){ return f.locked; }, lines:[
+    {id:"locked", tone:"cold", bare:true, when:function(f){ return f.locked; }, lines:[
       "Nothing is observed before {start}. Wait.",
       "The rites begin on {start}. Not before.",
       "Irkalla does not count today. On {start}, it counts everything.",
@@ -2595,7 +2915,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "No rite today. On {start}, every rite.",
       "Rest. On {start}, I will be watching."]},
 
-    {id:"nature", tone:"cold", when:function(f){ return f.nature; }, lines:[
+    {id:"nature", tone:"cold", bare:true, when:function(f){ return f.nature; }, lines:[
       "Nature holds the day. I accept it.",
       "The whole day is given. Nothing more is asked.",
       "Nature. The rites are covered. Do not make it a habit.",
@@ -2695,15 +3015,55 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "{n} abandoned. The dust is patient. I am not.",
       "{n}. Correct it."]},
 
+    {id:"midnight_rite", tone:"command", bare:true, when:function(f,x){ return x.q===0 && x.open; }, lines:[
+      "The dead hour. {rune} is open. Observe it in the dark.",
+      "Midnight's rite: {rune}. The Cerpenin chant at this hour.",
+      "{time}. The first rite of the day belongs to me. Observe it.",
+      "Night. {rune} waits until 03:00.",
+      "The first rite is the coldest. Observe it.",
+      "In the dark, {rune}. Then sleep.",
+      "The day begins in the Underworld. Seal {rune}.",
+      "{rune} is open. The night is listening."]},
+
+    {id:"last_rite", tone:"command", when:function(f,x){ return x.q===7 && x.open; }, lines:[
+      "The last rite of the day: {rune}. Close the day properly.",
+      "{rune}. The final observance before midnight.",
+      "One rite remains. Do not end the day with an abandonment.",
+      "The day's last rite is open until midnight.",
+      "Close the cycle of the day: {rune}.",
+      "The final rite. The pledge ends the day as it began.",
+      "{rune}, and then the day is judged.",
+      "The last observance. Make it count."]},
+
     {id:"open_now", tone:"command", when:function(f,x){ return x.open; }, lines:[
       "{rune} is open until {end}. Observe it.",
       "The rite of {rune} stands open. Seal it.",
-      "{rune} is waiting. Do not keep it waiting long.",
+      "The hour is {holder}'s. Observe {rune}.",
       "{rune}, until {end}.",
-      "The window of {rune} is open. You know what to do.",
+      "{holder} holds the hour. Seal {rune}.",
       "Observe {rune}.",
       "{rune}. The Cerpenin are already chanting.",
       "{rune} is open. Aim, attention, rite."]},
+
+    {id:"first_day", tone:"cold", when:function(f,x){ var c=f.ctx; return c.started && c.day===1 && x.n===0 && !x.open; }, lines:[
+      "A new cluster. The pledge begins again.",
+      "Day one. Every rite, from the first.",
+      "Cluster {cluster} begins. I am counting from now.",
+      "The old cycle is dead. Observe the new one.",
+      "Day one of eight. Start as you will end.",
+      "A fresh cycle. Do not let it decay.",
+      "Cluster {cluster}, first day. The Cerpenin begin their chant.",
+      "New cluster, same rites."]},
+
+    {id:"last_day", tone:"judgment", when:function(f,x){ var c=f.ctx; return c.started && c.day===c.of && x.n===0 && !x.open && f.min>=12*60; }, lines:[
+      "The last day of Cluster {cluster}. Every rite, to the end.",
+      "Day eight. The cluster dies at midnight; let it die observed.",
+      "The cluster ends tonight. I will judge it whole.",
+      "The final day. Abandon nothing.",
+      "Cluster {cluster} closes. Its record goes to Irkalla.",
+      "The last day. Observance to the last hour.",
+      "Cycles end. This one ends tonight. Properly.",
+      "The final day of the cluster. Keep the pledge."]},
 
     {id:"lapsed_one", tone:"cold", when:function(f,x){ return x.n===1; }, lines:[
       "{miss} was missed. I noticed.",
@@ -2724,6 +3084,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Observance restored. I will hold you to it.",
       "A poor yesterday, a kept today. The cycle continues.",
       "Return accepted."]},
+
+    {id:"half_kept", tone:"cold", when:function(f,x){ return x.n===0 && x.k>=4 && x.q>=4 && x.k<8; }, lines:[
+      "Half the day's rites, all kept. The second half is not optional.",
+      "{k} kept, none abandoned. Continue exactly so.",
+      "The morning rites are sealed. The evening ones are watching.",
+      "Half observed. I expect the other half.",
+      "No abandonment yet today. Keep it that way.",
+      "{k} of eight. All in their hour.",
+      "The rhythm is intact past midday.",
+      "Halfway, and clean. Continue."]},
 
     {id:"all_so_far", tone:"cold", when:function(f,x){ return x.n===0 && x.k>=2; }, lines:[
       "Every rite so far observed. Continue.",
@@ -2748,19 +3118,42 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   function axPick(seed,n){ var h=0; for(var i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0; return h%n; }
 
-  function arexiaSpeaks(f, forceLine){
-    var x=arexiaRead(f);
-    for(var i=0;i<AREXIA_SAYS.length;i++){
-      var sc=AREXIA_SAYS[i];
-      if(!sc.when(f,x)) continue;
-      var k = forceLine!=null ? forceLine%sc.lines.length : axPick(f.date+sc.id, sc.lines.length);
-      var text=sc.lines[k].replace(/\{(\w+)\}/g,function(_,v){
-        return ({start:f.start, rune:x.rune, end:x.end, n:axWord(x.n), r:axWord(x.run), k:axWord(x.k), miss:x.miss})[v];
-      });
-      text=text.charAt(0).toUpperCase()+text.slice(1);
-      return {id:sc.id, tone:sc.tone, line:k, text:text, read:x};
+  var AREXIA_REACT={
+    rite:["{brune}. Observed.","Sealed. As it should be.","{brune}, in its hour. Good.","Observed. I noted it.","The rite is kept.","{brune}. The pledge holds.","Sealed. Continue.","Accepted."],
+    rite_all:["Eight of eight. Complete.","The last seal. The day is kept.","All rites observed. You may rest.","Complete. Irkalla is quiet."],
+    unrite:["Unsealed. Why?","You unsealed a rite. I noticed.","Withdrawn. Explain it to yourself.","Unsealed. Do not play with the rites."],
+    nature:["Nature holds the day. Accepted.","The whole day, surrendered. So be it.","Nature. Noted.","Given to Nature. Do not make it a habit."],
+    unnature:["Nature withdrawn. Observe the rites yourself.","Taken back. Then keep them.","No Nature. Every rite is yours again.","Withdrawn. The rites are owed."]
+  };
+  var AREXIA_OPEN={
+    phase:{
+      night:["{time}. The dead hour.","Night.","The Underworld hour.","{time}."],
+      dawn:["Dawn.","{time}.","Cold light.","Early."],
+      morning:["Morning.","{weekday}.","{time}.","The day is open."],
+      noon:["Noon.","Midday.","{time}.","Noon. Nothing hides now."],
+      afternoon:["Afternoon.","{time}.","{holder} holds the hour.","The day turns."],
+      evening:["Evening.","{time}.","Dusk.","The light dies."],
+      late:["{time}.","Late.","The day is ending.","Near midnight."]},
+    cal:{
+      first:["Cluster {cluster}. Day one.","A new cluster begins.","Day one of eight."],
+      last:["Day eight. The cluster ends tonight.","The final day of Cluster {cluster}.","The last day."],
+      cycleStart:["Day five. The second cycle.","The second cycle.","Halfway."],
+      cycleEnd:["Day four. The first cycle dies tonight.","The first cycle ends.","Day four of eight."],
+      mid:["Day {day} of eight.","Cluster {cluster}. Day {day}.","{leftd} remain.","Cycle {cyc}. Day {cday}."],
+      past:["{pastc} judged.","{pastc} already in Irkalla.","Cluster {cluster}. {pastc} behind."]}
+  };
+  var AREXIA_SPEC={
+    says:AREXIA_SAYS, open:AREXIA_OPEN, read:arexiaRead,
+    tokens:function(f,x,ev){
+      return {start:f.start, rune:x.rune, end:x.end, n:axWord(x.n), r:axWord(x.run), k:axWord(x.k), miss:x.miss,
+              brune: ev.detail && ev.detail.q!=null ? AX_RUNE[ev.detail.q] : x.rune};
+    },
+    react:function(f,x,ev){
+      if(ev.kind==="rite" && x.k===8) return AREXIA_REACT.rite_all;
+      return AREXIA_REACT[ev.kind];
     }
-  }
+  };
+  function arexiaSpeaks(f, forceLine, ev){ return voiceSay(AREXIA_SPEC, f, ev, forceLine); }
 
   function irkallaFacts(){
     var today=dayKey(), d=new Date(), m=d.getHours()*60+d.getMinutes(), c=state.day.checks||{};
@@ -2775,7 +3168,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       bedLast: sl.bedLast, awake: sl.awake
     };
   }
-  function renderIrkalla(){ speak("iSay","iWho",AX_SPEAKER,arexiaSpeaks(irkallaFacts()).text); }
+  function renderIrkalla(){ speak("iSay","iWho",AX_SPEAKER,arexiaSpeaks(withCtx(irkallaFacts()),null,VOICE_EV.arexia).text); }
 
   /* ---------- Voice of Ugarit ---------- */
   /* ---------- Voice of Ugarit: Xenlil speaks ----------
@@ -2848,7 +3241,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
 
   var XENLIL_SAYS=[
-    {id:"locked", tone:"quiet", when:function(f){ return f.locked; }, lines:[
+    {id:"locked", tone:"quiet", bare:true, when:function(f){ return f.locked; }, lines:[
       "The law begins on {start}. Until then, nothing is recorded.",
       "No order is kept before the cluster opens. Be ready on {start}.",
       "The Fedaykin wait for {start}. So does the record.",
@@ -2867,6 +3260,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Hold steady. Slackness ends here.",
       "Core running. Finish it without a single shortcut.",
       "Stay in it. Strength is discipline, repeated."]},
+
+    {id:"night", tone:"order", bare:true, when:function(f){ return f.ctx.phase==="night"; }, lines:[
+      "Past midnight. The law says sleep; obey it.",
+      "{time}. The Fedaykin are asleep. Join them.",
+      "Night. Tomorrow's order is decided by tonight's sleep.",
+      "The realm sleeps. Its king insists you do too.",
+      "Nothing good is built at {time}. Bed.",
+      "Night is for rest. The day will need you whole.",
+      "Sleep now, and rise at eight.",
+      "The wind has stilled. Lie down."]},
 
     {id:"run_18", tone:"inspiration", when:function(f,x){ return x.run>=18 && x.run%18===0; }, lines:[
       "{r} kingly days. Eighteen stars in Taurus, and every one is yours.",
@@ -2968,6 +3371,26 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Order slipped {n} times. Not a collapse, but close.",
       "{n} things undone. Courage now: finish what's left."]},
 
+    {id:"dawn", tone:"quiet", bare:true, when:function(f){ return f.min>=5*60 && f.min<8*60 && !f.wake; }, lines:[
+      "Dawn. The waking hour opens at eight.",
+      "Early. Rest a little longer, or rise and begin.",
+      "First light. Prepare the day before it starts.",
+      "Dawn over Ugarit. Eight o'clock is the law.",
+      "Early hours. Water first, when you rise.",
+      "The day is coming. Be ready at eight.",
+      "Before eight. The realm is quiet.",
+      "Dawn. Plan the day; then execute it."]},
+
+    {id:"wake_window", tone:"order", when:function(f){ return f.min>=8*60 && f.min<=9*60 && !f.wake; }, lines:[
+      "The waking hour is open until 09:00. Rise and mark it.",
+      "Eight o'clock. Up.",
+      "Awake? Then prove it: tick it before nine.",
+      "The morning law: rise by nine.",
+      "Rise. The Fedaykin are already in formation.",
+      "The waking window is open. Don't let it close on you.",
+      "Up, water, move.",
+      "Get up. The day doesn't wait."]},
+
     {id:"woke_late", tone:"advice", when:function(f){ return !f.wake && f.min>9*60 && f.min<12*60; }, lines:[
       "You missed the waking hour. Late rising makes a late day.",
       "Awake after nine. Start anyway, and start hard.",
@@ -3028,6 +3451,36 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "{gym} awaits. Ride out.",
       "Today: {gym}. Make it count."]},
 
+    {id:"woke_well", tone:"praise", when:function(f,x){ return f.wake && f.min>=8*60 && f.min<10*60 && x.n===0; }, lines:[
+      "Up on time. The day starts in order.",
+      "Awake by the law. Good.",
+      "You rose on time. Now drink.",
+      "A disciplined start. Keep it.",
+      "On time. That's the first victory.",
+      "Risen. The realm is in motion.",
+      "Morning kept. Next: water.",
+      "The day begins correctly."]},
+
+    {id:"gym_done", tone:"praise", when:function(f,x){ return f.gymDue && f.gym && f.min>=12*60 && f.min<18*60 && x.n===0; }, lines:[
+      "{gym}, done. The body is answered.",
+      "Training complete. Good.",
+      "Gym kept. That's the heaviest law of the day.",
+      "{gym} is in the record. Recover well.",
+      "Session done. Eat, drink, rest.",
+      "You trained. The Fedaykin approve.",
+      "Done. Now don't waste it with a bad night.",
+      "{gym}, handled. Strength is order."]},
+
+    {id:"last_day", tone:"order", when:function(f,x){ var c=f.ctx; return c.started && c.day===c.of && x.n===0 && f.min>=12*60; }, lines:[
+      "Last day of Cluster {cluster}. Close it in order.",
+      "The cluster ends tonight. Keep every law.",
+      "Day eight. Finish this cluster the way you'd start the next.",
+      "Final day. The record is sealed at midnight.",
+      "Cluster {cluster} closes tonight. No slack at the finish.",
+      "The last day decides how this cluster is remembered.",
+      "End Cluster {cluster} strong.",
+      "Final day. Order to the end."]},
+
     {id:"comeback", tone:"encouragement", when:function(f,x){ return f.yScore!==null && f.yScore<50 && x.n===0 && f.min>=15*60; }, lines:[
       "Yesterday was slack; today is in order. That's the law, restored.",
       "You came back. That's courage, not luck.",
@@ -3037,6 +3490,26 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "You fixed it in a day. That's discipline.",
       "From slack to order overnight. I'm satisfied.",
       "The law bends but doesn't break. You proved it today."]},
+
+    {id:"water_ahead", tone:"praise", when:function(f,x){ var due=14*(f.min-8*60)/(14*60); return f.min>=13*60 && f.water<14 && f.water>=due+2 && x.n===0; }, lines:[
+      "Water ahead of pace: {w}. Good.",
+      "{w} already. Ahead of the day.",
+      "Water's on pace. Keep the glass close.",
+      "Good hydration: {w}.",
+      "You're ahead on water. Finish the fourteen.",
+      "{w} by now. The body thanks you.",
+      "Well watered. Keep going.",
+      "Ahead of schedule on water. Good discipline."]},
+
+    {id:"rest_day", tone:"quiet", when:function(f,x){ return !f.gymDue && f.min>=14*60 && f.min<18*60 && x.n===0; }, lines:[
+      "No training today. Rest is part of the law.",
+      "A rest day. Recover, don't drift.",
+      "The body rests today. Keep the rest of the law.",
+      "Rest day. Water, sleep, care: still owed.",
+      "No gym today. Spend the energy on order elsewhere.",
+      "Recovery day. Respect it.",
+      "The body rests; the discipline doesn't.",
+      "Rest well. The next session is coming."]},
 
     {id:"on_track", tone:"encouragement", when:function(f,x){ return x.n===0 && f.min>=15*60; }, lines:[
       "Everything due so far is done. Keep riding.",
@@ -3058,7 +3531,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "The body's audit is due. Seal it.",
       "A ruler inspects the realm. Inspect yours: book the checkup."]},
 
-    {id:"morning", tone:"quiet", when:function(f){ return f.min<10*60; }, lines:[
+    {id:"morning", tone:"quiet", bare:true, when:function(f){ return f.min>=5*60 && f.min<11*60; }, lines:[
       "Morning. Set the order of the day before it sets you.",
       "Rise, drink, move. The law is simple.",
       "A new day in the realm. Begin with water.",
@@ -3081,20 +3554,51 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   function xlPick(seed,n){ var h=0; for(var i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0; return h%n; }
 
-  function xenlilSpeaks(f, forceLine){
-    var x=xenlilRead(f);
-    for(var i=0;i<XENLIL_SAYS.length;i++){
-      var sc=XENLIL_SAYS[i];
-      if(!sc.when(f,x)) continue;
-      var k = forceLine!=null ? forceLine%sc.lines.length : xlPick(f.date+sc.id, sc.lines.length);
-      var text=sc.lines[k].replace(/\{(\w+)\}/g,function(_,v){
-        return ({start:f.start, r:xlWord(x.run), n:xlWord(x.n), w:f.water+"/14", gym:f.gymName,
-                 maint:f.maintName, supp:x.supp})[v];
-      });
-      text=text.charAt(0).toUpperCase()+text.slice(1);
-      return {id:sc.id, tone:sc.tone, line:k, text:text, read:x};
+  var XENLIL_REACT={
+    water:["{w}. Keep drinking.","A glass. Good.","Water: {w}.","Drink logged.","{w} so far. Steady.","Another one. The body thanks you.","Good. Keep a glass within reach.","{w}. Small, steady, often."],
+    water_full:["Fourteen. Water complete.","All fourteen. The law of water is kept.","Full. Well done.","Fourteen of fourteen. Exactly."],
+    gym:["{gym}, logged. Strong.","Training done. Respect.","The body is answered. Good work.","Logged. Now eat and recover.","That's the hardest law of the day, kept.","Gym, done. The Fedaykin would nod."],
+    habit:["{habit}, done.","{habit}. Kept.","Logged: {habit}. Good.","{habit}. Order, one item at a time.","Kept. Next.","{habit}, marked. The realm tightens."],
+    bed:["To bed, logged. Sleep now.","Good night. The law is kept.","Bed on time. Tomorrow starts well.","Lights out. Well done."],
+    wake:["Awake on time. Good.","Risen. Drink water.","Up by the law. The day is yours.","Morning kept."],
+    seal:["{habit}, sealed. Health is order.","Sealed for months. Well done.","A checkup kept. The realm is inspected.","Sealed. That took courage."],
+    core_start:["Core: begin. Hold the form.","Six minutes. Go.","Core started. No shortcuts.","Hold steady."],
+    core_done:["Core complete. Strong.","Done. Every hold, kept.","Core is in the record.","Finished. Discipline, repeated."],
+    undo:["Corrected.","Adjusted.","Fixed. Keep it exact.","Amended."]
+  };
+  var XENLIL_OPEN={
+    phase:{
+      night:["{time}.","Midnight in Ugarit.","Past midnight.","Night."],
+      dawn:["Dawn.","{time}, early.","First light over Ugarit.","Early."],
+      morning:["Morning.","{weekday} morning.","{time}.","Morning in the realm."],
+      noon:["Noon.","Midday.","{time}, midday.","Noon, {weekday}."],
+      afternoon:["Afternoon.","{time}.","{holder} holds the hour.","The afternoon march."],
+      evening:["Evening.","{time}.","Dusk over Ugarit.","Evening, {weekday}."],
+      late:["{time}.","Late.","The day is closing.","Nearly midnight."]},
+    cal:{
+      first:["Cluster {cluster}, day one. The banners go up.","Day one of eight.","A new cluster. Set the order now."],
+      last:["Final day of Cluster {cluster}.","Day eight of eight.","The cluster closes tonight."],
+      cycleStart:["Day five. The second cycle.","The second cycle begins.","Halfway through the cluster."],
+      cycleEnd:["Day four. The first cycle ends tonight.","The first cycle closes today.","End of the first cycle."],
+      mid:["Day {day} of eight.","Cluster {cluster}, day {day}.","{leftd} left in the cluster.","Cycle {cyc}, day {cday}."],
+      past:["{pastc} behind you.","Cluster {cluster}, with {pastc} already in the record.","{pastc} done. Keep the standard."]}
+  };
+  var XENLIL_SPEC={
+    says:XENLIL_SAYS, open:XENLIL_OPEN, read:xenlilRead,
+    tokens:function(f,x,ev){
+      return {start:f.start, r:xlWord(x.run), n:xlWord(x.n), w:f.water+"/14", gym:f.gymName,
+              maint:f.maintName, supp:x.supp, habit:(ev.detail && ev.detail.habit) || ""};
+    },
+    react:function(f,x,ev){
+      if(ev.kind==="water") return f.water>=14 ? XENLIL_REACT.water_full : XENLIL_REACT.water;
+      if(ev.kind==="habit" && ev.detail){
+        if(ev.detail.k==="bed") return XENLIL_REACT.bed;
+        if(ev.detail.k==="wake") return XENLIL_REACT.wake;
+      }
+      return XENLIL_REACT[ev.kind];
     }
-  }
+  };
+  function xenlilSpeaks(f, forceLine, ev){ return voiceSay(XENLIL_SPEC, f, ev, forceLine); }
 
   function ugaritFacts(){
     var today=dayKey(), d=new Date(), m=d.getHours()*60+d.getMinutes(), h=state.day.habits||{};
@@ -3115,7 +3619,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       run0: runs.run0, best: runs.best, arurael: DAY.arurael(today)||0, D: deps(state.day.xr)
     };
   }
-  function renderUgarit(){ speak("uSay","uWho",XL_SPEAKER,xenlilSpeaks(ugaritFacts()).text); }
+  function renderUgarit(){ speak("uSay","uWho",XL_SPEAKER,xenlilSpeaks(withCtx(ugaritFacts()),null,VOICE_EV.xenlil).text); }
 
   function renderXr(){
     var x=state.day.xr;
@@ -3219,7 +3723,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function aeClear(){ AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false); aePush(); }
   function aeToggle(){
     if(AET.run){                                         /* pause */
-      AET.left=Math.max(0, AET.endsAt-Date.now()); AET.run=false; aeSave(); awake(false); aePush(); renderAe(); return;
+      AET.left=Math.max(0, AET.endsAt-Date.now()); AET.run=false; aeSave(); awake(false); aePush(); voiceEvent("xeron","bind_pause"); renderAe(); renderQartaq(); return;
     }
     if(shut()) return;
     var i=aeOpen();
@@ -3232,9 +3736,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var left=aeLeft();
     if(Date.now()+left>aeClosesAt(i)){ fb("deny"); toast("Too little time is left before "+hm(i*180+AE_END)+"."); return; }
     audio();
-    AET.run=true; AET.endsAt=Date.now()+left; AET.left=null; aeSave(); awake(true); aePush(); renderAe();
+    AET.run=true; AET.endsAt=Date.now()+left; AET.left=null; aeSave(); awake(true); aePush(); voiceEvent("xeron","bind_start",{q:i}); renderAe(); renderQartaq();
   }
-  function aeReset(){ fb("off"); aeClear(); renderAe(); }
+  function aeReset(){ fb("off"); aeClear(); voiceEvent("xeron","bind_reset"); renderAe(); renderQartaq(); }
   /* take up what the phone did: paused, played, reset, finished, or cut off at the window's end */
   function aeSync(){
     var st=ntState(), s=st.ae, cl=st.cleared||{};
@@ -3255,7 +3759,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var i=AET.idx, day=dayKey(new Date(AET.endsAt-1));    /* one that ends on the stroke of midnight belongs to the day it ran in */
       rollover();
       var r=rec(day)||state.day; if(!Array.isArray(r.ae)) r.ae=blankAe();
-      r.ae[i]=true; save();
+      r.ae[i]=true; save(); voiceEvent("xeron","bound",{q:i});
       AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false);
       if(NT) ntSend({kind:"ae", op:"clear"}); else { sfx("done"); fb("done"); }
       toast("Aeshma is bound · "+RUNE[i]+".");
@@ -3472,16 +3976,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(ART.blk) arPause();
     audio();
     var left=arLeft(id);                 /* read before it counts as running */
-    ART.blk=id; ART.endsAt=Date.now()+left; arSave(); awake(true); arPush(id,true); renderAr();
+    ART.blk=id; ART.endsAt=Date.now()+left; arSave(); awake(true); arPush(id,true); voiceEvent("arurael","div_start",{div:arMission(id).name}); renderAr();
   }
   function arPause(){
     if(!ART.blk) return;
     var id=ART.blk;
-    ART.left[id]=Math.max(0, ART.endsAt-Date.now()); ART.blk=null; arSave(); awake(false); arPush(id,false); renderAr();
+    ART.left[id]=Math.max(0, ART.endsAt-Date.now()); ART.blk=null; arSave(); awake(false); arPush(id,false); voiceEvent("arurael","div_pause",{div:arMission(id).name}); renderAr();
   }
   function arReset(id){
     if(ART.blk===id){ ART.blk=null; awake(false); }
-    delete ART.left[id]; arSave();
+    delete ART.left[id]; arSave(); voiceEvent("arurael","div_reset",{div:arMission(id).name});
     if(NT){ var s=ntState().ar; if(s && s.id===id) ntSend({kind:"ar", op:"clear"}); }
     renderAr();
   }
@@ -3520,6 +4024,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       var r=rec(dayKey(new Date(ART.endsAt)))||state.day;
       if(!r.ar) r.ar=blankAr();
       if(r.ar[m.k]) r.ar[m.k][i]=true;
+      voiceEvent("arurael","div_done",{div:m.name});
       if(ART.date!==dayKey()) ART={date:dayKey(), blk:null, endsAt:0, left:{}};
       arSave(); save();
       if(NT) ntSend({kind:"ar", op:"clear"}); else { sfx("done"); fb("done"); }
@@ -3575,6 +4080,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
             if(shut()) return;
             var was=workN(state.day[row[0]]), now=(was===n+1) ? n : n+1;   /* like the water: fill up to here */
             state.day[row[0]]=workArr(now);
+            voiceEvent("arurael", now<was ? "undo" : row[0]);
             fb(now>was?"on":"off"); save(); renderAr();
           });
           wp.appendChild(b);
@@ -4102,7 +4608,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function toggleGym(n,ev){ if(ev) ev.stopPropagation();
     if(shut()) return;
     if(gymNo()!==n){ fb("deny"); toast(GYM_NAMES[n]+" is on "+["Mon","Wed","Thu"][n]+"."); return; }
-    state.day.gym=!state.day.gym; fb(state.day.gym?"on":"off"); save(); renderXen(); }
+    state.day.gym=!state.day.gym; voiceEvent("xenlil", state.day.gym ? "gym" : "undo"); fb(state.day.gym?"on":"off"); save(); renderXen(); }
   [0,1,2].forEach(function(n){
     var gr=document.getElementById("gymRow"+n);
     gr.addEventListener("click",function(ev){ toggleGym(n,ev); });
@@ -4150,7 +4656,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function toggleNature(ev){
     if(ev) ev.stopPropagation();
     if(shut()) return;
-    state.day.nature=!state.day.nature; fb(state.day.nature?"on":"off"); save(); render();
+    state.day.nature=!state.day.nature; voiceEvent("arexia", state.day.nature ? "nature" : "unnature"); fb(state.day.nature?"on":"off"); save(); render();
     if(state.day.nature) toast("Nature holds the whole day.");
   }
   document.getElementById("natRow").addEventListener("click",toggleNature);
