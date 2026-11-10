@@ -1,9 +1,11 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The app never touches the network. It may buzz, post notifications, wake at
-     set times to post them (also after a restart), and run its timers in the
-     background with sound while the phone is locked. -->
+<!-- The page itself never touches the network. The app may buzz, post notifications,
+     wake at set times to post them (also after a restart), run its timers in the
+     background with sound while the phone is locked, and, once the owner connects it,
+     sync the record with their own Google Drive (the app's hidden folder only). -->
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <uses-permission android:name="android.permission.INTERNET" />
     <uses-permission android:name="android.permission.VIBRATE" />
     <uses-permission android:name="android.permission.POST_NOTIFICATIONS" />
     <uses-permission android:name="android.permission.RECEIVE_BOOT_COMPLETED" />

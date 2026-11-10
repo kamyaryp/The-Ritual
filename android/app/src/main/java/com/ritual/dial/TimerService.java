@@ -420,27 +420,17 @@ public class TimerService extends Service {
 
     private Notification placeholder() {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, CH) : new Notification.Builder(this);
-        return b.setSmallIcon(R.drawable.ic_stat).setContentTitle("Golden Path").setContentText("Timer").build();
+        return b.setSmallIcon(R.drawable.ic_stat).setContentTitle("Golden Path").build();
     }
 
     /* ---------------- what the notification says ---------------- */
 
     private static String mmss(long s) { return String.format(java.util.Locale.US, "%d:%02d", s / 60, s % 60); }
 
-    /** {title, line} for a timer at this moment */
+    /** {title, line} for a timer at this moment: its name and the time left, nothing more */
     private String[] words(Slot s, long el) {
         long left = Math.max(0, (s.total - el + 999) / 1000);
-        if ("core".equals(s.kind)) {
-            double w = el / 1000.0;
-            double[] p = phase(w);
-            if (el == 0) return new String[]{"Core", "Ready · " + mmss(left)};
-            if (p[0] == 1) return new String[]{"Core · Change posture",
-                    "Type " + ((int) p[1] + 2) + " next · " + (int) Math.max(1, Math.ceil(p[3])) + " s"};
-            int i = (int) Math.min(59, Math.floor(p[2] / HOLD));
-            return new String[]{"Core · Type " + (i / 20 + 1) + " · Round " + ((i % 20) / 10 + 1),
-                    "Hold " + (i % 10 + 1) + "/10 · " + mmss(left) + " left"};
-        }
-        return new String[]{s.title, (s.sub.isEmpty() ? "" : s.sub + " · ") + mmss(left) + " left"};
+        return new String[]{"core".equals(s.kind) ? "Core" : s.title, mmss(left)};
     }
 
     private void show(Slot s) {
@@ -455,7 +445,6 @@ public class TimerService extends Service {
         ms.setMetadata(new MediaMetadata.Builder()
                 .putString(MediaMetadata.METADATA_KEY_TITLE, w[0])
                 .putString(MediaMetadata.METADATA_KEY_ARTIST, w[1])
-                .putString(MediaMetadata.METADATA_KEY_ALBUM, "Golden Path")
                 .putLong(MediaMetadata.METADATA_KEY_DURATION, s.total)
                 .putBitmap(MediaMetadata.METADATA_KEY_ART, art(s))
                 .build());
@@ -482,7 +471,6 @@ public class TimerService extends Service {
         b.setSmallIcon(R.drawable.ic_stat)
          .setContentTitle(w[0])
          .setContentText(w[1])
-         .setSubText(s.run ? "Running" : "Paused")
          .setLargeIcon(art(s))
          .setColor(color)
          .setOngoing(true)
@@ -571,13 +559,11 @@ public class TimerService extends Service {
         Notification.Builder b = Build.VERSION.SDK_INT >= 26 ? new Notification.Builder(this, "remind") : new Notification.Builder(this);
         boolean core = "core".equals(s.kind);
         b.setSmallIcon(R.drawable.ic_stat)
-         .setContentTitle(!s.doneTitle.isEmpty() ? s.doneTitle
-                 : core ? "Core session complete" : s.title + (s.sub.isEmpty() ? "" : " \u00b7 " + s.sub) + " done")
-         .setContentText(!s.doneBody.isEmpty() ? s.doneBody
-                 : core ? "Six minutes of holds, sealed" : (s.total / 60000) + " minutes of focus, sealed")
+         .setContentTitle(!s.doneTitle.isEmpty() ? s.doneTitle : (core ? "Core" : s.title) + " \u2713")
          .setColor(core ? Color.parseColor("#84CC16") : colorOf(s))
          .setAutoCancel(true)
          .setContentIntent(openApp());
+        if (!s.doneBody.isEmpty()) b.setContentText(s.doneBody);
         if (Build.VERSION.SDK_INT < 26) b.setPriority(Notification.PRIORITY_HIGH);
         try { nm.notify(nid(s.kind) + 100, b.build()); } catch (SecurityException ignored) { }
     }

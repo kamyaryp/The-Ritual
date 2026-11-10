@@ -1,0 +1,489 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Voice of Ebabbar · Test</title>
+<style>
+:root{
+  --bg:#0d0d0c; --panel:#151413; --panel-2:#1a1917; --line:#272523; --line-2:#1f1e1c;
+  --ink:#edebe5; --ink-2:#9d9890; --ink-3:#6b6760; --well:#121110;
+  --arurael:#1D4ED8; --arurael-hot:#7795e8; --a-work:#38BDF8; --a-xtra:#BAE6FD;
+  --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+  color-scheme:dark;
+}
+*{box-sizing:border-box}
+html,body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 system-ui,-apple-system,"Segoe UI",Inter,sans-serif}
+.wrap{max-width:1040px;margin:0 auto;padding:20px 16px 48px;display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.05fr);gap:24px;align-items:start}
+@media (max-width:820px){ .wrap{grid-template-columns:1fr} .out{order:-1;position:static!important} }
+h1{font-size:18px;font-weight:600;margin:0 0 2px}
+.sub{color:var(--ink-3);font-size:12.5px;margin:0 0 14px}
+h2{font-size:12px;font-weight:500;color:var(--ink-3);margin:18px 0 8px;text-transform:uppercase;letter-spacing:.06em}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:6px 14px}
+.row{display:flex;align-items:center;gap:10px;min-height:42px;justify-content:space-between}
+.row+.row{border-top:1px solid var(--line-2)}
+.row label{color:var(--ink-2);font-size:13.5px}
+.ctl{display:flex;align-items:center;gap:8px}
+input[type=time],input[type=date],select{background:var(--well);color:var(--ink);border:1px solid var(--line);border-radius:6px;padding:6px 8px;font:inherit;font-size:13.5px}
+input[type=range]{width:120px;accent-color:var(--arurael)}
+.val{font-family:var(--mono);font-size:12.5px;min-width:40px;text-align:right}
+.step{width:30px;height:30px;border-radius:50%;border:1px solid var(--line);background:transparent;color:var(--ink-2);font-size:16px;cursor:pointer;line-height:1}
+.step:hover{border-color:var(--ink-3);color:var(--ink)}
+.num{font-family:var(--mono);min-width:30px;text-align:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:6px;overflow:hidden;flex-wrap:wrap}
+.seg button{background:transparent;color:var(--ink-3);border:0;padding:6px 10px;font:inherit;font-size:12.5px;cursor:pointer}
+.seg button+button{border-left:1px solid var(--line)}
+.seg button.on{background:var(--panel-2);color:var(--ink)}
+.presets{display:flex;flex-wrap:wrap;gap:6px}
+.presets button{background:transparent;border:1px solid var(--line);color:var(--ink-2);border-radius:999px;padding:6px 11px;font:inherit;font-size:12.5px;cursor:pointer}
+.presets button:hover,.presets button.on{border-color:var(--arurael-hot);color:var(--ink)}
+.out{position:sticky;top:20px}
+.phone{background:var(--bg);border:1px solid var(--line);border-radius:18px;padding:18px 16px}
+
+/* ---- the Voice of Ebabbar panel, as it would sit at the top of Arurael's tab ---- */
+.ebabbar{position:relative;overflow:hidden;text-align:center;padding:22px 22px 18px;border-radius:8px;
+  border:1px solid rgba(29,78,216,.45);
+  background:radial-gradient(120% 95% at 50% 0%,rgba(29,78,216,.24),rgba(29,78,216,.06) 45%,transparent 72%),var(--panel)}
+.ebabbar::before{content:"";position:absolute;inset:5px;border:1px solid rgba(29,78,216,.18);border-radius:5px;pointer-events:none}
+.ebabbar::after{content:"";position:absolute;left:50%;bottom:-60px;width:240px;height:90px;transform:translateX(-50%);
+  background:radial-gradient(closest-side,rgba(56,120,240,.12),transparent);pointer-events:none}
+.e-crown{display:flex;align-items:center;justify-content:center;gap:10px}
+.e-rule{flex:0 1 64px;height:1px;background:linear-gradient(90deg,transparent,rgba(96,140,240,.7))}
+.e-rule.r{background:linear-gradient(270deg,transparent,rgba(96,140,240,.7))}
+.e-eye{width:22px;height:14px;overflow:visible;filter:drop-shadow(0 0 5px rgba(80,130,255,.8))}
+.e-eye .lid{fill:none;stroke:var(--arurael-hot);stroke-width:1.4}
+.e-eye .iris{fill:var(--arurael-hot);transform-origin:12px 8px}
+.e-title{margin:9px 0 0;padding-left:.34em;font-size:10.5px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--arurael-hot)}
+.e-say{margin:13px auto 0;max-width:30em;font-family:"Iowan Old Style","Palatino Linotype",Palatino,"Book Antiqua","Noto Serif",Georgia,serif;
+  font-size:18px;line-height:1.55;font-style:italic;color:var(--ink);text-wrap:pretty}
+.e-who{display:flex;align-items:center;justify-content:center;gap:9px;margin:13px 0 0;font-size:10.5px;letter-spacing:.26em;text-transform:uppercase;color:var(--ink-3)}
+.e-who::before,.e-who::after{content:"";width:14px;height:1px;background:var(--line)}
+@media (prefers-reduced-motion:no-preference){
+  .e-eye .iris{animation:look 7s ease-in-out infinite}
+  .e-say.in{animation:ein .6s ease both}
+}
+@keyframes look{0%,40%,100%{transform:translateX(0)}50%,60%{transform:translateX(-2.2px)}75%,85%{transform:translateX(2.2px)}}
+@keyframes ein{from{opacity:0;filter:blur(3px);transform:translateY(4px)}to{opacity:1;filter:none;transform:none}}
+
+.mock{opacity:.35;pointer-events:none;margin-top:24px;display:grid;gap:12px}
+.mock .c{border:1px solid var(--line);border-radius:6px;background:var(--panel);padding:12px 14px}
+.mock .c b{color:#2563EB;font-size:14px}
+.mock .bar{height:4px;border-radius:2px;background:#2563EB;margin-top:10px}
+.mock .pips{display:grid;grid-template-columns:repeat(8,1fr);gap:6px;margin-top:10px}
+.mock .pips i{height:22px;border-radius:3px;border:1px solid var(--line)}
+.mock .pips i.f{background:var(--a-work);border-color:var(--a-work)}
+.mock .pips.x i{border-style:dashed}
+.mock .pips.x i.f{background:var(--a-xtra);border-color:var(--a-xtra);border-style:solid}
+
+.debug{margin-top:14px;font-family:var(--mono);font-size:11.5px;color:var(--ink-3);display:flex;flex-wrap:wrap;gap:6px 14px}
+.debug b{color:var(--ink-2);font-weight:500}
+.tone{display:inline-block;padding:1px 7px;border-radius:999px;border:1px solid var(--line);color:var(--ink-2)}
+.others{margin-top:12px}
+.others summary{cursor:pointer;color:var(--ink-3);font-size:12.5px}
+.others ol{margin:8px 0 0;padding-left:18px;color:var(--ink-2);font-size:13.5px}
+.others li{margin:4px 0;cursor:pointer}
+.others li.cur{color:var(--ink)}
+.note{color:var(--ink-3);font-size:12px;margin-top:10px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div>
+    <h1>Arurael speaks</h1>
+    <p class="sub">Set up any day and see what Arurael says at the top of his tab.</p>
+
+    <h2>Presets</h2>
+    <div class="presets" id="presets"></div>
+
+    <h2>Time</h2>
+    <div class="card">
+      <div class="row"><label for="tm">Time of day</label><div class="ctl"><input type="time" id="tm" value="14:00"></div></div>
+      <div class="row"><label for="dt">Date (picks which line)</label><div class="ctl"><input type="date" id="dt" value="2026-11-07"></div></div>
+      <div class="row"><label>Cluster 1 has started</label><div class="seg" id="locked"><button data-v="0" class="on">Yes</button><button data-v="1">No, starts tomorrow</button></div></div>
+    </div>
+
+    <h2>Arurael · today</h2>
+    <div class="card">
+      <div class="row"><label>Execution &amp; Science divisions</label><div class="ctl"><button class="step" data-k="E" data-d="-1" data-max="2">−</button><span class="num" id="vE">0/2</span><button class="step" data-k="E" data-d="1" data-max="2">+</button></div></div>
+      <div class="row"><label>Share</label><div class="seg" id="S"><button data-v="0" class="on">Not done</button><button data-v="1">Done</button></div></div>
+      <div class="row"><label>English</label><div class="seg" id="L"><button data-v="0" class="on">Not done</button><button data-v="1">Done</button></div></div>
+      <div class="row"><label>Work slots</label><div class="ctl"><button class="step" data-k="W" data-d="-1" data-max="8">−</button><span class="num" id="vW">0/8</span><button class="step" data-k="W" data-d="1" data-max="8">+</button></div></div>
+      <div class="row"><label>Extra slots</label><div class="ctl"><button class="step" data-k="X" data-d="-1" data-max="8">−</button><span class="num" id="vX">0/8</span><button class="step" data-k="X" data-d="1" data-max="8">+</button></div></div>
+      <div class="row"><label for="run">Counting down now</label><div class="ctl"><select id="run"><option value="">Nothing</option><option>Execution &amp; Science</option><option>Share</option><option>English</option></select></div></div>
+    </div>
+
+    <h2>Arurael · before today</h2>
+    <div class="card">
+      <div class="row"><label for="ys">Yesterday's score</label><div class="ctl"><input type="range" id="ys" min="-5" max="100" step="5" value="-5"><span class="val" id="vys">none</span></div></div>
+      <div class="row"><label>Full days in a row before today</label><div class="ctl"><button class="step" data-k="run0" data-d="-1" data-max="99">−</button><span class="num" id="vrun0">0</span><button class="step" data-k="run0" data-d="1" data-max="99">+</button></div></div>
+      <div class="row"><label>Longest full run ever</label><div class="ctl"><button class="step" data-k="best" data-d="-1" data-max="99">−</button><span class="num" id="vbest">0</span><button class="step" data-k="best" data-d="1" data-max="99">+</button></div></div>
+    </div>
+
+    <h2>The other realms · what Arurael reads</h2>
+    <div class="card">
+      <div class="row"><label>Xeron · depletions today</label><div class="ctl"><button class="step" data-k="D" data-d="-1" data-max="5">−</button><span class="num" id="vD">0</span><button class="step" data-k="D" data-d="1" data-max="5">+</button></div></div>
+      <div class="row"><label>Xenlil · To bed last night</label><div class="seg" id="bedLast"><button data-v="1" class="on">Kept</button><button data-v="0">Missed</button></div></div>
+      <div class="row"><label>Xenlil · Awake today</label><div class="seg" id="awake"><button data-v="n" class="on">Not due yet</button><button data-v="1">Kept</button><button data-v="0">Missed</button></div></div>
+    </div>
+  </div>
+
+  <div class="out">
+    <div class="phone">
+      <section class="ebabbar" aria-label="Voice of Ebabbar">
+        <div class="e-crown" aria-hidden="true">
+          <span class="e-rule"></span>
+          <svg class="e-eye" viewBox="0 0 24 16"><path class="lid" d="M1.5 8C5 2.6 19 2.6 22.5 8 19 13.4 5 13.4 1.5 8z"/><circle class="iris" cx="12" cy="8" r="3.1"/></svg>
+          <span class="e-rule r"></span>
+        </div>
+        <h2 class="e-title" style="margin:9px 0 0;text-transform:uppercase">Voice of Ebabbar</h2>
+        <p class="e-say in" id="say"></p>
+        <p class="e-who">Arurael</p>
+      </section>
+      <div class="mock" id="mock"></div>
+    </div>
+    <div class="debug" id="debug"></div>
+    <details class="others" open>
+      <summary>All 8 lines for this situation</summary>
+      <ol id="lines"></ol>
+    </details>
+    <p class="note">In the app the line is picked by the date, so it stays the same all day until something changes. Tap a line above to preview it.</p>
+  </div>
+</div>
+
+<script>
+/* ---------- Voice of Ebabbar: Arurael speaks ----------
+   Arurael speaks for himself: the Wise, knowledge itself, curious and exact, who treats an
+   empty day as a question to investigate rather than a sin, names causes, owns limits, and
+   keeps the redemptive purpose in view. He judges only his own realm (Execution & Science,
+   Share, English, Work and Extra) but reads the others: falls from Xeron, sleep from Xenlil.
+   The first situation that holds is spoken; its line is fixed by the date.
+
+   facts:
+     locked, start      before Cluster 1 begins, and when it does ("Fri, Nov 6")
+     date, min          "YYYY-MM-DD" (picks the line) and minutes since 00:00
+     E, S, L            Execution & Science divisions (0-2), Share (0-1), English (0-1)
+     W, X               work slots (0-8) and extra slots (0-8)
+     running            name of the division counting down now, or ""
+     yScore             yesterday's score, or null if there is no yesterday
+     run0, best         full days (100%) in a row before today, and the longest such run
+     D                  Xeron: depletions today
+     bedLast, awake     Xenlil: last night's To bed, today's Awake (true / false / null)
+*/
+var AR_SPEAKER="Arurael";
+var AR_WORDS=["no","one","two","three","four","five","six","seven","eight","nine","ten","eleven","twelve","thirteen","fourteen","fifteen"];
+function arWord(n){ return n<AR_WORDS.length ? AR_WORDS[n] : String(n); }
+
+/* the day's score, as the Golden Path counts it */
+function arDayScore(f){ return Math.min(100, 100*(10*(f.W+f.X)/8 + 6*f.S + 4*f.E/2 + 3*f.L)/23); }
+
+function aruraelRead(f){
+  var score=arDayScore(f), duty=f.E>=2 && f.S>=1 && f.L>=1 && f.W>=8, full=score>=99.999;
+  var left=[];                                             /* what the duty still owes */
+  if(f.E<2) left.push(f.E===1 ? "one division of Execution & Science" : "both divisions of Execution & Science");
+  if(f.S<1) left.push("Share");
+  if(f.L<1) left.push("English");
+  if(f.W<8) left.push(arWord(8-f.W)+" work slot"+(8-f.W===1?"":"s"));
+  var leftText = left.length<2 ? (left[0]||"") : left.slice(0,-1).join(", ")+" and "+left[left.length-1];
+  return {
+    score:score, duty:duty, full:full, left:leftText,
+    run: full ? f.run0+1 : 0,                               /* full days in a row, today included */
+    study: f.E>=2 && f.S>=1 && f.L>=1,                      /* every division sealed */
+    tired: f.bedLast===false || f.awake===false,             /* Xenlil: sleep broken */
+    fell: f.D>0                                             /* Xeron: a fall today */
+  };
+}
+
+var ARURAEL_SAYS=[
+  {id:"locked", tone:"quiet", when:function(f){ return f.locked; }, lines:[
+    "Nothing is measured before the cluster begins. On {start}, the Ahtuxasai begin counting.",
+    "Until {start}, I only observe. Then we learn together.",
+    "The record opens on {start}. Use today to decide what you want to understand.",
+    "No divisions count yet. On {start}, bring a question worth chasing.",
+    "Today is unmeasured. From {start}, every division will be seen.",
+    "Rest the mind until {start}. Curiosity keeps.",
+    "The Eye is open, but the record is closed until {start}.",
+    "Prepare the question tonight; answer it from {start}."]},
+
+  {id:"running", tone:"focus", when:function(f){ return !!f.running; }, lines:[
+    "{div} is under way. Stay with it until the water settles.",
+    "You're inside {div} now. Let nothing else in for these minutes.",
+    "Focus is a narrow river. Keep {div} within its banks.",
+    "{div}: the clock runs, and so should your attention.",
+    "I'm watching {div} with you. Finish it clean.",
+    "One division at a time. This one is {div}.",
+    "While {div} runs, the rest of the world can wait.",
+    "{div} is the only question right now."]},
+
+  {id:"run_15", tone:"inspiration", when:function(f,x){ return x.run>=15 && x.run%15===0; }, lines:[
+    "{r} full days. Fifteen stars in Aquarius, and you've lit every one.",
+    "{r} days complete. The Ahtuxasai ran the numbers twice; they're true.",
+    "{r} full days. This is how ignorance loses: slowly, then entirely.",
+    "{r} days. The Azure Dragon stirs.",
+    "{r} days of complete work. I have nothing to correct.",
+    "{r} days. An explosion of light is only many small lights at once.",
+    "{r} days. The Eye finds nothing missing.",
+    "{r} full days. The question now is how far this goes."]},
+
+  {id:"run_record", tone:"inspiration", when:function(f,x){ return x.run>=4 && x.run>f.best; }, lines:[
+    "{r} full days, more than ever before. Note what made it possible.",
+    "A new record: {r} days. Study it; it will teach you more than failure did.",
+    "{r} days, your longest. I'm curious how far it can run.",
+    "Never this many: {r}. Keep the method, not just the mood.",
+    "{r} days in a row. The evidence says you've changed.",
+    "{r} days. A record is a question that hasn't been answered yet.",
+    "Longest run yet: {r}. Don't stop to admire it.",
+    "{r} complete days. The pattern is clear now."]},
+
+  {id:"overflow", tone:"praise", when:function(f,x){ return x.duty && f.X>=4; }, lines:[
+    "Duty complete, and {x} extra besides. This is where understanding grows.",
+    "You went past the measure by {x}. Curiosity did that, not obligation.",
+    "Everything owed, and {x} more. The light spread further than it had to.",
+    "Full, and then {x} beyond. I'd call that a small explosion of light.",
+    "{x} extra on a complete day. The Ahtuxasai will have to recount.",
+    "The duty was the floor. You built {x} more on it.",
+    "Complete, plus {x}. Rest well; you earned the surplus.",
+    "{x} past the measure. Keep some thirst for tomorrow."]},
+
+  {id:"full_run", tone:"encouragement", when:function(f,x){ return x.duty && x.run>=3; }, lines:[
+    "{r} complete days in a row. The method is working.",
+    "{r} full days. Knowledge compounds; so does discipline.",
+    "{r} days complete. Each one makes the next easier to see.",
+    "{r} in a row. I'd like to see the next one.",
+    "{r} full days. The water runs clear.",
+    "Another complete day: {r} now. Steady light.",
+    "{r} days without a gap. Good.",
+    "{r} full days. Keep asking, keep finishing."]},
+
+  {id:"full", tone:"praise", when:function(f,x){ return x.duty; }, lines:[
+    "Everything owed today is done. Clear water.",
+    "Complete. The Eye sees nothing missing.",
+    "Execution, Share, English, Work: all of it. Well reasoned, well done.",
+    "A full day. Ignorance lost a little ground.",
+    "Done, and done properly. Rest the mind.",
+    "Every division sealed. I have no notes.",
+    "The measure is full. What did you learn that surprised you?",
+    "Complete. The Ahtuxasai record it gladly."]},
+
+  {id:"filled_by_extra", tone:"advice", when:function(f,x){ return x.full && !x.duty; }, lines:[
+    "Extra work filled the gap, but {left} stayed undone. Covered is not learned.",
+    "The score is full; the duty isn't. Still waiting: {left}.",
+    "Extra work carried the day. Tomorrow, give {left} its turn.",
+    "You compensated well. But {left} is knowledge you didn't gather.",
+    "Full by extra. Fair enough, but notice what you avoided: {left}.",
+    "The numbers balance. The learning doesn't; missing: {left}.",
+    "Work filled in for {left}. A substitute, not the thing itself.",
+    "Full marks. Now ask yourself why {left} was skipped."]},
+
+  {id:"tired_low", tone:"understanding", when:function(f,x){ return x.tired && x.score<50; }, lines:[
+    "You were short on sleep. A tired mind learns little; I won't judge today harshly.",
+    "Xenlil's night was broken, and it shows here. Sleep first, then study.",
+    "Fatigue clouds the water. Rest is part of learning.",
+    "Little done on little sleep. That's cause, not character.",
+    "The Eye sees the tiredness behind the empty divisions. Fix the night.",
+    "Study on no sleep is reading without seeing. Sleep tonight.",
+    "I'd rather you sleep than force a dull division.",
+    "Tired today, and the work waited. Tomorrow, rested, we try again."]},
+
+  {id:"fell_idle", tone:"criticism", when:function(f,x){ return x.fell && x.score<50 && f.min>=15*60; }, lines:[
+    "An empty afternoon, and Xeron's wall broke. Idle minds open gates.",
+    "The divisions were empty and the plateau fell. These are connected.",
+    "Idleness is an old ally of the Abyss. Give your hours to study.",
+    "What filled the space the work left? Xeron's realm knows.",
+    "A mind with no question finds the wrong answer. Find a question.",
+    "The fall came in the empty hours. Fill them tomorrow.",
+    "Xeron's realm isn't mine to judge, but I see what the empty day invited.",
+    "Work is a lamp. Without it, the dark had room today."]},
+
+  {id:"evening_empty", tone:"criticism", when:function(f,x){ return f.min>=18*60 && x.score<30; }, lines:[
+    "The day is nearly spent and little was learned. What took it?",
+    "Evening, and the divisions are mostly empty. One is still possible.",
+    "Not much today. Find the reason before tomorrow repeats it.",
+    "A quiet day for the mind. Too quiet.",
+    "The light is low, and so is the work. Ten minutes of English is still within reach.",
+    "Little was measured today. I'd like to know why.",
+    "An empty record isn't a verdict; it's a question. Answer it.",
+    "The Ahtuxasai have little to count tonight."]},
+
+  {id:"unfinished", tone:"advice", when:function(f,x){ return f.min>=19*60 && !x.full; }, lines:[
+    "Still open: {left}. The evening is long enough.",
+    "Left to do: {left}. Finish what's within reach.",
+    "Most of it is done. Add {left} and the picture is complete.",
+    "Before sleep: {left}.",
+    "You're close. Only {left} left.",
+    "Waiting for you: {left}.",
+    "One more push: {left}.",
+    "Close the gaps tonight: {left}."]},
+
+  {id:"work_light", tone:"advice", when:function(f,x){ return x.study && f.W<4 && f.min>=16*60; }, lines:[
+    "Study complete, work light. Knowledge needs a place to land.",
+    "The mind is fed; the work is thin. Align knowledge with execution.",
+    "All divisions done, but only {w} of eight work slots. Put the learning to use.",
+    "Learning without work is water without a channel.",
+    "{w} of eight work slots. The study deserves more application.",
+    "You learned well today. Now make it useful.",
+    "The divisions are sealed; the work isn't. Xenlil would ask for execution.",
+    "Study done. Work is where it proves itself."]},
+
+  {id:"comeback", tone:"encouragement", when:function(f,x){ return f.yScore!==null && f.yScore<50 && x.score>=70; }, lines:[
+    "Yesterday was thin; today isn't. That's a correction, and a good one.",
+    "You learned from yesterday. That's the whole point.",
+    "Low yesterday, strong today. The evidence favours you.",
+    "A poor day followed by a good one. That's how understanding moves.",
+    "Yesterday's gap is closing.",
+    "You took responsibility for yesterday. I saw it.",
+    "From little to much in a day. Keep this direction.",
+    "The trend turned. Note what you did differently."]},
+
+  {id:"strong", tone:"encouragement", when:function(f,x){ return x.score>=70; }, lines:[
+    "Most of the day's work is done. Good pace.",
+    "Strong progress. The rest is within reach.",
+    "The water's rising. Keep going.",
+    "Well along. What's left is small.",
+    "Good work so far. Finish with the same care.",
+    "Steady. The Eye approves.",
+    "Clear progress. Don't let the last part slip.",
+    "A good day taking shape."]},
+
+  {id:"morning", tone:"quiet", when:function(f){ return f.min<10*60; }, lines:[
+    "Morning. Start with the smallest division; momentum follows.",
+    "A clear mind in the morning. Spend it on Execution & Science.",
+    "The day is unwritten. What do you want to understand by tonight?",
+    "Early hours are the clearest water. Use them.",
+    "Begin. The first division is the hardest only until it isn't.",
+    "Good morning. The Ahtuxasai are ready to count.",
+    "Ask one good question this morning and chase it all day.",
+    "Light is coming up. So should the work."]},
+
+  {id:"nothing_yet", tone:"advice", when:function(f,x){ return x.score===0; }, lines:[
+    "Half the day gone and nothing measured yet. Begin with English; it's only ten minutes.",
+    "No divisions yet. What's in the way?",
+    "The record is blank so far. One division changes that.",
+    "Still empty. Curiosity starts with a single step.",
+    "Nothing yet. The Eye is waiting, patiently, for now.",
+    "Start anywhere. Starting is the only hard part.",
+    "An empty morning is recoverable. An empty day is not.",
+    "No work yet. Let's find out what you can do before evening."]},
+
+  {id:"started", tone:"quiet", when:function(){ return true; }, lines:[
+    "A beginning. Knowledge compounds; keep adding.",
+    "Something is done. Now build on it.",
+    "The first divisions are in. Keep the current flowing.",
+    "Good start. Don't let it stop here.",
+    "Progress. Small, but real.",
+    "The work has begun. I'm curious where it ends.",
+    "A few lights are on. Light more.",
+    "Under way. Keep going."]}
+];
+
+function arPick(seed,n){ var h=0; for(var i=0;i<seed.length;i++) h=(h*31+seed.charCodeAt(i))>>>0; return h%n; }
+
+function aruraelSpeaks(f, forceLine){
+  var x=aruraelRead(f);
+  for(var i=0;i<ARURAEL_SAYS.length;i++){
+    var sc=ARURAEL_SAYS[i];
+    if(!sc.when(f,x)) continue;
+    var k = forceLine!=null ? forceLine%sc.lines.length : arPick(f.date+sc.id, sc.lines.length);
+    var text=sc.lines[k].replace(/\{(\w+)\}/g,function(_,v){
+      return ({start:f.start, div:f.running, r:arWord(x.run), x:arWord(f.X), w:arWord(f.W), left:x.left})[v];
+    });
+    text=text.charAt(0).toUpperCase()+text.slice(1);
+    return {id:sc.id, tone:sc.tone, line:k, text:text, read:x};
+  }
+}
+
+
+var BASE={E:0,S:0,L:0,W:0,X:0,running:"",yScore:null,run0:0,best:0,D:0,bedLast:true,awake:null,locked:false,tm:"14:00"};
+var S=JSON.parse(JSON.stringify(BASE)); S.dt="2026-11-07"; S.force=null; S.preset=null;
+
+function mins(){ var p=S.tm.split(":"); return (+p[0])*60+(+p[1]); }
+function facts(){
+  var d=new Date(S.dt+"T00:00:00"); d.setDate(d.getDate()+1);
+  return {locked:S.locked, start:d.toLocaleDateString(undefined,{weekday:"short",month:"short",day:"numeric"}),
+    date:S.dt, min:mins(), E:S.E, S:S.S, L:S.L, W:S.W, X:S.X, running:S.running, yScore:S.yScore,
+    run0:S.run0, best:S.best, D:S.D, bedLast:S.bedLast, awake:S.awake};
+}
+function touch(){ S.force=null; S.preset=null; draw(); }
+document.querySelectorAll(".step").forEach(function(b){
+  b.addEventListener("click",function(){ var k=b.dataset.k; S[k]=Math.max(0,Math.min(+b.dataset.max,S[k]+(+b.dataset.d))); touch(); });
+});
+function seg(id,key,map){ document.querySelectorAll("#"+id+" button").forEach(function(b){ b.addEventListener("click",function(){ S[key]=map(b.dataset.v); touch(); }); }); }
+seg("locked","locked",function(v){ return v==="1"; });
+seg("S","S",function(v){ return +v; });
+seg("L","L",function(v){ return +v; });
+seg("bedLast","bedLast",function(v){ return v==="1"; });
+seg("awake","awake",function(v){ return v==="n"?null:v==="1"; });
+document.getElementById("tm").addEventListener("input",function(e){ S.tm=e.target.value||"00:00"; touch(); });
+document.getElementById("dt").addEventListener("input",function(e){ S.dt=e.target.value||"2026-11-07"; S.force=null; draw(); });
+document.getElementById("run").addEventListener("change",function(e){ S.running=e.target.value; touch(); });
+document.getElementById("ys").addEventListener("input",function(e){ var v=+e.target.value; S.yScore=v<0?null:v; touch(); });
+
+var PRESETS=[
+  ["Before Cluster 1", {locked:true,tm:"16:00"}],
+  ["Morning, nothing yet", {tm:"07:30"}],
+  ["Noon, nothing yet", {tm:"13:00"}],
+  ["Division running", {tm:"11:00",E:1,running:"Share"}],
+  ["Just started", {tm:"11:30",E:1,W:1}],
+  ["Strong afternoon", {tm:"16:00",E:2,S:1,W:5}],
+  ["Evening, unfinished", {tm:"20:30",E:2,S:1,W:6}],
+  ["Evening, empty", {tm:"19:30"}],
+  ["Tired and empty", {tm:"14:00",bedLast:false,W:1}],
+  ["Xeron fell, day idle", {tm:"17:00",D:1,W:1}],
+  ["Study done, work light", {tm:"17:00",E:2,S:1,L:1,W:2}],
+  ["Filled by extra", {tm:"21:00",E:2,S:1,W:8,X:3}],
+  ["Full day", {tm:"21:00",E:2,S:1,L:1,W:8}],
+  ["Full + 5 extra", {tm:"22:00",E:2,S:1,L:1,W:8,X:5}],
+  ["4th full day in a row", {tm:"21:00",E:2,S:1,L:1,W:8,run0:3,best:9}],
+  ["New record", {tm:"21:00",E:2,S:1,L:1,W:8,run0:6,best:6}],
+  ["15 full days", {tm:"21:00",E:2,S:1,L:1,W:8,run0:14,best:20}],
+  ["Comeback after a weak day", {tm:"16:00",E:2,S:1,W:5,yScore:30}]
+];
+var pre=document.getElementById("presets");
+PRESETS.forEach(function(p,i){
+  var b=document.createElement("button"); b.type="button"; b.textContent=p[0];
+  b.addEventListener("click",function(){
+    var o=JSON.parse(JSON.stringify(BASE)); for(var k in p[1]) o[k]=p[1][k];
+    for(var k2 in o) S[k2]=o[k2]; S.force=null; S.preset=i; draw();
+  });
+  pre.appendChild(b);
+});
+
+var lastText="";
+function draw(){
+  document.getElementById("vE").textContent=S.E+"/2";
+  document.getElementById("vW").textContent=S.W+"/8";
+  document.getElementById("vX").textContent=S.X+"/8";
+  document.getElementById("vrun0").textContent=S.run0;
+  document.getElementById("vbest").textContent=S.best;
+  document.getElementById("vD").textContent=S.D;
+  document.getElementById("tm").value=S.tm; document.getElementById("dt").value=S.dt;
+  document.getElementById("run").value=S.running;
+  document.getElementById("ys").value=S.yScore===null?-5:S.yScore;
+  document.getElementById("vys").textContent=S.yScore===null?"none":S.yScore+"%";
+  [["locked",S.locked?"1":"0"],["S",String(S.S)],["L",String(S.L)],["bedLast",S.bedLast?"1":"0"],["awake",S.awake===null?"n":S.awake?"1":"0"]]
+    .forEach(function(a){ document.querySelectorAll("#"+a[0]+" button").forEach(function(b){ b.classList.toggle("on", b.dataset.v===a[1]); }); });
+  document.querySelectorAll("#presets button").forEach(function(b,i){ b.classList.toggle("on", S.preset===i); });
+
+  var f=facts(), r=aruraelSpeaks(f, S.force);
+  var say=document.getElementById("say");
+  if(r.text!==lastText){ say.classList.remove("in"); void say.offsetWidth; say.classList.add("in"); lastText=r.text; }
+  say.textContent=r.text;
+
+  /* a faint mock of the cards below it */
+  var pip=function(n,c){ var h=""; for(var i=0;i<8;i++) h+='<i class="'+(i<n?"f":"")+'"></i>'; return '<div class="pips '+c+'">'+h+'</div>'; };
+  document.getElementById("mock").innerHTML=
+    '<div class="c"><b>Execution &amp; Science</b><div class="bar" style="width:'+(S.E*50)+'%"></div></div>'+
+    '<div class="c"><b style="color:#38BDF8">Work</b>'+pip(S.W,"")+'<div style="height:8px"></div><b style="color:#BAE6FD">Extra</b>'+pip(S.X,"x")+'</div>';
+
+  document.getElementById("debug").innerHTML=
+    '<span>situation <b>'+r.id+'</b></span><span class="tone">'+r.tone+'</span><span>line <b>'+(r.line+1)+'</b></span>'+
+    '<span>score today <b>'+Math.round(r.read.score)+'%</b></span><span>full run <b>'+r.read.run+'</b></span>';
+  var sc=ARURAEL_SAYS.filter(function(s){ return s.id===r.id; })[0], ol=document.getElementById("lines"); ol.innerHTML="";
+  sc.lines.forEach(function(t,k){
+    var li=document.createElement("li"); li.textContent=aruraelSpeaks(f,k).text; li.className=k===r.line?"cur":"";
+    li.addEventListener("click",function(){ S.force=k; draw(); }); ol.appendChild(li);
+  });
+}
+draw();
+</script>
+</body>
+</html>
