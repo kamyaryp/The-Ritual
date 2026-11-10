@@ -2371,13 +2371,14 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     for(var j=0;j<spec.says.length;j++){
       var sc=spec.says[j];
       if(!sc.when(f,x)) continue;
-      var seed=c.date+"|"+sc.id+"|"+c.q, n = force!=null ? force%sc.lines.length : vHash(seed)%sc.lines.length;
+      var seed=c.date+"|"+sc.id+"|"+c.q, n = force!=null ? force%sc.lines.length : vFresh(spec,sc,vHash(seed));
       var core=vCap(vFill(sc.lines[n],tok)), op="", tone=sc.tone;
       if(!sc.bare && L.lore && /^(quiet|praise|encouragement|cold|cold praise)$/.test(tone) && force==null && vHash(seed+"|lore")%50===0){
         core=vCap(vFill(L.lore[vHash(seed+"|lore#")%L.lore.length],tok)); tone="lore";
       }
       if(f.mem && f.mem.id===sc.id && V_NEG[sc.tone] && L.again) op=L.again[vHash(seed+"|again")%L.again.length];
       else op=vOpener(spec,c,sc,tok);
+      if(op && core.toLowerCase().indexOf(op.replace(/[.,!?]+$/,"").toLowerCase())===0) op="";
       return out(sc.id,tone,n,op ? op+" "+core : core,sc.lines);
     }
   }
@@ -4766,6 +4767,342 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       v2Sit("tag_week","quiet",function(f){ var t=f.tg; return !!t && !!t.week && t.week.min>=180 && vHash(f.ctx.date+"|tw")%3===0; }, V3_ARS.tag_week)]);
   })();
 
+  /* ---------- The Voices, v4: long memory, your patterns, your words ----------
+     Everything here is learned from the stored record (it travels with sync):
+       - memory: what each voice said over the last weeks; a line isn't repeated within 12 days,
+         and a warning is recalled days later with what you did after it
+       - your week: which weekdays are your days off (learned from work blocks) and what each
+         weekday usually looks like in every realm; a day is judged against its own kind
+       - patterns across realms: falls after short nights or late beds, rites abandoned on certain
+         weekdays, fuller days when the first block comes before noon, the next day after an early bed
+       - your words: a goal's note quoted back when the day is hard
+       - blocks for goals: tags that match a goal's words count toward it
+       - milestones: day 100, cluster 10, the fullest day, the first perfect cycle, the first clean cluster
+       - the Landsraad: one god now and then answers the weakest realm */
+  var V4_WD=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  function v4Night(k){
+    var r=k===dayKey() ? state.day : past(k), y=past(keyAdd(k,-1)); if(!r) return null;
+    var slept=null, woke=null;
+    ((y && y.log)||[]).forEach(function(e){ if(e[0]>=20*60){ var v=e[0]-1440; if(slept===null || v>slept) slept=v; } });
+    (r.log||[]).forEach(function(e){ if(e[0]<4*60 && (slept===null || e[0]>slept)) slept=e[0]; });
+    if(slept===null) return null;
+    var from=Math.max(4*60, slept+120);
+    (r.log||[]).forEach(function(e){ if(e[0]>=from && (woke===null || e[0]<woke)) woke=e[0]; });
+    return woke===null ? null : (woke-slept)/60;
+  }
+  function v4RiteMiss(r){
+    if(!r || r.nature || !r.checks) return 0;
+    var n=0, lg=Array.isArray(r.log) ? r.log : null;
+    for(var q=0;q<8;q++){ var g=GODS[q%4], c=r.checks[g.key]; if(!(c && c[q<4?0:1]) && (!lg || awakeIn(lg,q))) n++; }
+    return n;
+  }
+  function v4Good(god,k,r){ if(god==="xeron") return deps(r.xr)===0; var v=DAY[god](k); return v!=null && v>=(god==="arexia" ? 75 : 80); }
+  function v4Mean(a,f){ var s=0, n=0; a.forEach(function(d){ var v=f(d); if(v!=null){ s+=v; n++; } }); return n ? s/n : null; }
+
+  /* the record, read once a day: day types, weekday baselines, patterns */
+  var V4P={key:"", val:null};
+  function v4Study(){
+    var today=dayKey(), key=today+"|"+state.history.length;
+    if(V4P.key===key) return V4P.val;
+    var D=[];
+    for(var i=1;i<=120;i++){
+      var k=keyAdd(today,-i); if(k<CL_START) break;
+      var r=past(k); if(!r || isBlank(r)) continue;
+      var y=past(keyAdd(k,-1)), h=v4Night(k), first=null;
+      (r.arLog||[]).forEach(function(e){ if(e.m!=null && (first===null || e.m<first)) first=e.m; });
+      D.push({k:k, wd:wday(k), fell:deps(r.xr)>0, hrs:h, bedMiss: !!(y && !isBlank(y) && !(y.habits && y.habits.bed)),
+        yFell: !!(y && deps(y.xr)>0), W:workN(r.work), ar:DAY.arurael(k), xl:DAY.xenlil(k), ax:DAY.arexia(k), xr:DAY.xeron(k),
+        rm:v4RiteMiss(r), early: first!==null && first<12*60, started: first!==null});
+    }
+    /* your days off: weekdays whose work blocks run far below the rest */
+    var off=[], byWd=[[],[],[],[],[],[],[]];
+    D.forEach(function(d){ byWd[d.wd].push(d); });
+    for(var w=0;w<7;w++){
+      var me=byWd[w], rest=D.filter(function(d){ return d.wd!==w; });
+      if(me.length<2 || rest.length<6) continue;
+      var a=v4Mean(me,function(d){ return d.W; }), b=v4Mean(rest,function(d){ return d.W; });
+      if(b>=3 && a<=b*0.4) off.push(w);
+    }
+    /* each realm's usual for each weekday */
+    var base={}; ["xeron","arurael","xenlil","arexia"].forEach(function(g){
+      var key2={xeron:"xr",arurael:"ar",xenlil:"xl",arexia:"ax"}[g]; base[g]=[];
+      for(var w2=0;w2<7;w2++) base[g][w2] = byWd[w2].length>=2 ? {m:v4Mean(byWd[w2],function(d){ return d[key2]; }), n:byWd[w2].length} : null;
+    });
+    /* patterns */
+    var rate=function(cond,out,pool){ pool=pool||D; var A=pool.filter(cond), B=pool.filter(function(d){ return !cond(d); });
+      var ra=A.length ? A.filter(out).length/A.length : 0, rb=B.length ? B.filter(out).length/B.length : 0;
+      return {na:A.length, nb:B.length, ra:ra, rb:rb, ok: A.length>=4 && B.length>=4 && ra>=0.3 && (rb===0 ? ra>=0.4 : ra/rb>=1.8), s: rb ? ra/rb : 3+ra}; };
+    var mean=function(cond,val,pool){ pool=pool||D; var A=pool.filter(cond), B=pool.filter(function(d){ return !cond(d); });
+      var ma=v4Mean(A,val), mb=v4Mean(B,val);
+      return {na:A.length, nb:B.length, ma:ma, mb:mb, ok: A.length>=4 && B.length>=4 && ma!=null && mb!=null && Math.abs(ma-mb)>=20, s: ma!=null && mb!=null ? Math.abs(ma-mb)/20 : 0}; };
+    var wdRate=function(out){ var best=null;
+      for(var w3=0;w3<7;w3++){ var r3=rate(function(d){ return d.wd===w3; }, out);
+        if(byWd[w3].length>=3 && r3.nb>=6 && r3.ra>=0.5 && (r3.rb===0 || r3.ra/r3.rb>=1.8) && (!best || r3.s>best.s)){ r3.wd=w3; best=r3; } }
+      return best; };
+    var wdMean=function(val){ var best=null;
+      for(var w4=0;w4<7;w4++){ if(off.indexOf(w4)>=0) continue;      /* days off are a kind of their own, not a weakness */
+        var m4=mean(function(d){ return d.wd===w4; }, val, D.filter(function(d){ return off.indexOf(d.wd)<0; }));
+        if(byWd[w4].length>=3 && m4.nb>=6 && m4.ma!=null && m4.mb-m4.ma>=25 && (!best || m4.mb-m4.ma>best.mb-best.ma)){ m4.wd=w4; best=m4; } }
+      return best; };
+    var known=D.filter(function(d){ return d.hrs!=null; }), short=function(d){ return d.hrs<6; };
+    var P={
+      xeron:{short:rate(short,function(d){ return d.fell; },known), bed:rate(function(d){ return d.bedMiss; },function(d){ return d.fell; }),
+             idle:rate(function(d){ return d.ar<40; },function(d){ return d.fell; }), after:rate(function(d){ return d.yFell; },function(d){ return d.fell; }),
+             wd:wdRate(function(d){ return d.fell; })},
+      arexia:{short:rate(short,function(d){ return d.rm>=2; },known), bed:rate(function(d){ return d.bedMiss; },function(d){ return d.rm>=2; }),
+              after:rate(function(d){ return d.yFell; },function(d){ return d.rm>=2; }), wd:wdRate(function(d){ return d.rm>=2; })},
+      arurael:{early:mean(function(d){ return d.early; },function(d){ return d.ar; },D.filter(function(d){ return d.started && off.indexOf(d.wd)<0; })),
+               short:mean(short,function(d){ return d.ar; },known), wd:wdMean(function(d){ return d.ar; })},
+      xenlil:{bed:mean(function(d){ return !d.bedMiss; },function(d){ return d.xl; }), short:mean(short,function(d){ return d.xl; },known),
+              wd:wdMean(function(d){ return d.xl; })}
+    };
+    V4P={key:key, val:{n:D.length, off:off, base:base, P:P}};
+    return V4P.val;
+  }
+
+  /* what today matches, for one god */
+  function v4Read(god){
+    var S=v4Study(), t=dayKey(), d=new Date(), m=d.getHours()*60+d.getMinutes(), wd=wday(t), y=past(keyAdd(t,-1)), out={wd:wd, off:S.off.indexOf(wd)>=0, offDays:S.off};
+    var sl=sleepRead(m), tired=!!sl.tired, bedMiss=!!(y && !isBlank(y) && !(y.habits && y.habits.bed)), yFell=!!(y && deps(y.xr)>0);
+    var P=S.P[god], pick=null, consider=function(k,on){ var p=P[k]; if(!p || !on) return; if(k!=="wd" && !p.ok) return; if(!pick || p.s>pick.p.s) pick={k:k, p:p}; };
+    if(god==="xeron"){ consider("short",tired); consider("bed",bedMiss); consider("idle",DAY.arurael(t)<40 && m>=15*60); consider("after",yFell); if(P.wd) consider("wd",P.wd.wd===wd); }
+    if(god==="arexia"){ consider("short",tired); consider("bed",bedMiss); consider("after",yFell); if(P.wd) consider("wd",P.wd.wd===wd); }
+    if(god==="arurael"){ var none=!(state.day.arLog||[]).length && TASKS.every(function(tk){ return !taskCount(state.day,tk.k); });
+      consider("early", none && m>=8*60 && m<12*60 && !out.off); consider("short",tired && m>=10*60); if(P.wd) consider("wd",P.wd.wd===wd && m>=9*60); }
+    if(god==="xenlil"){ consider("bed", m>=21*60+30 && m<=23*60+30 && !(state.day.habits && state.day.habits.bed)); consider("short",tired); if(P.wd) consider("wd",P.wd.wd===wd && m>=9*60); }
+    out.pat=pick;
+    /* the same weekday, usually */
+    var b=S.base[god][wd], now=DAY[god](t);
+    out.base = b && b.n>=3 && now!=null ? {m:b.m, now:now} : null;
+    /* a warning, days ago, and what came after */
+    var mem=VMEM[god], rc=null;
+    if(mem && Array.isArray(mem.hist)){
+      for(var i=mem.hist.length-1;i>=0;i--){ var e=mem.hist[i], ago=dayNum(t)-dayNum(e.d);
+        if(ago<2) continue; if(ago>8) break;
+        if(V_NEG[e.t]){ var tot=0, good=0; for(var j=1;j<ago;j++){ var k=keyAdd(e.d,j), r=past(k); if(!r || isBlank(r)) continue; tot++; if(v4Good(god,k,r)) good++; }
+          if(tot>=2) rc={ago:ago, tot:tot, good:good}; break; }
+      }
+    }
+    out.recall=rc;
+    /* blocks that served this realm's running goals */
+    out.tags=v4GoalTags(god);
+    /* milestones */
+    var c=voiceCtx(); out.mile=null;
+    if(c.started){
+      var dn=dayNum(t)-dayNum(CL_START)+1;
+      if(dn%100===0 || [30,50,365,730,1095,1460,1825].indexOf(dn)>=0) out.mile={k:"days", n:dn};
+      else if(c.day===1 && [5,10,15,20,25,50,75,100,150,200,229].indexOf(c.cluster)>=0) out.mile={k:"cluster"};
+      else if(god==="arurael" && m>=18*60){ var all=TASKS.reduce(function(n,tk){ return n+taskCount(state.day,tk.k)*tk.min; },0), best=0, seen=0;
+        state.history.forEach(function(r){ if(r.date<CL_START || isBlank(r)) return; seen++; var mm=TASKS.reduce(function(n,tk){ return n+taskCount(r,tk.k)*tk.min; },0); if(mm>best) best=mm; });
+        if(seen>=10 && all>best && all>=AR_DUTY) out.mile={k:"best", mins:all}; }
+      else if(god==="xenlil" && m>=20*60){ var best2=-1, seen2=0;
+        state.history.forEach(function(r){ if(r.date<CL_START || isBlank(r)) return; seen2++; var v=DAY.xenlil(r.date); if(v!=null && v>best2) best2=v; });
+        if(seen2>=10 && now!=null && now>best2) out.mile={k:"best", v:now}; }
+      else if(god==="arexia" && c.cday===4){ var cyc=clDays(c.cluster-1).slice(c.cycle===1 ? 0 : CY_LEN, c.cycle===1 ? CY_LEN : CL_LEN), allP=cyc.every(function(k){ return DAY.arexia(k)>=99.9; });
+        if(allP){ var before=false; for(var ci=0;ci<c.cluster && !before;ci++){ var dd=clDays(ci); [dd.slice(0,CY_LEN), dd.slice(CY_LEN)].forEach(function(cy){ if(cy[0]>=cyc[0]) return; if(cy.every(function(k){ return past(k) && DAY.arexia(k)>=99.9; })) before=true; }); }
+          if(!before) out.mile={k:"first"}; } }
+      else if(god==="xeron" && c.day===CL_LEN && m>=18*60){ var cl=clDays(c.cluster-1), clean=cl.every(function(k){ var r=k===t ? state.day : past(k); return r && deps(r.xr)===0; });
+        if(clean){ var prevClean=false; for(var cj=0;cj<c.cluster-1 && !prevClean;cj++) if(clDays(cj).every(function(k){ var r=past(k); return r && deps(r.xr)===0; })) prevClean=true;
+          if(!prevClean) out.mile={k:"first"}; } }
+    }
+    return out;
+  }
+  /* a tag serves a goal when it shares a real word with the goal's title */
+  var V4_STOP={the:1,and:1,for:1,with:1,from:1,into:1,your:1,"of":1,"to":1,"in":1,"on":1,"my":1,"a":1,"an":1,"by":1,"at":1};
+  function v4Words(s){ return String(s||"").toLowerCase().split(/[\s,.;:!?()«»"“”'’\-–—\/&+]+/).filter(function(w){ return w.length>=3 && !V4_STOP[w]; }); }
+  function v4TagFits(tag,g){
+    var t=String(tag||"").toLowerCase().trim(), title=String(g.title||"").toLowerCase(); if(t.length<3) return false;
+    if(title.indexOf(t)>=0) return true;
+    return v4Words(title).some(function(w){ return w===t || (w.length>=4 && t.indexOf(w)>=0) || (t.length>=4 && w.indexOf(t)>=0); });
+  }
+  function v4GoalFor(tags){
+    var hit=null; String(tags||"").split(/[,،]\s*/).forEach(function(tag){ goalList().forEach(function(g){ if(!hit && goalPhase(g)==="active" && v4TagFits(tag,g)) hit=g; }); }); return hit;
+  }
+  function v4GoalTags(god){
+    var t=dayKey(), best=null;
+    goalList().forEach(function(g){
+      if(g.god!==god || goalPhase(g)!=="active") return;
+      var wk=0, blk=0, ever=0;
+      state.history.concat([state.day]).forEach(function(r){
+        if(!r || r.date<g.start) return;
+        var age=dayNum(t)-dayNum(r.date);
+        (r.arLog||[]).forEach(function(e){ var tk=taskOf(e.k); if(!tk || !(e.tags||[]).some(function(x){ return v4TagFits(x,g); })) return;
+          ever+=tk.min; if(age<7){ wk+=tk.min; blk++; } });
+      });
+      var cand={g:g, wk:wk, blk:blk, ever:ever, since:dayNum(t)-dayNum(g.start)};
+      if(!best || cand.wk>best.wk) best=cand;
+    });
+    return best;
+  }
+  function v4Tok(god,f,t){
+    var V=f.V4; if(!V) return;
+    var pc=function(x){ return Math.round(x)+"%"; }, ratio=function(p){ return !p.rb ? "far more often" : p.ra/p.rb>=2.6 ? "three times as often" : "twice as often"; };
+    if(V.pat){ var p=V.pat.p;
+      if(p.ra!==undefined){ t.pa=pc(p.ra*100); t.pb=pc(p.rb*100); t.pr=ratio(p); }
+      else { t.pa=pc(p.ma); t.pb=pc(p.mb); t.pd=vWord(Math.round(Math.abs(p.ma-p.mb))); }
+      if(p.wd!=null) t.pwd=V4_WD[p.wd]+"s"; }
+    t.wdn=V4_WD[V.wd]; t.wds=V4_WD[V.wd]+"s";
+    if(V.offDays.length){ t.offd=V.offDays.map(function(w){ return V4_WD[w]+"s"; }).join(" and "); }
+    if(V.base){ t.bnow=pc(V.base.now); t.busual=pc(V.base.m); }
+    if(V.recall){ var a=V.recall.ago; t.wago=(a===2 ? "two days" : vWord(a)+" days")+" ago"; t.wgood=vWord(V.recall.good); t.wdays=vWord(V.recall.tot); }
+    if(V.tags){ t.tgoal=String(V.tags.g.title||"").trim(); t.tmin=fmtHM(V.tags.wk); t.tblk=vWord(V.tags.blk); }
+    if(V.mile){ if(V.mile.n) t.mday=String(V.mile.n); if(V.mile.mins) t.allmins=fmtHM(V.mile.mins); if(V.mile.v!=null) t.xlbest=pc(V.mile.v); t.pastn=String(Math.max(0,(f.ctx.cluster||1)-1)); }
+    if(f.GL && f.GL.run && f.GL.run.note){ var n=String(f.GL.run.note).trim().replace(/\s+/g," "); if(n.length>90){ n=n.slice(0,88); n=n.slice(0,Math.max(40,n.lastIndexOf(" ")))+"…"; } t.wnote=n; }
+  }
+  /* a line not said in the last twelve days, when there is one */
+  function vFresh(spec,sc,h){
+    var len=sc.lines.length, n=h%len, m=VMEM[String(spec.god||"").toLowerCase()];
+    if(!m || !Array.isArray(m.hist) || len<2) return n;
+    var today=dayKey(), lim=keyAdd(today,-12), used={};
+    m.hist.forEach(function(e){ if(e.id===sc.id && e.d<today && e.d>=lim) (e.ns||[]).forEach(function(x){ used[x]=e.d; }); });
+    for(var i=0;i<len;i++){ var j=(n+i)%len; if(!(j in used)) return j; }
+    var best=n; for(var j2 in used) if(used[j2]<used[best]) best=+j2;
+    return best;
+  }
+
+  /* ---- the words ---- */
+  var V4L={
+    xeron:{
+      p_short:["Your falls come {pr} after nights under six hours. Last night was one of them.","Short night. In the record, short nights end in falls {pa} of the time; other nights, {pb}. Guard today.","The record is clear: tired, you fall {pr}. You're tired. Bind early."],
+      p_bed:["When To bed slips, the next day falls {pr}. It slipped last night. Hold the wall.","Last night's bed came late. Days like this fall {pa} of the time; the others {pb}.","A late bed opens a gate the next day. It's open now. Watch it."],
+      p_idle:["Empty afternoons fall {pr}. This one is empty. Fill it, now.","Idle days fall {pa} of the time. Busy ones, {pb}. Give the hours work.","He loves an idle day. You're giving him one."],
+      p_after:["A fall yesterday. In the record, one fall pulls another {pa} of the time. Break the chain.","Falls come in pairs for you, {pr}. Yesterday was the first. Not today.","The day after a fall is his favourite. It's today."],
+      p_wd:["{pwd} are when you fall most: {pa} of them. Today is one.","The record marks {pwd}. You fall on them {pr}. Not this one.","{pwd} again. Your worst day of the week. Double the watch."],
+      b_up:["A {wdn} at {bnow}. Your {wds} usually stand at {busual}. Well fought.","Better than your usual {wdn}: {bnow} against {busual}.","{wds} usually cost us. Not this one: {bnow}."],
+      b_down:["Your {wds} usually hold at {busual}. This one is at {bnow}. Recover it.","Worse than your usual {wdn}: {bnow} against {busual}.","A weak {wdn}: {bnow}. You've done better on this day of the week."],
+      off:["A day off from work. Days off are where he waits. Watch the hours.","{wdn}: no work to fill the hours. Bind them instead.","Free hours are open gates. It's a {wdn}; guard it."],
+      rc_good:["{wago} I warned you. Since then, {wgood} clean days of {wdays}. The daughters noticed.","My warning of {wago} held: {wgood} of {wdays} days clean since.","{wago}, an order. {wgood} of {wdays} days since, kept. Good."],
+      rc_bad:["{wago} I warned you. Not one clean day since. Do you hear me?","I gave an order {wago}. {wdays} days, and none of them clean.","{wago} I spoke. Since then, nothing but breaches."],
+      why:["You wrote: “{wnote}”. Cluster {rk} of {rn}. Hold.","“{wnote}”: your words, not mine. Remember them now.","When you set “{rgoal}”, you wrote: “{wnote}”. Fight for it today."],
+      t_week:["“{tgoal}”: {tmin} of work for it this week. Good soldiering.","{tblk} blocks struck for “{tgoal}” this week."],
+      t_none:["Seven days without a blow struck for “{tgoal}”.","Nothing for “{tgoal}” in a week. A campaign doesn't win itself."],
+      m_days:["Day {mday} of the record. The walls still stand.","{mday} days since the first. The daughters keep count."],
+      m_cluster:["Cluster {cluster} begins. {pastn} clusters behind us, every one fought.","Cluster {cluster}. A long war, and we're still standing."],
+      m_first:["A whole cluster without a fall. The first. The daughters will sing of it.","Eight days, no breach. Never before. Xeron saw it."]
+    },
+    arurael:{
+      p_early:["Days that begin before noon end at {pa}; the others at {pb}. Begin now.","The data is plain: an early first block is worth {pd} points by night. Start.","Your fuller days start before noon. This one hasn't started."],
+      p_short:["Short nights end at {pa} in my realm; full nights at {pb}. Plan a lighter day, but plan it.","On short nights you reach {pa}. That's the cause; the fix is tonight's sleep.","Tired days average {pa}. Choose the one block that matters most."],
+      p_wd:["{pwd} are your weakest days here: {pa} against {pb}. Today is one. Why?","{pwd} average {pa}. I'd like to see that number broken today.","The record has a question about {pwd}. Answer it today."],
+      b_up:["A {wdn} at {bnow}. Your {wds} usually reach {busual}. Something worked; note it.","Better than your usual {wdn}: {bnow} against {busual}.","{bnow} on a {wdn}. The average says {busual}. Good."],
+      b_down:["Your {wds} usually reach {busual}. Today, {bnow}. What changed?","Below your usual {wdn}: {bnow} against {busual}.","A thin {wdn}: {bnow}. The record knows you can do {busual}."],
+      off:["{wdn}: no work owed by habit. The studies still are.","A day off from work, not from learning. One block of study changes it.","{offd} are your days off. Use the quiet for Execution & Science."],
+      rc_good:["{wago} I pointed at a gap. {wgood} of the {wdays} days since were full. The evidence says you listened.","My note from {wago} worked: {wgood} good days of {wdays}.","{wago} I asked a question. You've answered it {wgood} times since."],
+      rc_bad:["{wago} I raised a question. {wdays} days later, it's still unanswered.","My advice of {wago} hasn't shown up in the record yet. {wdays} days, no full one.","{wago}, a note. Since then, {wdays} thin days. Why?"],
+      why:["You wrote: “{wnote}”. Is today's work serving that?","Your own reason for “{rgoal}”: “{wnote}”. Read it again.","“{wnote}”. You wrote that. The question still stands."],
+      t_week:["“{tgoal}”: {tmin} this week, in {tblk} blocks.","{tblk} blocks served “{tgoal}” this week: {tmin}. The method is working.","This week, {tmin} went to “{tgoal}”."],
+      t_none:["No block has served “{tgoal}” in seven days.","Seven days, and nothing tagged for “{tgoal}”. Is it still a goal?","“{tgoal}” hasn't had a block in a week."],
+      m_days:["Day {mday} of the record. The Ahtuxasai have {mday} pages on you.","{mday} days measured. Enough evidence to know yourself."],
+      m_cluster:["Cluster {cluster}. A milestone is a good place to ask how far you've come.","Cluster {cluster}. {pastn} clusters of evidence behind you."],
+      m_best:["The fullest day in the record: {allmins}.","Never this much in one day: {allmins}. Note how.","A new record: {allmins}. The Ahtuxasai recount."],
+      tag_goal:["{etag}. That one serves “{tgoal}”.","{etag}: a block for “{tgoal}”. Good.","Noted, and counted toward “{tgoal}”."]
+    },
+    xenlil:{
+      p_bed:["Nights in bed by 23:30 lead to {pa} days; the others to {pb}. Choose.","The record judges your nights: {pa} after an early bed, {pb} after a late one. Bed.","Tomorrow's law is decided now. Early bed: {pa}. Late: {pb}."],
+      p_short:["Short nights make {pa} days in my realm; full nights {pb}. Sleep is the first law.","On short nights the realm averages {pa}. Order today; sleep tonight."],
+      p_wd:["{pwd} are the slackest days in my realm: {pa} against {pb}. Not this one.","The record marks {pwd}: {pa}. Raise it today."],
+      b_up:["A {wdn} at {bnow}. Your {wds} usually hold {busual}. That's rule.","Better than your usual {wdn}: {bnow} against {busual}.","{bnow} on a {wdn}. The realm rarely sees it."],
+      b_down:["Your {wds} usually hold {busual}. Today, {bnow}. Tighten it.","Below your usual {wdn}: {bnow} against {busual}.","A slack {wdn}: {bnow}. You know your own standard."],
+      off:["{wdn}, a day off. The law doesn't take days off.","No work today. Then nothing excuses the gym, the water, the Core.","{offd} are free of work, not of order."],
+      rc_good:["{wago} I corrected you. {wgood} of {wdays} days since were kept. That's a Fedayi.","The order of {wago} took hold: {wgood} of {wdays} days.","{wago}, a decree of mine. Kept {wgood} days of {wdays}."],
+      rc_bad:["{wago} I corrected you. {wdays} days, and the slack remains.","The order of {wago} was ignored. {wdays} days, none kept.","I spoke {wago}. The realm didn't listen."],
+      why:["You wrote: “{wnote}”. A ruler keeps his word.","Your decree for “{rgoal}”: “{wnote}”. Keep it today.","“{wnote}”. Your words. The law expects them kept."],
+      t_week:["“{tgoal}”: {tmin} this week. Order, measured."],
+      t_none:["“{tgoal}”: nothing in seven days. Slack."],
+      m_days:["Day {mday} under the law.","{mday} days of the realm. A reign, not a mood."],
+      m_cluster:["Cluster {cluster}. The banners have flown {pastn} times.","Cluster {cluster}. A ruler measures reigns in clusters."],
+      m_best:["The best day the realm has recorded: {xlbest}.","Never this orderly: {xlbest}. Remember how it felt."]
+    },
+    arexia:{
+      p_short:["After short nights you abandon rites {pr}. Last night was short. Observe.","Short nights cost you rites: {pa} of such days. Today is such a day.","Tired, you abandon. The record says {pr}. I am watching."],
+      p_bed:["After a late bed, rites fall {pr}. Last night's bed was late.","Late beds cost rites: {pa} of the days after. Today is one.","The bed slipped. The rites follow it. Not today."],
+      p_after:["A fall yesterday. Rites are abandoned after falls {pr}.","After a fall, the rites thin: {pa} of the time. Observe them today."],
+      p_wd:["{pwd}. You abandon more rites on {pwd} than any other day.","{pwd}: {pa} of them with rites abandoned. Today is one.","{pwd} again. I remember the last ones."],
+      b_up:["A {wdn} at {bnow}. Your {wds} are usually {busual}. Noted.","{bnow}. Above your usual {wdn}.","{wds} are usually {busual}. Not this one."],
+      b_down:["Your {wds} are usually {busual}. This one: {bnow}.","{bnow}. Below your usual {wdn}. Recorded.","A {wdn} at {bnow}. I have seen better {wds} from you."],
+      off:["{wdn}. No work. No excuse for an abandoned rite.","A day without work. The rites have all of you today.","{offd} belong to the rites as much as any day."],
+      rc_good:["{wago} I judged you. {wgood} of {wdays} days since were observed. Noted.","Since {wago}: {wgood} of {wdays} days observed. Acceptable.","{wago}, a judgment. You answered it {wgood} times."],
+      rc_bad:["{wago} I judged you. {wdays} days since. Nothing observed fully.","Since {wago}, abandonment. {wdays} days of it.","{wago} I spoke. You did not listen. I recorded that too."],
+      why:["You wrote: “{wnote}”. I remember.","“{wnote}”. Your pledge, in your words.","You pledged: “{wnote}”. Observe it."],
+      t_week:["“{tgoal}”: {tmin} this week. Counted."],
+      t_none:["“{tgoal}”: abandoned for seven days."],
+      m_days:["Day {mday}. I have counted every one.","{mday} days in the record. Irkalla forgets nothing."],
+      m_cluster:["Cluster {cluster}. {pastn} buried in Irkalla.","Cluster {cluster}. The count continues."],
+      m_first:["A perfect cycle. The first. Recorded.","Four days, every rite. The first time. Noted."]
+    }
+  };
+  /* the Landsraad: one god answers the weakest realm */
+  var V4_REPLY={xeron:["arurael","arexia","xenlil"], arurael:["xeron","xenlil","arexia"], xenlil:["xeron","arurael","arexia"], arexia:["xenlil","arurael","xeron"]};
+  var V4_DIALOG={
+    arurael:{xeron:["Ishtar rages at the falls. I'd rather know their cause.","The plateau falls, and Ishtar grieves. The data would say why."],
+             xenlil:["The body slackens, Xenlil. A tired mind follows it.","Order in the body feeds the mind. Xenlil's realm is the cause."],
+             arexia:["The rites are thinning. I'd like to know why, before Arexia judges.","Arexia counts abandonment. I'd count the causes."]},
+    arexia:{xeron:["Ishtar shouts. I count. The falls are counted.","The throne bleeds. Irkalla records it."],
+            xenlil:["Xenlil's law slackens. I am counting.","The body slackens. Irkalla waits for it."],
+            arurael:["Arurael's ledger is thin. I noted it.","Knowledge trails. Irkalla is patient."]},
+    xeron:{xenlil:["Xenlil, your law slackens. My walls need a rested body.","Tighten the body, Xenlil. I can't hold the wall on a slack one."],
+           arurael:["Arurael's realm is empty, and empty hours open gates.","Idle minds open my gates, Arurael. Fill your hours."],
+           arexia:["The rites are failing, Arexia. My daughters pray too.","Arexia's realm is falling. The walls feel it."]},
+    xenlil:{xeron:["The throne falls too often. The law can hold what the walls can't.","Ishtar, sleep and order would guard your walls."],
+            arurael:["Knowledge trails. Order would help it, Arurael.","Arurael asks questions. The law would answer some."],
+            arexia:["The rites decay. A ruler keeps his rituals, Arexia.","Arexia's count falls. Discipline would raise it."]}
+  };
+  function v4Council(rows,c,G){
+    /* rows: [{g, cat, line}] — returns rows with one reply in place, sometimes */
+    if(!c.started || !G || !G.bottom || vHash(c.date+"|"+c.q+"|dialog")%2) return rows;
+    var B=G.bottom, rb=G.realm[B]; if(!rb || rb.clNow==null || rb.clNow>=60) return rows;
+    var cand=V4_REPLY[B].filter(function(r){ var x=G.realm[r]; return x && x.clNow!=null && x.clNow>=60; });
+    if(!cand.length) return rows;
+    var R=cand[vHash(c.date+"|"+c.q+"|who")%cand.length], pool=V4_DIALOG[R][B];
+    rows.forEach(function(x){ if(x.g===R && !x.gx) x.line=pool[vHash(c.date+"|"+c.q+"|"+R+B)%pool.length]; });
+    return rows;
+  }
+
+  /* ---- where they sit ---- */
+  (function(){
+    var specs={xeron:XERON_SPEC, arurael:ARURAEL_SPEC, xenlil:XENLIL_SPEC, arexia:AREXIA_SPEC};
+    var says={xeron:XERON_SAYS, arurael:ARURAEL_SAYS, xenlil:XENLIL_SAYS, arexia:AREXIA_SAYS};
+    var at={xeron:["edge_many","morning","clean"], arurael:["run_15","morning","started"], xenlil:["run_18","morning","steady"], arexia:["run_9","half_kept","watching"]};
+    ["xeron","arurael","xenlil","arexia"].forEach(function(god){
+      var L=V4L[god], H=function(f,id,m){ return vHash(f.ctx.date+"|"+god+"|"+id)%m===0; };
+      var live=function(f){ return !f.locked && !!f.V4 && f.min>=6*60 && f.min<23*60+30; };
+      var hard=function(f){ var r=f.G && f.G.realm ? f.G.realm[god] : null;
+        return (god==="xeron" && deps(state.day.xr)>0) || (!!r && r.today!=null && r.today<50 && f.min>=15*60) || !!(f.GL && f.GL.fin); };
+      var top=[];
+      if(L.m_days) top.push(v2Sit("m_days","inspiration",function(f){ return live(f) && f.V4.mile && f.V4.mile.k==="days"; }, L.m_days));
+      if(L.m_cluster) top.push(v2Sit("m_cluster","inspiration",function(f){ return live(f) && f.V4.mile && f.V4.mile.k==="cluster"; }, L.m_cluster));
+      v2Insert(says[god],"returned",top);
+      var high=[];
+      if(L.m_best) high.push(v2Sit("m_best","inspiration",function(f){ return live(f) && f.V4.mile && f.V4.mile.k==="best"; }, L.m_best));
+      if(L.m_first) high.push(v2Sit("m_first","inspiration",function(f){ return live(f) && f.V4.mile && f.V4.mile.k==="first"; }, L.m_first));
+      ["short","bed","idle","after","wd","early"].forEach(function(k){
+        if(L["p_"+k]) high.push(v2Sit("pat_"+k,"warning",function(f){ var p=live(f) && f.V4.pat; return !!p && p.k===k && (p.p.s>=2.6 || H(f,"pat",2)); }, L["p_"+k]));
+      });
+      high.push(v2Sit("goal_why","order",function(f){ return live(f) && !!(f.GL && f.GL.run && f.GL.run.note && String(f.GL.run.note).trim()) && hard(f) && H(f,"why",2); }, L.why));
+      v2Insert(says[god],at[god][0],high);
+      v2Insert(says[god],at[god][1],[
+        v2Sit("recall_good","encouragement",function(f){ var r=live(f) && f.V4.recall; return !!r && f.min>=10*60 && r.good>=Math.ceil(r.tot*0.66) && H(f,"rc",2); }, L.rc_good),
+        v2Sit("recall_bad","judgment",function(f){ var r=live(f) && f.V4.recall; return !!r && f.min>=10*60 && r.good===0 && H(f,"rc",2); }, L.rc_bad),
+        v2Sit("goal_tags_none","warning",function(f){ var t=live(f) && f.V4.tags; return !!t && t.since>=7 && t.ever>0 && t.wk===0 && f.min>=10*60; }, L.t_none),
+        v2Sit("base_down","warning",function(f){ var b=live(f) && f.V4.base; return !!b && f.min>=19*60 && b.now<=b.m-25; }, L.b_down),
+        v2Sit("off_day","advice",function(f){ return live(f) && f.V4.off && f.min>=9*60 && f.min<14*60 && H(f,"off",2); }, L.off)
+      ]);
+      v2Insert(says[god],at[god][2],[
+        v2Sit("base_up","praise",function(f){ var b=live(f) && f.V4.base; return !!b && f.min>=18*60 && b.now>=b.m+20; }, L.b_up),
+        v2Sit("goal_tags_week","encouragement",function(f){ var t=live(f) && f.V4.tags; return !!t && t.wk>=50 && H(f,"tw",2); }, L.t_week),
+        v2Sit("goal_why_quiet","quiet",function(f){ return live(f) && !!(f.GL && f.GL.run && f.GL.run.note && String(f.GL.run.note).trim()) && H(f,"whyq",4); }, L.why)
+      ]);
+    });
+    /* on days off, Arurael doesn't ask for the work the habit doesn't owe */
+    ARURAEL_SAYS.forEach(function(sc){
+      if(/^(work_no_study|work_light|extra_first)$/.test(sc.id)){ var w=sc.when; sc.when=function(f,x){ return !(f.V4 && f.V4.off) && w(f,x); }; }
+    });
+    /* a tag that serves a goal */
+    var oR=ARURAEL_SPEC.react, oT=ARURAEL_SPEC.tokens;
+    ARURAEL_SPEC.react=function(f,x,ev){ if(ev.kind==="tag" && ev.detail && v4GoalFor(ev.detail.tag)) return V4L.arurael.tag_goal; return oR(f,x,ev); };
+    ARURAEL_SPEC.tokens=function(f,x,ev){ var t=oT(f,x,ev); if(ev && ev.kind==="tag" && ev.detail){ var g=v4GoalFor(ev.detail.tag); if(g) t.tgoal=String(g.title||"").trim(); } return t; };
+  })();
+
   /* ---------- The Voices, deeper: what they know ----------
      Every positive act is written into the day with its minute (day.log), so the voices can
      learn your hours. From the record they read the whole world: each realm's day, cycle and
@@ -4814,11 +5151,14 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   function vMemNote(god,r){
     if(!r || /^(react|holder):/.test(r.id) || r.tone==="lore") return;
-    var d=dayKey(), m=VMEM[god]||{};
-    if(m.cur && m.cur.date===d && m.cur.id===r.id && m.cur.tone===r.tone) return;
-    if(m.cur && m.cur.date!==d) m.prev=m.cur;
-    m.cur={date:d, id:r.id, tone:r.tone}; VMEM[god]=m;
-    try{ localStorage.setItem("dial.vmem",JSON.stringify(VMEM)); }catch(e){}
+    var d=dayKey(), m=VMEM[god]||{}, ch=false;
+    if(!Array.isArray(m.hist)) m.hist=[];
+    var e=null; for(var i=m.hist.length-1;i>=0 && m.hist[i].d===d;i--) if(m.hist[i].id===r.id){ e=m.hist[i]; break; }
+    if(e){ if(e.ns.indexOf(r.line)<0){ e.ns.push(r.line); ch=true; } }
+    else { m.hist.push({d:d, id:r.id, t:r.tone, ns:[r.line]}); if(m.hist.length>120) m.hist=m.hist.slice(-120); ch=true; }
+    if(!(m.cur && m.cur.date===d && m.cur.id===r.id && m.cur.tone===r.tone)){ if(m.cur && m.cur.date!==d) m.prev=m.cur; m.cur={date:d, id:r.id, tone:r.tone}; ch=true; }
+    VMEM[god]=m;
+    if(ch) try{ localStorage.setItem("dial.vmem",JSON.stringify(VMEM)); }catch(e2){}
   }
 
   /* a realm's day counted as full, for runs */
@@ -4948,10 +5288,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(god==="arexia" && G.weakRite) t.wrune=RUNE[G.weakRite.q];
     if(f.sl){ if(!t.hrs) t.hrs=f.sl.hrs||"a few"; }
     if(god==="arexia"){ var x=arexiaRead(f); t.zn = x.z===1 ? "one rite" : vWord(x.z)+" rites"; t.zrune=x.zrune; }
-    v3Tok(god,f,t);
+    v3Tok(god,f,t); v4Tok(god,f,t);
     return t;
   }
-  function v2Facts(god,f){ f=withCtx(f); f.G=voiceWorld(); f.mem=vMemPrev(god); f.GL=v3Goals(god); f.GO=v3Other(god); return f; }
+  function v2Facts(god,f){ f=withCtx(f); f.G=voiceWorld(); f.mem=vMemPrev(god); f.GL=v3Goals(god); f.GO=v3Other(god); f.V4=v4Read(god); return f; }
   function v2Finish(god,f){ f.vt=v2Tokens(god,f); return f; }
 
   /* Xeron himself: a few words, on remarkable days, and very rarely on any clean one */
@@ -5020,7 +5360,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   function renderCouncil(){
     var host=document.getElementById("councilRows"); if(!host) return;
-    var c=voiceCtx(), G=c.started ? voiceWorld() : {realm:{}}, html="";
+    var c=voiceCtx(), G=c.started ? voiceWorld() : {realm:{}}, html="", rows=[];
     V2_GODS.forEach(function(g){
       var r=G.realm[g], v=r ? r.clNow : null, cat;
       if(!c.started || v==null) cat="none";
@@ -5028,8 +5368,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       else cat = v>=80 ? "strong" : v>=60 ? "steady" : "weak";
       var pool=V2_COUNCIL[g][cat], line=pool[vHash(c.date+"|"+g+"|"+c.q+"|council")%pool.length], gx=c.started ? v3Council(g,c) : null;
       if(gx){ var gp=V3_COUNCIL[g][gx.k]; line=gp[vHash(c.date+"|"+g+"|"+c.q+"|cg")%gp.length]; }
-      html+=v2Row(g, vFill(line,{score:pct(v), goal:gx ? gx.title : ""}).replace(/&/g,"&amp;").replace(/</g,"&lt;"));
+      rows.push({g:g, gx:!!gx, line:vFill(line,{score:pct(v), goal:gx ? gx.title : ""})});
     });
+    v4Council(rows,c,G).forEach(function(x){ html+=v2Row(x.g, x.line.replace(/&/g,"&amp;").replace(/</g,"&lt;")); });
     host.innerHTML=html;
     var gb=document.getElementById("councilGoals");
     if(gb){
