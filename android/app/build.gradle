@@ -8,8 +8,8 @@ android {
         applicationId "com.ritual.dial"
         minSdk 24
         targetSdk 34
-        versionCode 2
-        versionName "1.1"
+        versionCode 3
+        versionName "1.2"
     }
 
     // One fixed key, kept in the repo, so every build installs over the last
@@ -32,4 +32,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_17
         targetCompatibility JavaVersion.VERSION_17
     }
+}
+
+dependencies {
+    // Google sign-in for Drive sync (the drive.appdata scope only)
+    implementation 'com.google.android.gms:play-services-auth:21.2.0'
 }

@@ -1,7 +1,7 @@
 /* The Ritual - offline shell.
    The page is fetched from the network when there is one and falls back to the
    cache, so a new build is picked up on the next open without a version bump. */
-var CACHE="ritual-v2";
+var CACHE="ritual-v3";
 var ASSETS=["./","./index.html","./manifest.webmanifest","./icon-192.png","./icon-512.png","./icon-maskable.png"];
 self.addEventListener("install",function(e){
   self.skipWaiting();
@@ -19,6 +19,8 @@ function isPage(req){
 }
 self.addEventListener("fetch",function(e){
   if(e.request.method!=="GET") return;
+  /* only the app's own files are cached: Google Drive and sign-in always go to the network */
+  if(new URL(e.request.url).origin!==self.location.origin) return;
   if(isPage(e.request)){
     e.respondWith(fetch(e.request).then(function(res){
       var copy=res.clone();

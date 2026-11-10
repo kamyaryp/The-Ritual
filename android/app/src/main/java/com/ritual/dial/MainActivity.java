@@ -15,6 +15,15 @@ import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
+import com.google.android.gms.auth.api.identity.AuthorizationRequest;
+import com.google.android.gms.auth.api.identity.AuthorizationResult;
+import com.google.android.gms.auth.api.identity.Identity;
+import com.google.android.gms.common.api.Scope;
+
+import org.json.JSONObject;
+
+import java.util.Collections;
+
 /**
  * The whole app: one WebView showing the bundled page from assets.
  * Records live in the WebView's localStorage, on the device, with no network.
@@ -23,6 +32,7 @@ public class MainActivity extends Activity {
 
     private WebView web;
     private static final int PICK_FOLDER = 7;
+    private static final int DRIVE_AUTH = 8;
 
     /** Whether the app is on screen, so a countdown it already announced isn't announced twice. */
     static volatile boolean foreground = false;
@@ -90,6 +100,28 @@ public class MainActivity extends Activity {
             });
         }
 
+        /** Google Drive: sign in for the app's hidden folder (quietly when already allowed),
+            and make one Drive request; both answer the page through a callback. */
+        @JavascriptInterface
+        public void driveAuth(final boolean interactive) {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { driveAuthorize(interactive); }
+            });
+        }
+
+        @JavascriptInterface
+        public void driveFetch(final String id, final String method, final String url,
+                               final String type, final String body, final String token) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    String[] r = Drive.fetch(method, url, type, body, token);
+                    tellJs("window.driveFetched&&window.driveFetched(" + JSONObject.quote(id) + "," + r[0] + "," + JSONObject.quote(r[1]) + ")");
+                }
+            }).start();
+        }
+
         @JavascriptInterface
         public void keepAwake(final boolean on) {
             runOnUiThread(new Runnable() {
@@ -139,6 +171,15 @@ public class MainActivity extends Activity {
     @Override
     protected void onActivityResult(int request, int result, Intent data) {
         super.onActivityResult(request, result, data);
+        if (request == DRIVE_AUTH) {
+            try {
+                AuthorizationResult r = Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(data);
+                driveAuthed(r.getAccessToken() != null, r.getAccessToken());
+            } catch (Exception e) {
+                driveAuthed(false, "cancelled");
+            }
+            return;
+        }
         if (request != PICK_FOLDER) return;
         boolean ok = false;
         if (result == RESULT_OK && data != null && data.getData() != null) {
@@ -146,6 +187,43 @@ public class MainActivity extends Activity {
             catch (Exception ignored) { }
         }
         tellPage(ok);
+    }
+
+    /** Ask Google for the Drive folder. Already allowed: the token comes straight back.
+        Not yet: the consent screen is shown only when the owner pressed the button. */
+    private void driveAuthorize(final boolean interactive) {
+        try {
+            AuthorizationRequest req = AuthorizationRequest.builder()
+                    .setRequestedScopes(Collections.singletonList(new Scope(Drive.SCOPE)))
+                    .build();
+            Identity.getAuthorizationClient(this).authorize(req)
+                    .addOnSuccessListener(r -> {
+                        if (r.hasResolution()) {
+                            if (!interactive || r.getPendingIntent() == null) { driveAuthed(false, "consent"); return; }
+                            try {
+                                startIntentSenderForResult(r.getPendingIntent().getIntentSender(), DRIVE_AUTH, null, 0, 0, 0);
+                            } catch (Exception e) {
+                                driveAuthed(false, "ui");
+                            }
+                        } else {
+                            driveAuthed(r.getAccessToken() != null, r.getAccessToken());
+                        }
+                    })
+                    .addOnFailureListener(e -> driveAuthed(false, String.valueOf(e.getMessage())));
+        } catch (Exception e) {
+            driveAuthed(false, String.valueOf(e.getMessage()));
+        }
+    }
+
+    private void driveAuthed(boolean ok, String token) {
+        tellJs("window.driveAuthed&&window.driveAuthed(" + ok + "," + JSONObject.quote(token == null ? "" : token) + ")");
+    }
+
+    private void tellJs(final String js) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() { if (web != null) web.evaluateJavascript(js, null); }
+        });
     }
 
     private void tellPage(final boolean ok) {
