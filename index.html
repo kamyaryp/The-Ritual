@@ -2147,14 +2147,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   /* what the raw facts mean, worked out once */
   function xeronRead(f){
     var q=Math.min(7,Math.floor(f.min/180));                 /* the quarter we are in */
-    var missed=0; for(var i=0;i<q;i++) if(!f.bound[i]) missed++;
+    var missed=0, slept=0;                                   /* unbound while awake / while asleep */
+    for(var i=0;i<q;i++) if(!f.bound[i]){ if(awakeIn(f.log,i)) missed++; else slept++; }
     var boundN=f.bound.filter(Boolean).length;
     var startBy=q*180+167;                                   /* last minute a binding can begin */
     var clean=f.D===0;
     return {
-      q:q, missed:missed, boundN:boundN,
+      q:q, missed:missed, slept:slept, boundN:boundN,
       s: clean ? f.s0+1 : 0,                                 /* the run, today included */
-      tired: f.bedLast===false || f.awake===false,           /* Xenlil: sleep broken */
+      tired: !!f.sl && f.sl.tired,                           /* Xenlil: a short night, from the record */
+      nightFall: (f.log||[]).some(function(e){ return e[1]==="dep" && e[0]<5*60; }),  /* a breach in the small hours */
       idle: f.arurael<40 && f.min>=15*60,                    /* Arurael: an empty afternoon */
       busy: f.arurael>=80,                                   /* Arurael: a full day */
       aligned: f.rites>=6,                                   /* Arexia: the rites mostly kept */
@@ -2205,9 +2207,19 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "The run broke. You didn't. One day at a time, like before.",
       "{s0} days of discipline are still in you. Use them tomorrow."]},
 
+    {id:"fall_night", tone:"advice", when:function(f,x){ return f.D===1 && x.nightFall; }, lines:[
+      "The breach came in the small hours, long past 23:30. That's his ground; don't be awake on it.",
+      "He found you after midnight. The late hours are where he hunts. Be asleep when he comes.",
+      "A fall in the dead hours. Not weakness of will; wrong place, wrong hour. Bed on time.",
+      "Past midnight, awake, and he took the gate. The fix isn't more will; it's an earlier night.",
+      "The small hours gave him the plateau. Give him nothing tonight: lights out at 23:30.",
+      "You stayed up past the golden hour, and he was waiting there. Close that door first.",
+      "Breaches love the hours after midnight. Starve him of them.",
+      "He didn't beat you in the day. He beat you awake at night. Sleep is a wall."]},
+
     {id:"fall_tired", tone:"advice", when:function(f,x){ return f.D===1 && x.tired; }, lines:[
-      "You fought tired, and the Abyss saw it. Sleep is a wall too; man it with Xenlil.",
-      "No sleep, then a breach. I've seen this a thousand times. Fix the night first.",
+      "You fought on a short night, and the Abyss saw it. Sleep is a wall too; man it with Xenlil.",
+      "About {hrs} hours of sleep, then a breach. I've seen this a thousand times. Fix the night first.",
       "A tired defender is an open gate. Give Xenlil the night, and I'll hold the rest.",
       "A short night and a fall. I won't call that coincidence. Bed at 23:30, no arguments.",
       "Exhaustion is Aeshma's best ally. Take it from him: rest.",
@@ -2305,7 +2317,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "The edge, and no further. That's a defender's day.",
       "Temptation came; discipline answered. Keep answering."]},
 
-    {id:"unbroken", tone:"praise", when:function(f,x){ return x.missed===0 && x.q>=4 && x.boundN>=x.q && x.boundN<8 && f.D===0; }, lines:[
+    {id:"unbroken", tone:"praise", when:function(f,x){ return x.missed===0 && x.q>=4 && x.boundN>=x.q-x.slept && x.boundN<8 && f.D===0; }, lines:[
       "Every window so far, bound. That's a clean line.",
       "{b} of {b} so far. Not one gap.",
       "No gaps in the line today. Keep it that way.",
@@ -2385,15 +2397,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "A day after defeat, a clean day. That's the Allfather's resilience in you.",
       "Recovery is a victory too. Today, you won it."]},
 
-    {id:"clean_tired", tone:"advice", when:function(f,x){ return x.tired; }, lines:[
-      "Clean, but on no sleep. He loves a tired night; sleep before he comes.",
-      "You held without rest. Don't make me watch you try that twice.",
+    {id:"clean_tired", tone:"advice", when:function(f,x){ return x.tired && f.min>=12*60; }, lines:[
+      "Clean, on about {hrs} hours of sleep. He loves a tired evening; sleep before he comes.",
+      "You held on a short night. Don't make me watch you try that twice.",
       "Give Xenlil the night. One rested sister is worth ten tired ones.",
-      "Clean, but running on empty. Rest before you make me worry.",
-      "You held without sleep. Impressive, and foolish. Sleep tonight.",
+      "Clean, but running low. A short night makes a thin wall by evening. Rest early.",
+      "You held on {hrs} hours. Impressive. Now sleep a full night.",
       "A tired guard still held. Now let her rest.",
       "Sleep is the wall Aeshma can't climb. Build it tonight.",
-      "Clean today, but tired days end badly. Go to bed on time."]},
+      "Clean today on a short night. Tired evenings end badly; go to bed on time."]},
 
     {id:"clean_busy", tone:"praise", when:function(f,x){ return x.busy && f.min>=15*60; }, lines:[
       "Full hands, clean wall. Desire turned into work, exactly right.",
@@ -2404,6 +2416,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Arurael got your effort; Aeshma got nothing. A good trade.",
       "The flame burned for the work, not for him. Keep it pointed there.",
       "A full day without a breach. That's how the throne is defended."]},
+
+    {id:"slept_windows", tone:"quiet", when:function(f,x){ return x.slept>=1 && x.missed===0 && f.D===0 && f.min>=6*60 && f.min<12*60; }, lines:[
+      "{z} of the night windows passed while you slept. Asleep, you give him nothing. Awake, bind every one.",
+      "The night windows went unbound, but you were asleep; that isn't a gate left open. The day's windows are.",
+      "You slept through {z}. Fine. He can't use a sleeping man. The waking windows are the war.",
+      "Night windows: slept. Day windows: mine. Start with {rune}.",
+      "Sleep held the night for you. Now hold the day.",
+      "No shame in a window slept through. The shame is in one wasted awake.",
+      "The night was rest, not retreat. Bind {rune} before {startBy}.",
+      "Sleep covered the dark hours. The daughters have the rest; so do you."]},
 
     {id:"clean_aligned", tone:"praise", when:function(f,x){ return x.aligned && f.min>=18*60; }, lines:[
       "Arexia's rites kept, the throne held. The axis stands together.",
@@ -2505,7 +2527,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   var XERON_SPEC={
     says:XERON_SAYS, open:XERON_OPEN, read:xeronRead,
     tokens:function(f,x,ev){
-      return {d:xrWord(f.D), t:xrWord(f.T), s0:xrWord(f.s0), s:xrWord(x.s), m:xrWord(x.missed), b:xrWord(x.boundN),
+      return {d:xrWord(f.D), t:xrWord(f.T), s0:xrWord(f.s0), s:xrWord(x.s), m:xrWord(x.missed), z:xrWord(x.slept), b:xrWord(x.boundN),
               start:f.start, rune:x.rune, end:x.end, startBy:x.startBy,
               brune: ev.detail && ev.detail.q!=null ? XR_RUNE[ev.detail.q] : x.rune};
     },
@@ -2535,6 +2557,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       s0: s0, best: best, yFell: !!(yr && deps(yr.xr)>0),
       bedLast: yr && yr.habits ? !!yr.habits.bed : null,
       awake: m>habCloses(wake) ? !!(state.day.habits && state.day.habits.wake) : null,
+      sl: sleepRead(m), log: state.day.log||[],
       arurael: DAY.arurael(today)||0, rites: total(recordFor(today)||{})
     };
   }
@@ -2577,7 +2600,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       score:score, duty:duty, full:full, left:leftText,
       run: full ? f.run0+1 : 0,                               /* full days in a row, today included */
       study: f.E>=2 && f.S>=1 && f.L>=1,                      /* every division sealed */
-      tired: f.bedLast===false || f.awake===false,             /* Xenlil: sleep broken */
+      tired: !!f.sl && f.sl.tired,                            /* Xenlil: a short night, from the record */
+      lateStart: !!f.sl && (f.sl.kind==="slept_in" || f.sl.kind==="shifted"),  /* the day began after the golden hour */
       fell: f.D>0                                             /* Xeron: a fall today */
     };
   }
@@ -2683,15 +2707,25 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Work filled in for {left}. A substitute, not the thing itself.",
       "Full marks. Now ask yourself why {left} was skipped."]},
 
-    {id:"tired_low", tone:"understanding", when:function(f,x){ return x.tired && x.score<50; }, lines:[
-      "You were short on sleep. A tired mind learns little; I won't judge today harshly.",
-      "Xenlil's night was broken, and it shows here. Sleep first, then study.",
+    {id:"tired_low", tone:"understanding", when:function(f,x){ return x.tired && x.score<50 && f.min>=13*60; }, lines:[
+      "About {hrs} hours of sleep. A tired mind learns little; I won't judge today harshly.",
+      "The night was short, and it shows here. Sleep first, then study.",
       "Fatigue clouds the water. Rest is part of learning.",
-      "Little done on little sleep. That's cause, not character.",
-      "The Eye sees the tiredness behind the empty divisions. Fix the night.",
-      "Study on no sleep is reading without seeing. Sleep tonight.",
+      "Little done on a short night. That's cause, not character.",
+      "The Eye sees the short night behind the empty divisions. Fix the night.",
+      "Study on {hrs} hours of sleep is reading without seeing. Sleep a full night tonight.",
       "I'd rather you sleep than force a dull division.",
       "Tired today, and the work waited. Tomorrow, rested, we try again."]},
+
+    {id:"late_start", tone:"understanding", when:function(f,x){ return x.lateStart && !x.full && x.score<40 && f.min>=10*60 && f.min<16*60 && !f.running; }, lines:[
+      "The day began late; the hours are fewer, not gone. Still owed: {left}. Start now.",
+      "A late start is a scheduling fact, not a verdict. Put the first division in the next hour.",
+      "You slept past the golden hour. Rested, at least. Spend that on {left}.",
+      "Fewer hours today. Then choose the hardest thing first: {left}.",
+      "The morning went to sleep. The afternoon doesn't have to go anywhere.",
+      "A late morning changes the plan, not the duty. Begin.",
+      "Rested and late is better than early and dull. Now prove it.",
+      "Start where the day starts. The first division is the one that matters."]},
 
     {id:"fell_idle", tone:"criticism", when:function(f,x){ return x.fell && x.score<50 && f.min>=15*60; }, lines:[
       "An empty afternoon, and Xeron's wall broke. Idle minds open gates.",
@@ -2909,10 +2943,68 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     });
     return {run0:run0, best:best};
   }
-  function sleepFacts(m){
-    var yr=past(keyAdd(dayKey(),-1)), wake=HABITS.filter(function(h){ return h.k==="wake"; })[0];
-    return {bedLast: yr && yr.habits ? !!yr.habits.bed : null,
-            awake: m>habCloses(wake) ? !!(state.day.habits && state.day.habits.wake) : null};
+  /* ---------- Sleep, as the record shows it ----------
+     To bed (23:30) and Awake (08:00) are the golden hours, not proof of sleep. An unmarked To bed
+     means the night began late (or went unmarked), not that there was no night. So the voices read
+     the night from what was actually logged: the last thing done last evening (or after midnight)
+     is roughly when sleep began; the first thing done this morning is roughly when it ended.
+     Only a short night (under six hours, when the record can tell) is fatigue. Anything else
+     that missed the golden hours is the rhythm shifting: worth a word, not a judgment.
+
+       kind      golden     both hours kept (or Awake not yet due)
+                 short      under six hours of sleep, from the record: the only "tired"
+                 late       To bed missed, the night began late, enough sleep (or can't tell)
+                 slept_in   To bed kept, Awake missed: rested, a late start
+                 shifted    both missed: the whole night moved later
+                 unmarked   the record says the hour was kept, only the mark is missing
+                 unknown    no record of last night
+       slept, woke   minutes from today's midnight (slept is negative before midnight), or null
+       hours         estimated sleep, or null when the record can't tell */
+  function sleepRead(m){
+    var today=dayKey(), yr=past(keyAdd(today,-1)), td=state.day||{}, h=td.habits||{};
+    var bedH=HABITS.filter(function(x){ return x.k==="bed"; })[0], wakeH=HABITS.filter(function(x){ return x.k==="wake"; })[0];
+    var bedAt=bedH.at-1440, wakeBy=habCloses(wakeH), yLog=(yr && yr.log)||[], tLog=td.log||[];
+    var slept=null, woke=null;
+    yLog.forEach(function(e){ if(e[0]>=20*60){ var v=e[0]-1440; if(slept===null || v>slept) slept=v; } });
+    tLog.forEach(function(e){ if(e[0]<4*60 && (slept===null || e[0]>slept)) slept=e[0]; });
+    var from=Math.max(4*60, slept!==null ? slept+120 : 0);
+    tLog.forEach(function(e){ if(e[0]>=from && (woke===null || e[0]<woke)) woke=e[0]; });
+    var upBy = woke!==null ? woke : (m>=from ? m : null);       /* you are reading this: you are up */
+    var hours = (slept!==null && upBy!==null) ? (upBy-slept)/60 : null;
+    var bedLast = yr && yr.habits ? !!yr.habits.bed : null;
+    var awake = m>wakeBy ? !!h.wake : null;
+    /* last night's To bed: kept / unmarked (quiet before 23:30) / late / unclear (nothing logged) / none */
+    var bs = bedLast===null ? "none" : bedLast ? "kept" : slept===null ? "unclear" : slept<=bedAt ? "unmarked" : "late";
+    /* this morning's Awake: kept / pending (before 09:00) / unmarked (up in time by the record) / late */
+    var ws = awake===null ? "pending" : awake ? "kept" : (woke!==null && woke<=wakeBy) ? "unmarked" : "late";
+    var bedMarkMissed = bs==="unmarked", wakeMarkMissed = ws==="unmarked";
+    var bOk = bs==="kept" || bs==="unmarked", wLate = ws==="late", kind;
+    if(hours!==null && hours<6 && (woke!==null || m<12*60)) kind="short";
+    else if(bs==="kept" && (ws==="kept" || ws==="pending")) kind="golden";
+    else if(bOk && !wLate) kind="unmarked";
+    else if(bs==="late") kind = wLate ? "shifted" : "late";
+    else if(wLate) kind="slept_in";
+    else kind="unknown";
+    return {
+      bedLast:bedLast, awake:awake, kind:kind,
+      tired: kind==="short",                                   /* the only real fatigue */
+      offRhythm: kind==="late" || kind==="slept_in" || kind==="shifted",
+      bedMarkMissed:bedMarkMissed, wakeMarkMissed:wakeMarkMissed,
+      slept:slept, woke:woke, hours:hours,
+      lateBy: (bedLast===false && slept!==null && slept>bedAt) ? slept-bedAt : 0,
+      sleptAt: slept!==null ? hm(slept) : "", wokeAt: woke!==null ? hm(woke) : "",
+      hrs: hours!==null ? vWord(Math.max(0,Math.round(hours))) : ""
+    };
+  }
+  function sleepFacts(m){ return sleepRead(m); }
+
+  /* a night window (00-03, 03-06, 06-09) passed while you slept: nothing at all was logged in it
+     while there was still half an hour to act. Misses in those are slept through, not abandoned.
+     Windows from 09:00 on are waking hours: a miss there is a miss. */
+  function awakeIn(log,q){
+    if(q>=3) return true;
+    var a=q*180, b=q*180+150;
+    return (log||[]).some(function(e){ return e[0]>=a && e[0]<b; });
   }
   function ebabbarFacts(){
     var today=dayKey(), d=new Date(), m=d.getHours()*60+d.getMinutes(), a=state.day.ar||{};
@@ -2925,7 +3017,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       W: Math.min(8,workN(state.day.work)), X: Math.min(8,workN(state.day.extra)),
       running: ART.blk ? arMission(ART.blk).name : "",
       yScore: (yr && !(y<CL_START && isBlank(yr))) ? DAY.arurael(y) : null,
-      run0: runs.run0, best: runs.best, D: deps(state.day.xr), bedLast: sl.bedLast, awake: sl.awake
+      run0: runs.run0, best: runs.best, D: deps(state.day.xr), bedLast: sl.bedLast, awake: sl.awake, sl: sl
     };
   }
 
@@ -2955,16 +3047,17 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function axHm(n){ n=((n%1440)+1440)%1440; return String(Math.floor(n/60)).padStart(2,"0")+":"+String(n%60).padStart(2,"0"); }
 
   function arexiaRead(f){
-    var q=Math.min(7,Math.floor(f.min/180)), lapsed=[], keptN=0;
-    for(var i=0;i<8;i++){ if(f.kept[i]) keptN++; else if(i<q) lapsed.push(i); }
-    if(f.nature){ lapsed=[]; keptN=8; }
+    var q=Math.min(7,Math.floor(f.min/180)), lapsed=[], slept=[], keptN=0;
+    for(var i=0;i<8;i++){ if(f.kept[i]) keptN++; else if(i<q){ if(awakeIn(f.log,i)) lapsed.push(i); else slept.push(i); } }
+    if(f.nature){ lapsed=[]; slept=[]; keptN=8; }
     var perfect=keptN===8;
     return {
       q:q, open: !f.nature && !f.kept[q], closing: !f.nature && !f.kept[q] && f.min>=(q+1)*180-30,
       n:lapsed.length, miss: lapsed.length ? AX_RUNE[lapsed[lapsed.length-1]] : "",
+      z:slept.length, zrune: slept.length ? AX_RUNE[slept[slept.length-1]] : "",   /* passed in sleep */
       k:keptN, perfect:perfect, run: perfect ? f.run0+1 : 0,
       rune:AX_RUNE[q], end:axHm(q*180+180),
-      tired: f.bedLast===false || f.awake===false, busy: f.arurael>=80, fell: f.D>0
+      tired: !!f.sl && f.sl.tired, busy: f.arurael>=80, fell: f.D>0
     };
   }
 
@@ -3052,12 +3145,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     {id:"lapsed_tired", tone:"cold", when:function(f,x){ return x.n>=1 && x.tired; }, lines:[
       "You were tired. The rite was not. Sleep is Xenlil's concern; observance is mine.",
       "Fatigue explains the missed rite. It does not excuse it.",
-      "A broken night, a broken rhythm. Repair both.",
+      "A short night, a broken rhythm. Repair both.",
       "Tired is a condition, not a defence. Sleep, then observe.",
-      "I see the sleepless night. I still count the missed rite.",
+      "I see the short night. I still count the missed rite.",
       "Rest tonight. The rites will not lower themselves to meet you.",
       "Fatigue is noted. The debt remains.",
-      "Sleep is part of the rhythm. You broke it, and the rite followed."]},
+      "Sleep is part of the rhythm. It was cut short, and the rite followed."]},
 
     {id:"lapsed_busy", tone:"cold", when:function(f,x){ return x.n>=1 && x.busy; }, lines:[
       "You worked well and abandoned a rite. Work is not a reason.",
@@ -3138,6 +3231,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "A single rite missed. A single crack. Cracks spread.",
       "{miss} is gone. I do not forget.",
       "One rite: {miss}. Mark it."]},
+
+    {id:"slept_rites", tone:"cold", when:function(f,x){ return x.z>=1 && x.n===0 && f.min>=6*60 && f.min<13*60; }, lines:[
+      "{zn} passed while you slept. I record it; I do not call it abandonment.",
+      "The night rites went unobserved. You were asleep. That is a debt, not a betrayal.",
+      "Sleep took {zn}. The record keeps them. The waking rites are what I judge.",
+      "{zrune} passed in your sleep. Noted. The rites of the day are another matter.",
+      "Asleep is not absent. It is still unobserved. Keep the waking rites whole.",
+      "The dark rites passed without you. If you wake in them, observe them.",
+      "I count the night as I count the day. But I know the difference between sleep and neglect.",
+      "{zn} unobserved in sleep. Not abandoned. Do not make the waking ones the same."]},
 
     {id:"comeback", tone:"cold", when:function(f,x){ return f.yScore!==null && f.yScore<50 && x.n===0 && x.k>=2; }, lines:[
       "Yesterday you abandoned the rites. Today you have not. Continue.",
@@ -3229,7 +3332,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       date: today, min: m, kept: kept, nature: !!state.day.nature,
       yScore: (yr && yc && !(y<CL_START && isBlank(yr))) ? 100*total(yc)/8 : null,
       run0: runs.run0, best: runs.best, D: deps(state.day.xr), arurael: DAY.arurael(today)||0,
-      bedLast: sl.bedLast, awake: sl.awake
+      bedLast: sl.bedLast, awake: sl.awake, sl: sl, log: state.day.log||[]
     };
   }
 
@@ -3281,8 +3384,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
 
   function xenlilRead(f){
-    var m=f.min, lapses=[];                                  /* what has slipped past its hour */
-    if(m>9*60 && !f.wake) lapses.push("wake");
+    var m=f.min, lapses=[], soft=[];                         /* what has slipped past its hour */
+    if(m>9*60 && !f.wake) soft.push("wake");                 /* the golden hours: rhythm, not slackness */
     if(f.gymDue && !f.gym && m>=20*60) lapses.push("gym");
     if(!f.core && m>=21*60) lapses.push("core");
     if(f.water<12 && m>=20*60) lapses.push("water");
@@ -3291,13 +3394,13 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(f.d3Due && !f.d3 && m>=20*60) lapses.push("d3");
     if(f.maintName && !f.maint && m>=20*60) lapses.push("maint");
     if(!f.skin && m>=22*60) lapses.push("skin");
-    if(!f.bed && m>23*60+30) lapses.push("bed");
+    if(!f.bed && m>23*60+30) soft.push("bed");
     var supp=[]; if(!f.mv) supp.push("Multivitamin & Omega 3"); if(!f.cre) supp.push("Creatine & whey"); if(f.d3Due && !f.d3) supp.push("D3");
     var score=xlScore(f), kingly=score>=90;
     return {
       score:score, kingly:kingly, crowned:score>=99.999,
       run: kingly ? f.run0+1 : 0,                             /* kingly days in a row, today included */
-      lapses:lapses, n:lapses.length, supp:xlList(supp),
+      lapses:lapses, n:lapses.length, soft:soft, supp:xlList(supp), sl:f.sl||{},
       gymMissed: f.gymDue && !f.gym && m>=20*60,
       busy: f.arurael>=80, idle: f.arurael<50
     };
@@ -3454,15 +3557,65 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Up, water, move.",
       "Get up. The day doesn't wait."]},
 
-    {id:"woke_late", tone:"advice", when:function(f){ return !f.wake && f.min>9*60 && f.min<12*60; }, lines:[
-      "You missed the waking hour. Late rising makes a late day.",
-      "Awake after nine. Start anyway, and start hard.",
-      "The morning slipped. Don't let the rest follow.",
-      "A late start. Sleep earlier tonight; rise on time tomorrow.",
-      "You missed the dawn. The day isn't lost; the habit might be.",
-      "Rise at eight. The law is simple; keep it.",
+    {id:"short_night", tone:"advice", when:function(f,x){ return x.sl.tired && f.min>=5*60 && f.min<14*60; }, lines:[
+      "About {hrs} hours of sleep, by the record. That's the one sleep number that matters. Tonight, a full night.",
+      "Down after {slept}, up by {woke}: a short night. Water early, and bed by 23:30 without bargaining.",
+      "A short night. Not a sin, a debt. Pay it tonight.",
+      "{hrs} hours. The body will collect. Keep today simple and sleep on time.",
+      "Short sleep. Don't add heavy decisions to it; add water and an early night.",
+      "The night was cut short. Today, order the essentials; tonight, repay the night.",
+      "Less than six hours. I don't punish it; I correct it. Bed at 23:30.",
+      "A thin night. Train if it's a gym day, but sleep is tonight's first law."]},
+
+    {id:"wake_unmarked", tone:"advice", when:function(f,x){ return x.sl.wakeMarkMissed && f.min>9*60 && f.min<13*60; }, lines:[
+      "The record has you up at {woke}. The hour was kept; only the mark was missed. Mark it in time tomorrow.",
+      "Up by {woke}, and Awake unmarked. The law counts marks. Tick it inside the hour.",
+      "You rose on time and forgot to say so. A small slip; the realm still logs it as one.",
+      "{woke}, by the record. Good rising. Bad bookkeeping. Fix the second.",
+      "On time, unmarked. Next time, the first tick of the day is Awake.",
+      "You kept the hour and lost the mark. Keep both tomorrow.",
+      "The waking was right; the record is wrong. Mark it before nine.",
+      "Up early enough. Let the record say so tomorrow."]},
+
+    {id:"night_shifted", tone:"advice", when:function(f,x){ return x.sl.kind==="shifted" && f.min>9*60 && f.min<13*60; }, lines:[
+      "Late to bed, late to rise: one cause, not two. Hold 23:30 tonight and 08:00 keeps itself.",
+      "The whole night moved later{lateby}. You slept; just not in the golden hours. Pull it back tonight.",
+      "Not a lost night, a shifted one. Shift it back: lights out by 23:30.",
+      "You missed both golden hours, but you slept. Fix the evening; the morning follows.",
+      "The night ran late, so the morning did. That's rhythm, not slackness. Reset it tonight.",
+      "Sleep came after the golden hour, and waking with it. Tonight, meet 23:30.",
+      "A late night makes a late morning. Win the evening and the dawn is yours.",
+      "The rhythm drifted. One early night puts it back."]},
+
+    {id:"woke_late", tone:"advice", when:function(f,x){ return !f.wake && f.min>9*60 && f.min<12*60; }, lines:[
+      "The golden hour passed unmarked. Rested, at least. Now spend it.",
+      "Up after the waking hour. The day isn't late; only its start was. Begin.",
+      "You missed the hour, not the day. Don't let the rest follow.",
+      "A late start. You slept; good. Sleep earlier tonight and rise on time tomorrow.",
+      "The waking hour went by. A rhythm slip, not a failure. Correct it tonight.",
+      "Rise at eight. The law is simple; tomorrow, keep it.",
       "Late up. Let's see what you do with the hours left.",
-      "The morning law was broken. Win the afternoon."]},
+      "The morning law slipped. Win the afternoon."]},
+
+    {id:"bed_unmarked", tone:"advice", when:function(f,x){ return x.sl.bedMarkMissed && f.min>=5*60 && f.min<12*60; }, lines:[
+      "Nothing in the record after {slept} last night. If you were down by 23:30, the law was kept; only the mark was missed.",
+      "Quiet after {slept} last night, and To bed unmarked. Mark it before you sleep.",
+      "You likely slept on time. The record can't say so. Tick To bed tonight.",
+      "An early night, unmarked. Good sleep, poor bookkeeping.",
+      "The realm was still after {slept}. Mark the bed you keep.",
+      "To bed was probably kept and certainly unmarked. Fix the mark.",
+      "Last night looks orderly. Let the record say so tonight.",
+      "Sleep on time, then say so. Both are the law."]},
+
+    {id:"late_night", tone:"advice", when:function(f,x){ return x.sl.kind==="late" && f.wake && f.min>=8*60 && f.min<12*60; }, lines:[
+      "Late to bed{lateby}, and still up on time. The night was short of gold, not of sleep. Bring it back to 23:30.",
+      "You missed the golden hour last night and kept this morning's. Half the law. Tonight, the other half.",
+      "A late night, an on-time morning. Respect. Don't make it a habit.",
+      "Bed slipped past 23:30; you rose anyway. Tonight, close the day on time.",
+      "The night started late. Not a disaster. Start it on time tonight.",
+      "Up by the law after a late night. Good. The evening is where tonight's fight is.",
+      "Late down, on time up. Keep the morning; fix the evening.",
+      "You slept past the golden hour's start, not through the morning. One correction left: 23:30."]},
 
     {id:"water_low", tone:"advice", when:function(f){ return f.min>=18*60 && f.water<7; }, lines:[
       "Water at {w} by evening. The body is dry; drink now.",
@@ -3649,7 +3802,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   var XENLIL_SPEC={
     says:XENLIL_SAYS, open:XENLIL_OPEN, read:xenlilRead,
     tokens:function(f,x,ev){
+      var sl=x.sl||{};
       return {start:f.start, r:xlWord(x.run), n:xlWord(x.n), w:f.water+"/14", gym:f.gymName,
+              slept:sl.sleptAt||"", woke:sl.wokeAt||"", hrs:sl.hrs||"",
+              lateby: sl.lateBy>=30 ? ", by about "+(sl.lateBy>=90 ? vWord(Math.round(sl.lateBy/60))+" hours" : (sl.lateBy>=60 ? "an hour" : "half an hour")) : "",
               maint:f.maintName, supp:x.supp, habit:(ev.detail && ev.detail.habit) || ""};
     },
     react:function(f,x,ev){
@@ -3676,7 +3832,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       core: !!state.day.core, coreRunning: !!CORE.run,
       mv: !!h.mvom, cre: !!h.cre, d3Due: isFirst(today), d3: !!h.d3,
       skin: !!h.skin, bed: !!h.bed, wake: !!h.wake,
-      maintName: mt ? mt.name : "", maint: mt ? !!h[mt.k] : false,
+      maintName: mt ? mt.name : "", maint: mt ? !!h[mt.k] : false, sl: sleepRead(m),
       sealed: CHECKUPS.filter(function(c){ return hcCover(c,today); }).length,
       yScore: (yr && !(y<CL_START && isBlank(yr))) ? xs(y,yr) : null,
       run0: runs.run0, best: runs.best, arurael: DAY.arurael(today)||0, D: deps(state.day.xr)
@@ -3912,7 +4068,11 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     kept:["Yesterday's decree, {law}, was kept. Good.","The law of yesterday held: {law}.","Decree kept: {law}. That's a Fedayi.",
           "{law}: done yesterday. Today's law is new.","Yesterday's decree stands fulfilled.","You kept yesterday's decree."],
     broken:["Yesterday's decree was broken: {law}. Today's is new; keep it.","The law of yesterday failed: {law}.","Decree broken: {law}. Not twice.",
-            "{law}, yesterday. Broken. Remember it.","Yesterday's decree did not hold.","You broke yesterday's decree. Today, keep this one."]
+            "{law}, yesterday. Broken. Remember it.","Yesterday's decree did not hold.","You broke yesterday's decree. Today, keep this one."],
+    slipped:["Yesterday's decree, {law}, slipped. You slept; just not in the golden hour. Today's law is new.",
+             "{law}: missed by the clock, not by the body. Hold the hour next time.","The golden hour got away yesterday ({law}). Rhythm, not ruin. Today, a new law.",
+             "Yesterday's decree slipped: {law}. One early night fixes it.","{law} wasn't kept. A late rhythm, not a broken will. Correct it.",
+             "The decree of the hour slipped yesterday. Keep today's."]
   };
 
   /* the Landsraad: each realm's voice on the cluster as a whole */
@@ -4024,6 +4184,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       v2Sit("bed_late","order",function(f){ var P=f.G&&f.G.pat; return !!P && P.bedLate && !f.bed && f.min>=22*60+30 && f.min<=23*60+30; }, L.time.bed_late)]);
     v2Insert(XENLIL_SAYS,"woke_late",[
       v2Sit("decree_kept","praise",function(f){ return !!f.decreeY && f.decreeY.v==="kept" && f.min>=5*60 && f.min<12*60; }, L.decree.kept),
+      v2Sit("decree_slipped","advice",function(f){ return !!f.decreeY && f.decreeY.v==="broken" && (f.decreeY.k==="wake" || f.decreeY.k==="bed") && f.min>=5*60 && f.min<12*60; }, L.decree.slipped),
       v2Sit("decree_broken","criticism",function(f){ return !!f.decreeY && f.decreeY.v==="broken" && f.min>=5*60 && f.min<12*60; }, L.decree.broken)]);
     v2Insert(XENLIL_SAYS,"supps_due",[
       v2Sit("d3_day","order",function(f){ return f.d3Due && !f.d3 && f.min>=8*60; }, L.own.d3_day)]);
@@ -4048,7 +4209,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       v2Sit("weak_rite_open","command",function(f,x){ var w=f.G&&f.G.weakRite; return !!w && w.n>=3 && w.q===x.q && x.open; }, L.own.weak_rite_open),
       v2Sit("last_minute","command",function(f,x){ var P=f.G&&f.G.pat; return !!P && P.riteLate && x.open && f.min-x.q*180<120; }, L.time.last_minute)]);
     v2Insert(AREXIA_SAYS,"lapsed_one",[
-      v2Sit("weak_rite_again","judgment",function(f,x){ var w=f.G&&f.G.weakRite; if(!w || w.n<3 || f.nature) return false; return w.q<x.q && !f.kept[w.q]; }, L.own.weak_rite_again)]);
+      v2Sit("weak_rite_again","judgment",function(f,x){ var w=f.G&&f.G.weakRite; if(!w || w.n<3 || f.nature) return false; return w.q<x.q && !f.kept[w.q] && awakeIn(f.log,w.q); }, L.own.weak_rite_again)]);
     v2Insert(AREXIA_SAYS,"half_kept",sh.mid);
   })();
 
@@ -4128,8 +4289,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var mr=[0,0,0,0,0,0,0,0], mw=[0,0,0,0,0,0,0,0];
     hist.forEach(function(h){
       var cc=h.r.checks;
-      if(!h.r.nature && cc) for(var q=0;q<8;q++){ var g=GODS[q%4]; if(!(cc[g.key] && cc[g.key][q<4?0:1])) mr[q]++; }
-      if(Array.isArray(h.r.ae)) for(var q2=0;q2<8;q2++) if(!h.r.ae[q2]) mw[q2]++;
+      var lg=h.r.log;                                   /* old days without a log: judge as before */
+      var wk=function(q){ return !Array.isArray(lg) || awakeIn(lg,q); };
+      if(!h.r.nature && cc) for(var q=0;q<8;q++){ var g=GODS[q%4]; if(!(cc[g.key] && cc[g.key][q<4?0:1]) && wk(q)) mr[q]++; }
+      if(Array.isArray(h.r.ae)) for(var q2=0;q2<8;q2++) if(!h.r.ae[q2] && wk(q2)) mw[q2]++;
     });
     var arg=function(a){ var b=0; for(var i2=1;i2<8;i2++) if(a[i2]>a[b]) b=i2; return {q:b, n:a[b]}; };
     G.weakRite=arg(mr); G.weakWin=arg(mw);
@@ -4215,6 +4378,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       t.cs=vWord(G.coreStreak||0); if(G.hcExp){ t.hc=G.hcExp.name; t.hcd=vWord(G.hcExp.days); } if(G.water7!=null) t.wa=(Math.round(G.water7*10)/10)+"/14";
       if(f.decreeY) t.law=V2_DECREE[f.decreeY.k].law; }
     if(god==="arexia" && G.weakRite) t.wrune=RUNE[G.weakRite.q];
+    if(f.sl){ if(!t.hrs) t.hrs=f.sl.hrs||"a few"; }
+    if(god==="arexia"){ var x=arexiaRead(f); t.zn = x.z===1 ? "one rite" : vWord(x.z)+" rites"; t.zrune=x.zrune; }
     return t;
   }
   function v2Facts(god,f){ f=withCtx(f); f.G=voiceWorld(); f.mem=vMemPrev(god); return f; }
