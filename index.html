@@ -356,17 +356,6 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .at-big small{font-size:20px;color:var(--ink-3);margin-left:2px}
 .at-time{font-family:var(--mono);font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
 .at-time b{font-weight:500;color:var(--ink)}
-.at-dnd{display:inline-flex;align-items:center;gap:9px;align-self:flex-start;padding:6px 13px 6px 11px;border-radius:var(--r-s);border:1px solid var(--line);background:var(--panel-2)}
-.at-dnd[hidden]{display:none}
-.at-dnd .dot{width:8px;height:8px;border-radius:50%;background:#ff453a;flex:none;animation:atPulse 1.8s ease-out infinite}
-.at-dnd .g{position:relative;font-family:var(--mono);font-size:11.5px;font-weight:600;letter-spacing:.14em;text-transform:uppercase;color:#ff453a;line-height:1}
-.at-dnd .g::before,.at-dnd .g::after{content:attr(data-text);position:absolute;inset:0;pointer-events:none}
-.at-dnd .g::before{color:#ff9a94;clip-path:inset(0 0 100% 0);animation:atGlA 2.6s infinite steps(1)}
-.at-dnd .g::after{color:rgba(255,69,58,.5);clip-path:inset(0 0 100% 0);animation:atGlB 3.4s infinite steps(1)}
-@keyframes atPulse{0%{box-shadow:0 0 0 0 rgba(255,69,58,.6)}70%,100%{box-shadow:0 0 0 9px rgba(255,69,58,0)}}
-@keyframes atGlA{0%,18%,26%,61%,68%,100%{clip-path:inset(0 0 100% 0);transform:none}19%{clip-path:inset(10% 0 55% 0);transform:translate(-3px,0)}21%{clip-path:inset(62% 0 8% 0);transform:translate(3px,0)}62%{clip-path:inset(0 0 70% 0);transform:translate(4px,0)}65%{clip-path:inset(75% 0 0 0);transform:translate(-4px,0)}}
-@keyframes atGlB{0%,40%,47%,83%,88%,100%{clip-path:inset(0 0 100% 0);transform:none}41%{clip-path:inset(48% 0 22% 0);transform:translate(3px,0)}43%{clip-path:inset(5% 0 80% 0);transform:translate(-3px,0)}84%{clip-path:inset(20% 0 50% 0);transform:translate(-5px,0)}}
-@media (prefers-reduced-motion:reduce){ .at-dnd .dot,.at-dnd .g::before,.at-dnd .g::after{animation:none} }
 .at-rows{display:flex;flex-direction:column;gap:4px}
 .at-row{display:grid;grid-template-columns:64px 1fr 30px;align-items:center;gap:10px;padding:7px 8px;margin:0 -8px;border-radius:var(--r-s);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .at-row:hover{background:var(--panel-2)}
@@ -5098,7 +5087,6 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function buildAr(){
     var host=document.getElementById("arCards");
     host.innerHTML=
-      '<div class="at-dnd" id="atDnd" role="status" hidden><span class="dot" aria-hidden="true"></span><span class="g" data-text="Do not disturb">Do not disturb</span></div>'+
       '<div class="at-top"><div><div class="at-eyebrow" id="atLabel">Today</div><div class="at-big"><span id="atPct">0</span><small>%</small></div></div>'+
       '<div class="at-time" id="atTime"></div></div>'+
       '<div class="at-rows" id="atRows"></div>'+
@@ -5201,7 +5189,6 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     document.getElementById("atPause").hidden=!id;
     document.getElementById("atStop").hidden=!id;
     document.getElementById("atFill").style.width = id ? pct.toFixed(2)+"%" : "0";
-    document.getElementById("atDnd").hidden=!run;
     if(id){
       setText("atEl", mmss(full-Math.ceil(left/1000)*1000)); setText("atMid", run ? Math.floor(pct)+"%" : "PAUSED"); setText("atLeft", "−"+mmss(left));
       main.setAttribute("aria-label", m.name+(run ? " · tap to pause" : " · paused, tap to resume"));
