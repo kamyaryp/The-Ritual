@@ -606,6 +606,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 .mn-t{display:flex;flex-direction:column;gap:2px;min-width:0}
 .mn-s{font-size:12px;line-height:1.45;color:var(--ink-3)}
 .mn-s b{font-weight:500;color:var(--ink-2)}
+.mn-s[hidden]{display:none}
 .mn-it.sub{padding-top:7px;padding-bottom:7px;color:var(--ink-2);font-size:13px}
 .mn-it.newer,.mn-it.newer svg{color:var(--xenlil)}
 .mn-it.danger,.mn-it.danger svg{color:var(--xeron)}
@@ -614,12 +615,115 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 .mn-it[data-state="expired"] svg,.mn-it[data-state="error"] svg,.mn-it[data-state="fail"] svg{color:var(--xenlil)}
 .mn-sep{height:1px;margin:6px 4px;background:var(--line)}
 #syncMore[hidden]{display:none}
+/* ---------- Goals: four horizons per god ---------- */
+.goal-btn{position:relative;flex:0 0 auto;width:40px;height:40px;border-radius:var(--r);border:0;background:transparent;color:var(--ink-2);
+  display:grid;place-items:center;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+.goal-btn:hover{background:var(--panel-2);color:var(--ink)}
+.goal-btn svg{width:18px;height:18px}
+.goal-btn .more-dot{top:8px;right:8px}
+#modal{z-index:46}
+#goalEdit{z-index:44}
+.sheet.tall{max-height:min(88vh,860px);overflow-y:auto;overscroll-behavior:contain}
+.gl-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:6px}
+.gl-title{font-size:19px;font-weight:500;letter-spacing:-.01em}
+.ge-x{flex:0 0 auto;width:36px;height:36px;margin:-6px -8px -6px 0;border:0;border-radius:var(--r-s);background:transparent;color:var(--ink-3);display:grid;place-items:center;cursor:pointer;padding:0}
+.ge-x:hover{background:var(--panel);color:var(--ink)}
+.ge-x svg{width:16px;height:16px}
+.gl-god{padding-top:14px}
+.gl-god+.gl-god{margin-top:6px;border-top:1px solid var(--line-2)}
+.gl-god-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--hue);margin-bottom:2px}
+.gl-god-h svg{width:16px;height:14px;fill:none;stroke:var(--hue);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
+.gl-slots{display:flex;flex-direction:column}
+.gl-slot{display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:44px;padding:6px 8px;margin:0 -8px;width:calc(100% + 16px);
+  border:0;border-radius:var(--r-s);background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.gl-slot:hover{background:var(--panel-2)}
+.goals-card .gl-slot:hover,.gl-god .gl-slot:hover{background:rgba(255,255,255,.04)}
+.gl-code{font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--hue)}
+.gl-name{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gl-name.unset{color:var(--ink-3);display:flex;align-items:center}
+.gl-name.unset svg{width:14px;height:14px;opacity:.7}
+.gl-st{font-size:11px;font-family:var(--mono);color:var(--ink-3);white-space:nowrap;padding:2px 7px;border-radius:var(--r-s);border:1px solid var(--line);line-height:1.5}
+.gl-st[data-p="active"]{color:var(--ink);border-color:var(--hue)}
+.gl-st[data-p="due"]{color:var(--bg);background:var(--xenlil);border-color:var(--xenlil)}
+.gl-st[data-p="draft"]{border-style:dashed}
+.gl-st[data-p="achieved"]{color:#30d158;border-color:rgba(48,209,88,.5)}
+.gl-st[data-p="missed"]{color:var(--xeron);border-color:rgba(255,0,10,.45)}
+.gl-past{margin-top:4px}
+.gl-past summary{display:inline-block;font-size:11.5px;color:var(--ink-3);cursor:pointer;list-style:none;padding:6px 0}
+.gl-past summary::-webkit-details-marker{display:none}
+.gl-past ul{list-style:none;margin:0;padding:0 0 4px}
+.gl-past li{display:grid;grid-template-columns:16px minmax(0,1fr) auto;gap:8px;align-items:center;min-height:32px;font-size:13px;color:var(--ink-2);cursor:pointer;border-radius:var(--r-s)}
+.gl-past li span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gl-past li i{font-style:normal;font-weight:600;text-align:center}
+.gl-past li i.ok{color:#30d158} .gl-past li i.no{color:var(--xeron)}
+.gl-past li em{font-style:normal;font-family:var(--mono);font-size:11px;color:var(--ink-3)}
+/* the card on each god's tab */
+.goals-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:12px 16px 8px}
+.goals-card .gc-h{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:600;color:var(--hue);padding:2px 0 4px}
+.goals-card .gc-h svg{width:15px;height:15px}
+/* the editor */
+.ge-top{display:flex;align-items:center;gap:10px}
+.ge-ey{flex:1 1 auto;display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--hue);min-width:0}
+.ge-ey svg{width:16px;height:14px;fill:none;stroke:var(--hue);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round;flex:0 0 auto}
+.ge-ey b{font-family:var(--mono);font-weight:500;letter-spacing:0}
+.ge-f{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.ge-f input,.ge-f textarea{font:inherit;font-size:17px;color:var(--ink);background:var(--well);border:1px solid var(--line);border-radius:var(--r);padding:12px 14px;width:100%;
+  -webkit-user-select:text;user-select:text;outline:none;resize:none}
+.ge-f textarea{font-size:14px;color:var(--ink-2);min-height:0;line-height:1.5}
+.ge-f input:focus,.ge-f textarea:focus{border-color:var(--hue)}
+.ge-f [hidden]{display:none}
+.ge-ro{display:flex;flex-direction:column;gap:6px;padding:2px 0}
+.ge-ro b{font-size:18px;font-weight:500;color:var(--ink);line-height:1.35}
+.ge-ro span{font-size:14px;color:var(--ink-2);line-height:1.5;white-space:pre-wrap}
+.ge-when{display:flex;align-items:baseline;flex-wrap:wrap;gap:4px 10px;margin-top:14px;font-family:var(--mono);font-size:13px;color:var(--ink)}
+.ge-when:empty{display:none}
+.ge-when i{font-style:normal;color:var(--ink-3)}
+.ge-when em{font-style:normal;font-size:11.5px;color:var(--ink-3);margin-left:auto}
+.ge-ext{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--ink-2)}
+.ge-ext[hidden]{display:none}
+.ge-ext b{font-family:var(--mono);font-weight:500;color:var(--ink);min-width:22px;text-align:center}
+.ge-ext #geExtTo{font-family:var(--mono);font-size:12px;color:var(--ink-3)}
+.ge-btns{display:flex;gap:8px;margin-top:18px}
+.ge-btns button{flex:1 1 0;height:48px;font:inherit;font-size:14.5px;border-radius:var(--r);border:1px solid var(--line);background:transparent;color:var(--ink);cursor:pointer;padding:0 10px;white-space:nowrap}
+.ge-btns button.pri{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:500}
+.ge-btns button.ok{background:#30d158;border-color:#30d158;color:#06210d;font-weight:600}
+.ge-btns button.no{color:var(--xeron);border-color:rgba(255,0,10,.45)}
+.ge-btns button.ic{flex:0 0 48px;padding:0;display:grid;place-items:center;color:var(--ink-3)}
+.ge-btns button.ic:hover{color:var(--xeron);border-color:rgba(255,0,10,.45)}
+.ge-btns button.ic svg{width:17px;height:17px}
+.ge-btns[hidden]{display:none}
+/* achieved in this cluster, in the Landsraad */
+.c-goals{margin-top:6px;padding:10px 0 4px;border-top:1px solid var(--line-2)}
+.c-goals[hidden]{display:none}
+.c-goals .c-who{display:block;margin-bottom:6px}
+.c-goal{display:flex;align-items:baseline;gap:8px;padding:4px 0;font-size:14px;color:var(--ink)}
+.c-goal b{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--hue);flex:0 0 auto}
+.c-goal i{font-style:normal;color:#30d158}
 .toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-size:12.5px;padding:8px 14px;border-radius:var(--r);z-index:20}
 </style>
 </head>
 <body>
 
 
+<div class="modal" id="goalSheet" hidden>
+  <div class="sheet tall" role="dialog" aria-modal="true" aria-labelledby="glTitle">
+    <div class="gl-head"><p class="gl-title" id="glTitle">Goals</p><button type="button" class="ge-x" id="glClose" aria-label="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div id="glBody"></div>
+  </div>
+</div>
+<div class="modal" id="goalEdit" hidden>
+  <div class="sheet tall" role="dialog" aria-modal="true" aria-labelledby="geEy">
+    <div class="ge-top"><span class="ge-ey" id="geEy"></span><span class="gl-st" id="geChip" hidden></span><button type="button" class="ge-x" id="geX" aria-label="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div class="ge-f">
+      <input id="geName" type="text" autocomplete="off" maxlength="140" placeholder="Goal" enterkeyhint="next">
+      <textarea id="geNote" maxlength="1200" placeholder="Note" rows="2"></textarea>
+      <div class="ge-ro" id="geRo" hidden></div>
+    </div>
+    <div class="ge-when" id="geWhen"></div>
+    <div class="ge-ext" id="geExt" hidden><span>Extend</span><button type="button" class="step" id="geExtMinus" aria-label="Fewer clusters">−</button><b id="geExtN">1</b><button type="button" class="step plus" id="geExtPlus" aria-label="More clusters">+</button><span id="geExtTo"></span></div>
+    <div class="ge-btns" id="geBtns"></div>
+  </div>
+</div>
 <div class="modal" id="tagModal" hidden>
   <div class="sheet tag-sheet" role="dialog" aria-modal="true" aria-labelledby="tgTitle">
     <p class="tg-eyebrow" id="tgEyebrow"></p>
@@ -660,6 +764,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       </div>
     </div>
     <span class="stamp" id="stamp">—</span>
+    <button type="button" class="goal-btn" id="goalBtn" aria-label="Goals"><svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg><i class="more-dot" id="goalDot" hidden></i></button>
     <button type="button" class="more-btn" id="moreBtn" aria-label="More" aria-haspopup="menu" aria-expanded="false" aria-controls="menu">
       <svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="3" cy="8" r="1.5"/><circle cx="8" cy="8" r="1.5"/><circle cx="13" cy="8" r="1.5"/></svg>
       <i class="more-dot" id="moreDot" hidden></i>
@@ -678,7 +783,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     <div id="syncMore" hidden><button type="button" class="mn-it sub" id="syncAlt" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5c0-.6.4-1 1-1h3l1.4 1.5H13c.6 0 1 .4 1 1v6c0 .6-.4 1-1 1H3c-.6 0-1-.4-1-1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="mn-t" id="syncAltLbl"></span></button></div>
     <input type="file" id="syncFile" accept="application/json,.json" hidden>
     <div class="mn-sep"></div>
-    <button type="button" class="mn-it danger" id="clReset" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Reset the Golden Path<span class="mn-s">Erase everything and start Cluster 1 tomorrow</span></span></button>
+    <button type="button" class="mn-it danger" id="clReset" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Reset the Golden Path</span></button>
   </div>
 
   <div id="viewDial">
@@ -742,6 +847,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     </div>
   </div>
 
+  <section class="goals-card" id="goals-arexia" data-god="arexia"></section>
   <section class="chron">
     <div class="sec-head">
       <h2>Record</h2>
@@ -836,6 +942,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       </div>
     </div>
 
+    <section class="goals-card" id="goals-xenlil" data-god="xenlil"></section>
     <section class="chron">
       <div class="sec-head">
         <h2>Record</h2>
@@ -851,6 +958,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     <section class="council" aria-label="Landsraad">
       <div class="c-head"><span class="c-rule"></span><h2 class="c-title">Landsraad</h2><span class="c-rule r"></span></div>
       <div class="c-rows" id="councilRows"></div>
+      <div class="c-goals" id="councilGoals" hidden></div>
     </section>
     <section class="chron">
       <div class="sec-head"><h2>Performance</h2><div class="stats" id="clNowStat"></div></div>
@@ -909,6 +1017,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         <div class="card-head"><span class="gname">Threshold</span></div>
       </div>
     </div>
+    <section class="goals-card" id="goals-xeron" data-god="xeron"></section>
     <section class="chron">
       <div class="sec-head">
         <h2>Record</h2>
@@ -932,6 +1041,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       <p class="v-who" id="eWho">Arurael</p>
     </section>
     <div class="ar-today" id="arCards"></div>
+    <section class="goals-card" id="goals-arurael" data-god="arurael"></section>
     <section class="chron">
       <div class="sec-head">
         <h2>Record</h2>
@@ -1013,6 +1123,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   var HABITS=[
     {k:"mvom", card:"supp", name:"Multivitamin & Omega 3", when:"after lunch"},
     {k:"cre",  card:"supp", name:"Creatine & whey",  when:"evening"},
+    {k:"fiber",card:"supp", name:"Fiber",            when:"daily", since:"2026-11-11"},
     {k:"d3",   card:"supp", name:"D3 50,000",        when:"1st",  monthly:true},
     {k:"skin", card:"care", name:"Skin & Hair routine", when:"once a day"},
     {k:"bed",  card:"care", name:"To bed",           when:"23:30",       at:23*60+30, before:60, after:0},
@@ -1050,6 +1161,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   var GYM_NAMES=["Quads","Upper body","Hamstrings & glutes"];   /* Mon · Wed · Thu */
   function wday(k){ return (k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date()).getDay(); }
   function isDue(h,k){
+    if(h.since && (k||dayKey())<h.since) return false;     /* added later: days before it aren't marked down */
     if(h.monthly) return isFirst(k);
     if(h.days) return h.days.indexOf(wday(k))>=0;
     return true;
@@ -2496,7 +2608,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Aeshma walked free {m} times today. He's rallying. Don't give him another.",
       "{m} bindings missed. My sisters can't hold what you leave open.",
       "{m} windows unbound. I'm covering for you, but not forever.",
-      "Every unbound window feeds him. {m} today.",
+      "Every unbound window feeds him: {m} today.",
       "{m} times he went unchecked. Bind the next one, whatever it costs.",
       "You left {m} windows open. He noticed. So did I.",
       "{m} bindings missed. He grows stronger in the gaps."]},
@@ -2737,9 +2849,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
      facts:
        locked, start      before Cluster 1 begins, and when it does ("Fri, Nov 6")
        date, min          "YYYY-MM-DD" (picks the line) and minutes since 00:00
-       E, S, L            Execution & Science divisions (0-2), Share (0-1), English (0-1)
-       W, X               work slots (0-8) and extra slots (0-8)
-       running            name of the division counting down now, or ""
+       E, S, L            Execution & Science blocks (0-2), Share (0-1), English (0-1)
+       W, X               work blocks (0-8) and extra blocks (0-8)
+       running            name of the block counting down now, or ""
        yScore             yesterday's score, or null if there is no yesterday
        run0, best         full days (100%) in a row before today, and the longest such run
        D                  Xeron: depletions today
@@ -2755,15 +2867,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function aruraelRead(f){
     var score=arDayScore(f), duty=f.E>=2 && f.S>=1 && f.L>=1 && f.W>=8, full=score>=99.999;
     var left=[];                                             /* what the duty still owes */
-    if(f.E<2) left.push(f.E===1 ? "one division of Execution & Science" : "both divisions of Execution & Science");
+    if(f.E<2) left.push(f.E===1 ? "one Execution & Science block" : "both Execution & Science blocks");
     if(f.S<1) left.push("Share");
     if(f.L<1) left.push("English");
-    if(f.W<8) left.push(arWord(8-f.W)+" work slot"+(8-f.W===1?"":"s"));
+    if(f.W<8) left.push(arWord(8-f.W)+" work block"+(8-f.W===1?"":"s"));
     var leftText = left.length<2 ? (left[0]||"") : left.slice(0,-1).join(", ")+" and "+left[left.length-1];
     return {
       score:score, duty:duty, full:full, left:leftText,
       run: full ? f.run0+1 : 0,                               /* full days in a row, today included */
-      study: f.E>=2 && f.S>=1 && f.L>=1,                      /* every division sealed */
+      study: f.E>=2 && f.S>=1 && f.L>=1,                      /* every block sealed */
       tired: !!f.sl && f.sl.tired,                            /* Xenlil: a short night, from the record */
       lateStart: !!f.sl && (f.sl.kind==="slept_in" || f.sl.kind==="shifted"),  /* the day began after the golden hour */
       fell: f.D>0                                             /* Xeron: a fall today */
@@ -2775,21 +2887,21 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Nothing is measured before the cluster begins. On {start}, the Ahtuxasai begin counting.",
       "Until {start}, I only observe. Then we learn together.",
       "The record opens on {start}. Use today to decide what you want to understand.",
-      "No divisions count yet. On {start}, bring a question worth chasing.",
-      "Today is unmeasured. From {start}, every division will be seen.",
+      "No blocks count yet. On {start}, bring a question worth chasing.",
+      "Today is unmeasured. From {start}, every block will be seen.",
       "Rest the mind until {start}. Curiosity keeps.",
       "The Eye is open, but the record is closed until {start}.",
       "Prepare the question tonight; answer it from {start}."]},
 
     {id:"night_study", tone:"advice", bare:true, when:function(f){ return f.ctx.phase==="night" && !!f.running; }, lines:[
       "Studying at {time}? Admirable, and unwise. Finish, then sleep.",
-      "A division past midnight. Make it the last one.",
+      "A block past midnight. Make it the last one.",
       "Curiosity at night is still curiosity. Keep it short.",
       "I see the lamp lit at {time}. Finish, then rest.",
       "Late work counts for tomorrow's record. Sleep soon after.",
       "The night shift. Focus, then close the books.",
       "Water runs clearer by day. Wrap this up.",
-      "One division, then bed."]},
+      "One block, then bed."]},
 
     {id:"running", tone:"focus", when:function(f){ return !!f.running; }, lines:[
       "{div} is under way. Stay with it until the water settles.",
@@ -2797,7 +2909,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Focus is a narrow river. Keep {div} within its banks.",
       "{div}: the clock runs, and so should your attention.",
       "I'm watching {div} with you. Finish it clean.",
-      "One division at a time. This one is {div}.",
+      "One block at a time. This one is {div}.",
       "While {div} runs, the rest of the world can wait.",
       "{div} is the only question right now."]},
 
@@ -2857,7 +2969,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Execution, Share, English, Work: all of it. Well reasoned, well done.",
       "A full day. Ignorance lost a little ground.",
       "Done, and done properly. Rest the mind.",
-      "Every division sealed. I have no notes.",
+      "Every block sealed. I have no notes.",
       "The measure is full. What did you learn that surprised you?",
       "Complete. The Ahtuxasai record it gladly."]},
 
@@ -2876,24 +2988,24 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "The night was short, and it shows here. Sleep first, then study.",
       "Fatigue clouds the water. Rest is part of learning.",
       "Little done on a short night. That's cause, not character.",
-      "The Eye sees the short night behind the empty divisions. Fix the night.",
+      "The Eye sees the short night behind the empty blocks. Fix the night.",
       "Study on {hrs} hours of sleep is reading without seeing. Sleep a full night tonight.",
-      "I'd rather you sleep than force a dull division.",
+      "I'd rather you sleep than force a dull block.",
       "Tired today, and the work waited. Tomorrow, rested, we try again."]},
 
     {id:"late_start", tone:"understanding", when:function(f,x){ return x.lateStart && !x.full && x.score<40 && f.min>=10*60 && f.min<16*60 && !f.running; }, lines:[
       "The day began late; the hours are fewer, not gone. Still owed: {left}. Start now.",
-      "A late start is a scheduling fact, not a verdict. Put the first division in the next hour.",
+      "A late start is a scheduling fact, not a verdict. Put the first block in the next hour.",
       "You slept past the golden hour. Rested, at least. Spend that on {left}.",
       "Fewer hours today. Then choose the hardest thing first: {left}.",
       "The morning went to sleep. The afternoon doesn't have to go anywhere.",
       "A late morning changes the plan, not the duty. Begin.",
       "Rested and late is better than early and dull. Now prove it.",
-      "Start where the day starts. The first division is the one that matters."]},
+      "Start where the day starts. The first block is the one that matters."]},
 
     {id:"fell_idle", tone:"criticism", when:function(f,x){ return x.fell && x.score<50 && f.min>=15*60; }, lines:[
       "An empty afternoon, and Xeron's wall broke. Idle minds open gates.",
-      "The divisions were empty and the plateau fell. These are connected.",
+      "The blocks were empty and the plateau fell. These are connected.",
       "Idleness is an old ally of the Abyss. Give your hours to study.",
       "What filled the space the work left? Xeron's realm knows.",
       "A mind with no question finds the wrong answer. Find a question.",
@@ -2902,7 +3014,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Work is a lamp. Without it, the dark had room today."]},
 
     {id:"last_day", tone:"order", when:function(f,x){ var c=f.ctx; return c.started && c.day===c.of && !x.full && f.min>=12*60; }, lines:[
-      "Last day of Cluster {cluster}. Every division counts double in memory.",
+      "Last day of Cluster {cluster}. Every block counts double in memory.",
       "The cluster closes tonight. Finish strong.",
       "Final day. Leave the record better than you found it.",
       "Day eight. What do you want this cluster to say about you?",
@@ -2913,7 +3025,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
     {id:"evening_empty", tone:"criticism", when:function(f,x){ return f.min>=18*60 && x.score<30; }, lines:[
       "The day is nearly spent and little was learned. What took it?",
-      "Evening, and the divisions are mostly empty. One is still possible.",
+      "Evening, and the blocks are mostly empty. One is still possible.",
       "Not much today. Find the reason before tomorrow repeats it.",
       "A quiet day for the mind. Too quiet.",
       "The light is low, and so is the work. Ten minutes of English is still within reach.",
@@ -2933,7 +3045,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
     {id:"work_no_study", tone:"advice", when:function(f){ return f.W>=5 && f.E+f.S+f.L===0 && f.min>=15*60; }, lines:[
       "Plenty of work, no study. Knowledge feeds the work; don't starve it.",
-      "{w} work slots and not one division. Make room for learning.",
+      "{w} work blocks and not one block. Make room for learning.",
       "The hands were busy; the mind waited. Give it ten minutes of English.",
       "Work without study repeats itself. Learn something today.",
       "You executed well. Now understand something new.",
@@ -2942,23 +3054,23 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Busy hands, idle mind. Fix the second."]},
 
     {id:"extra_first", tone:"advice", when:function(f){ return f.X>=2 && f.W<8 && f.min>=15*60; }, lines:[
-      "Extra before duty? Fill the work slots first.",
+      "Extra before duty? Fill the work blocks first.",
       "Extra counts, but the duty comes first.",
       "You're past the measure in one place and short in another. Order it.",
-      "The extra is welcome. The missing work slots are still owed.",
+      "The extra is welcome. The missing work blocks are still owed.",
       "Ambition, good. Order, better: duty first.",
       "Extra is a surplus. Don't build it on a deficit.",
-      "Fill the work slots, then go beyond them.",
+      "Fill the work blocks, then go beyond them.",
       "Generous, but uneven. Close the duty first."]},
 
     {id:"work_light", tone:"advice", when:function(f,x){ return x.study && f.W<4 && f.min>=16*60; }, lines:[
       "Study complete, work light. Knowledge needs a place to land.",
       "The mind is fed; the work is thin. Align knowledge with execution.",
-      "All divisions done, but only {w} of eight work slots. Put the learning to use.",
+      "All blocks done, but only {w} of eight work blocks. Put the learning to use.",
       "Learning without work is water without a channel.",
-      "{w} of eight work slots. The study deserves more application.",
+      "{w} of eight work blocks. The study deserves more application.",
       "You learned well today. Now make it useful.",
-      "The divisions are sealed; the work isn't. Xenlil would ask for execution.",
+      "The blocks are sealed; the work isn't. Xenlil would ask for execution.",
       "Study done. Work is where it proves itself."]},
 
     {id:"comeback", tone:"encouragement", when:function(f,x){ return f.yScore!==null && f.yScore<50 && x.score>=70; }, lines:[
@@ -2979,7 +3091,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Good work so far. Finish with the same care.",
       "Steady. The Eye approves.",
       "Clear progress. Don't let the last part slip.",
-      "A good day taking shape."]},
+      "A good day taking shape.",
+      "{mins} of {owed} done. Good pace.",
+      "{mins} of {owed}. What's left is small."]},
 
     {id:"halfway", tone:"encouragement", when:function(f,x){ return x.score>=40 && f.min>=12*60 && f.min<18*60; }, lines:[
       "About halfway. The afternoon decides the rest.",
@@ -2987,24 +3101,25 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       "Halfway there. What's next on your list?",
       "Half done. Good enough is not done.",
       "The day is half measured. Finish the other half.",
-      "Midway. The hardest division is usually the next one.",
+      "Midway. The hardest block is usually the next one.",
       "Half full. Fill it.",
-      "Halfway. Keep the method."]},
+      "Halfway. Keep the method.",
+      "{mins} of {owed}. The afternoon decides the rest."]},
 
     {id:"morning", tone:"quiet", bare:true, when:function(f){ return f.min>=5*60 && f.min<11*60; }, lines:[
-      "Morning. Start with the smallest division; momentum follows.",
+      "Morning. Start with the smallest block; momentum follows.",
       "A clear mind in the morning. Spend it on Execution & Science.",
       "The day is unwritten. What do you want to understand by tonight?",
       "Early hours are the clearest water. Use them.",
-      "Begin. The first division is the hardest only until it isn't.",
+      "Begin. The first block is the hardest only until it isn't.",
       "Good morning. The Ahtuxasai are ready to count.",
       "Ask one good question this morning and chase it all day.",
       "Light is coming up. So should the work."]},
 
     {id:"nothing_yet", tone:"advice", when:function(f,x){ return x.score===0; }, lines:[
       "Half the day gone and nothing measured yet. Begin with English; it's only ten minutes.",
-      "No divisions yet. What's in the way?",
-      "The record is blank so far. One division changes that.",
+      "No blocks yet. What's in the way?",
+      "The record is blank so far. One block changes that.",
       "Still empty. Curiosity starts with a single step.",
       "Nothing yet. The Eye is waiting, patiently, for now.",
       "Start anywhere. Starting is the only hard part.",
@@ -3014,7 +3129,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     {id:"started", tone:"quiet", when:function(){ return true; }, lines:[
       "A beginning. Knowledge compounds; keep adding.",
       "Something is done. Now build on it.",
-      "The first divisions are in. Keep the current flowing.",
+      "The first blocks are in. Keep the current flowing.",
       "Good start. Don't let it stop here.",
       "Progress. Small, but real.",
       "The work has begun. I'm curious where it ends.",
@@ -3031,34 +3146,34 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
          "The clock runs for {div}. So does your focus.",
          "Begin. Questions first, answers after.",
          "{div}: go.",
-         "A division starts. Let nothing else in.",
+         "A block starts. Let nothing else in.",
          "Open the book. {div} is running."],
     div_pause:["Paused. Note where you stopped.",
          "A pause. Come back while the thought is warm.",
-         "Stopped mid-division. Resume soon.",
+         "Stopped mid-block. Resume soon.",
          "Pause noted. The water is still moving.",
          "Breathe, then return to {div}.",
-         "Half a division is still a question left open."],
+         "Half a block is still a question left open."],
     div_done:["{div}, sealed. Good.",
-         "Division done. What did you learn?",
+         "Block done. What did you learn?",
          "Complete. The Ahtuxasai record it.",
          "{div} finished. Clear water.",
          "Sealed. Another light is on.",
          "Done. Rest your eyes a minute.",
          "That's one more. The day is filling.",
          "Finished cleanly. Next?"],
-    div_reset:["Reset. Start fresh.","Cleared. Begin when ready.","A clean slate for {div}.","Reset. No harm done."],
-    work:["Work slot {w} of eight.",
-         "Another slot. Knowledge, applied.",
+    div_reset:["Stopped. That block doesn't count.","Stopped. Start again when you can give it the whole time.","Cleared. Half a block teaches half.","Stopped. No record, no harm."],
+    work:["Work block {w} of eight.",
+         "Another block. Knowledge, applied.",
          "Logged. Work is how learning proves itself.",
          "{w} of eight. Steady.",
          "Good. Keep the hands busy.",
          "Work marked. Keep going.",
-         "One more slot filled.",
-         "{w} slots. The day is taking shape."],
-    work_full:["All eight work slots. Duty done.","Eight of eight. The work is complete.","Work, full. Anything more is surplus.","The duty is filled. Well executed."],
+         "One more block filled.",
+         "{w} blocks. The day is taking shape."],
+    work_full:["All eight work blocks. Duty done.","Eight of eight. The work is complete.","Work, full. Anything more is surplus.","The duty is filled. Well executed."],
     extra:["Extra, beyond duty. That's curiosity talking.",
-         "An extra slot. The light spreads further.",
+         "An extra block. The light spreads further.",
          "{x} extra. Generous.",
          "Surplus logged. Don't burn out.",
          "Beyond the measure. Good.",
@@ -3085,7 +3200,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   var ARURAEL_SPEC={
     says:ARURAEL_SAYS, open:ARURAEL_OPEN, read:aruraelRead,
     tokens:function(f,x,ev){
-      return {start:f.start, div:(ev.detail && ev.detail.div) || f.running || "the division",
+      return {start:f.start, div:(ev.detail && ev.detail.div) || f.running || "the block",
               r:arWord(x.run), x:arWord(f.X), w:arWord(f.W), left:x.left};
     },
     react:function(f,x,ev){
@@ -3181,7 +3296,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       W: Math.min(8,workN(state.day.work)), X: Math.min(8,workN(state.day.extra)),
       running: ART.blk ? arMission(ART.blk).name : "",
       yScore: (yr && !(y<CL_START && isBlank(yr))) ? DAY.arurael(y) : null,
-      run0: runs.run0, best: runs.best, D: deps(state.day.xr), bedLast: sl.bedLast, awake: sl.awake, sl: sl
+      run0: runs.run0, best: runs.best, D: deps(state.day.xr), bedLast: sl.bedLast, awake: sl.awake, sl: sl,
+      mins: TASKS.reduce(function(n,t){ return t.k==="extra" ? n : n+taskCount(state.day,t.k)*t.min; },0), owed: AR_DUTY,
+      paused: (!ART.blk && arActive()) ? {name:arMission(arActive()).name, left:arLeft(arActive())} : null,
+      tg: v3TagRead()
     };
   }
 
@@ -3538,7 +3656,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       [20, f.core ? 1 : 0],
       [20, ((f.bed?1:0)+(f.wake?1:0))/2],
       [10, Math.min(1,f.water/14)],
-      [10, ((f.mv?1:0)+(f.cre?1:0)+(f.d3Due ? (f.d3?1:0) : 0))/(f.d3Due ? 3 : 2)],
+      [10, ((f.mv?1:0)+(f.cre?1:0)+(f.fiber?1:0)+(f.d3Due ? (f.d3?1:0) : 0))/(f.d3Due ? 4 : 3)],
       [5, f.sealed/3],
       [f.maintName ? 3 : 0, f.maint ? 1 : 0],
       [2, f.skin ? 1 : 0]
@@ -3555,11 +3673,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(f.water<12 && m>=20*60) lapses.push("water");
     if(!f.mv && m>=17*60) lapses.push("mv");
     if(!f.cre && m>=22*60) lapses.push("cre");
+    if(!f.fiber && m>=22*60) lapses.push("fiber");
     if(f.d3Due && !f.d3 && m>=20*60) lapses.push("d3");
     if(f.maintName && !f.maint && m>=20*60) lapses.push("maint");
     if(!f.skin && m>=22*60) lapses.push("skin");
     if(!f.bed && m>23*60+30) soft.push("bed");
-    var supp=[]; if(!f.mv) supp.push("Multivitamin & Omega 3"); if(!f.cre) supp.push("Creatine & whey"); if(f.d3Due && !f.d3) supp.push("D3");
+    var supp=[]; if(!f.mv) supp.push("Multivitamin & Omega 3"); if(!f.cre) supp.push("Creatine & whey"); if(!f.fiber) supp.push("Fiber"); if(f.d3Due && !f.d3) supp.push("D3");
     var score=xlScore(f), kingly=score>=90;
     return {
       score:score, kingly:kingly, crowned:score>=99.999,
@@ -3994,7 +4113,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       date: today, min: m, water: state.day.water||0,
       gymDue: gn!==null, gymName: gn!==null ? GYM_NAMES[gn] : "", gym: !!state.day.gym,
       core: !!state.day.core, coreRunning: !!CORE.run,
-      mv: !!h.mvom, cre: !!h.cre, d3Due: isFirst(today), d3: !!h.d3,
+      mv: !!h.mvom, cre: !!h.cre, fiber: !!h.fiber, d3Due: isFirst(today), d3: !!h.d3,
       skin: !!h.skin, bed: !!h.bed, wake: !!h.wake,
       maintName: mt ? mt.name : "", maint: mt ? !!h[mt.k] : false, sl: sleepRead(m),
       sealed: CHECKUPS.filter(function(c){ return hcCover(c,today); }).length,
@@ -4065,7 +4184,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   V2.arurael={
     shared:{
       returned:["You were gone {away} days. The questions waited for you.","{away} days unmeasured. Let's measure today.",
-        "Welcome back. Start with the smallest division.","An absence of {away} days. No judgment; only a restart.","Back. What did you learn while away?","{away} days. The Ahtuxasai kept the ledger open."],
+        "Welcome back. Start with the smallest block.","An absence of {away} days. No judgment; only a restart.","Back. What did you learn while away?","{away} days. The Ahtuxasai kept the ledger open."],
       all_four:["All four realms complete today. The axis is perfectly aligned.","Knowledge, order, ritual, restraint: all kept. Rare, and beautiful.",
         "Every realm full. I can find nothing missing anywhere.","A perfect day across the Lattice. An explosion of light.","All four thrones agree tonight. So do I.","Complete, everywhere. Study how it happened."],
       verdict_high:["Last cluster: {score}. A clear record. Keep the method.","{score} last cluster. The evidence is strong.",
@@ -4094,9 +4213,9 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         "{item}, missed {skip} days in a row. Why?","The data shows {item} slipping for {skip} days. Do it today.","{skip} days. {item} is becoming the thing you avoid.","{item} has waited {skip} days. Give it ten minutes."]
     },
     time:{
-      div_late:["Your divisions usually come late at night. Start earlier today.","Most of your study happens after {ph}. Try the evening instead.",
-        "Late divisions are a habit of yours. Break it now.","You tend to study around {ph}. It's {time}; begin now and sleep earlier.","The data says you study late. The mind says study now.","Start a division before the night claims it."],
-      div_morning:["Your best divisions come before noon. Begin now.","Mornings are when you study best. Use this one.",
+      div_late:["Your blocks usually come late at night. Start earlier today.","Most of your study happens after {ph}. Try the evening instead.",
+        "Late blocks are a habit of yours. Break it now.","You tend to study around {ph}. It's {time}; begin now and sleep earlier.","The data says you study late. The mind says study now.","Start a block before the night claims it."],
+      div_morning:["Your best blocks come before noon. Begin now.","Mornings are when you study best. Use this one.",
         "The record says you learn early. Start.","Before noon is your window. Open the book.","Your strongest hours are now. Don't spend them elsewhere.","You learn best in the morning. Prove it again."]
     },
     again:["Again.","As yesterday.","The same question as yesterday.","Twice now.","Still."],
@@ -4113,7 +4232,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     shared:{
       returned:["You were gone {away} days. The law didn't pause. Resume it.","{away} days away. Back in formation.",
         "Welcome back. Water, then everything else.","Gone {away} days. Today, order from the start.","You've returned. The realm needs its ruler.","{away} days. No excuses; just begin."],
-      all_four:["All four realms in order today. The Golden Path, walked.","Every law, every rite, every division. A sovereign day.",
+      all_four:["All four realms in order today. The Golden Path, walked.","Every law, every rite, every block. A sovereign day.",
         "All four thrones kept. The Fedaykin raise their banners.","A perfect day across the Lattice. Well ruled.","Nothing slack anywhere today.","The whole axis in order. Rare. Remember it."],
       verdict_high:["Last cluster: {score}. A ruler's cluster. Repeat it.","{score}. The Fedaykin salute the last cluster.",
         "Cluster {clprev} closed at {score}. Order held.","A strong cluster behind you. Raise the standard.","{score} last time. Don't let the next one fall below it.","The last cluster was kept. Keep this one."],
@@ -4225,7 +4344,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     wake:{law:"Awake by 09:00", weak:"wake"},
     bed:{law:"To bed by 23:30", weak:"bed"},
     gym:{law:"Today's session, no excuses", weak:"gym"},
-    supps:{law:"Both supplements today", weak:"supps"},
+    supps:{law:"Every supplement today", weak:"supps"},
     skin:{law:"Skin & Hair routine today", weak:"skin"}
   };
   V2.xenlil.decree={
@@ -4377,6 +4496,274 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     v2Insert(AREXIA_SAYS,"half_kept",sh.mid);
   })();
 
+  /* ---------- The Voices, v3: goals, blocks and tags, the whole law ----------
+     Each voice knows its realm's goals: one that starts soon, one that begins today, one running
+     (cluster k of n), its last cluster and last days, one waiting for a verdict, one just achieved
+     or not. It answers when a goal is set, achieved, not achieved or extended, now and then names
+     a goal of another realm, and rarely asks for a goal when its realm has none. Arurael speaks
+     of timed blocks and minutes, a paused block, and what the tags say the day and week went to.
+     Xenlil's law of supplements counts Fiber. */
+  function v3SuppsOk(r,k){
+    var h=(r && r.habits)||{}, fib=HABITS.filter(function(x){ return x.k==="fiber"; })[0];
+    return !!(h.mvom && h.cre && (!fib || !isDue(fib,k) || h.fiber));
+  }
+  /* a realm's goals, as its voice reads them */
+  function v3Goals(god){
+    var t=dayKey(), y=keyAdd(t,-1), out={due:null, run:null, fin:null, soon:null, begin:null, won:null, lost:null, empty:true};
+    if(!state || !Array.isArray(state.goals)) return out;
+    var clEnd = t>=CL_START ? keyAdd(CL_START,(clIndex(t)+1)*CL_LEN-1) : null;
+    state.goals.forEach(function(g){
+      if(g.god!==god) return;
+      if(g.status==="draft" || g.status==="set") out.empty=false;
+      var p=goalPhase(g);
+      if(p==="due" && (!out.due || g.end<out.due.end)) out.due=g;
+      if(p==="active"){ if(!out.run || g.end<out.run.end) out.run=g; if(g.start===t) out.begin=g; }
+      if(p==="waiting" && (!out.soon || g.start<out.soon.start)) out.soon=g;
+      if(g.status==="achieved" && (g.done===t || g.done===y) && (!out.won || g.done>out.won.done)) out.won=g;
+      if(g.status==="missed" && (g.done===t || g.done===y) && (!out.lost || g.done>out.lost.done)) out.lost=g;
+    });
+    if(out.run && clEnd && out.run.end<=clEnd) out.fin=out.run;
+    return out;
+  }
+  /* another realm's goal worth a word: just achieved, or in its last three days */
+  function v3Other(god){
+    var t=dayKey(), others=V2_GODS.filter(function(g){ return g!==god; }), h=vHash(t+"|"+god+"|other"), won=null, fin=null;
+    for(var i=0;i<others.length;i++){
+      var o=others[(i+h)%others.length], G=v3Goals(o);
+      if(!won && G.won) won={god:o, g:G.won};
+      if(!fin && G.fin && dayNum(G.fin.end)-dayNum(t)<3) fin={god:o, g:G.fin};
+    }
+    return won ? {k:"won", god:won.god, g:won.g} : fin ? {k:"fin", god:fin.god, g:fin.g} : null;
+  }
+  function v3Days(n){ return n===1 ? "one day" : vWord(n)+" days"; }
+  function v3Tok(god,f,t){
+    var GL=f.GL, today=f.ctx.date, ci=today>=CL_START ? clIndex(today) : 0, q=function(g){ return String(g.title||"").trim(); };
+    if(!GL) return;
+    if(GL.due) t.dgoal=q(GL.due);
+    if(GL.run){ var g=GL.run, left=clIndex(g.end)-ci+1;
+      t.rgoal=q(g); t.rk=vWord(ci-clIndex(g.start)+1); t.rn=vWord(goalClusters(g));
+      t.rleft = left===1 ? "one cluster" : vWord(left)+" clusters"; t.rdays=v3Days(dayNum(g.end)-dayNum(today)+1); }
+    if(GL.begin){ t.bgoal=q(GL.begin); t.bn=vWord(goalClusters(GL.begin)); }
+    if(GL.soon){ var n=dayNum(GL.soon.start)-dayNum(today); t.sgoal=q(GL.soon); t.sin = n===1 ? "tomorrow" : "in "+v3Days(n); }
+    if(GL.won) t.wgoal=q(GL.won);
+    if(GL.lost) t.lgoal=q(GL.lost);
+    if(f.GO){ t.orealm=V2_NAMES[f.GO.god]; t.og=q(f.GO.g); t.odays=v3Days(dayNum(f.GO.g.end)-dayNum(today)+1); }
+  }
+  /* a goal set, achieved, not achieved or extended: its realm's voice answers */
+  function v3GoalEv(g,kind,extra){
+    var d={goal:String(g.title||"").trim(), lvl:g.lvl, start:g.start ? goalShort(g.start) : ""};
+    if(extra) for(var k in extra) d[k]=extra[k];
+    voiceEvent(g.god,kind,d);
+    var r={xeron:renderQartaq, arurael:renderEbabbar, xenlil:renderUgarit, arexia:renderIrkalla}[g.god];
+    try{ if(r) r(); }catch(e){}
+  }
+  /* the tags of today and of the week */
+  function v3TagRead(){
+    var out={top:null, distinct:0, tagged:0, maxN:0, week:null}, cnt={}, lab={};
+    (state.day.arLog||[]).forEach(function(e){
+      var t=taskOf(e.k), tg=e.tags||[]; if(!t || !t.tags || !tg.length) return;
+      out.tagged++;
+      tg.forEach(function(g){ var k=g.toLowerCase(); cnt[k]=(cnt[k]||0)+1; lab[k]=lab[k]||g; });
+    });
+    var ks=Object.keys(cnt).sort(function(a,b){ return cnt[b]-cnt[a]; }); out.distinct=ks.length; out.maxN=ks.length ? cnt[ks[0]] : 0;
+    if(ks.length && (ks.length===1 || cnt[ks[0]]>cnt[ks[1]])) out.top={tag:lab[ks[0]], n:cnt[ks[0]]};
+    var wm={}, wl={}, today=dayKey();
+    for(var i=0;i<7;i++){
+      var r=i===0 ? state.day : past(keyAdd(today,-i)); if(!r) continue;
+      (r.arLog||[]).forEach(function(e){ var tk=taskOf(e.k), tg=e.tags||[]; if(!tk) return;
+        tg.forEach(function(g){ var k=g.toLowerCase(); wm[k]=(wm[k]||0)+tk.min/tg.length; wl[k]=wl[k]||g; }); });
+    }
+    var wk=Object.keys(wm).sort(function(a,b){ return wm[b]-wm[a]; });
+    if(wk.length && (wk.length===1 || wm[wk[0]]>wm[wk[1]])) out.week={tag:wl[wk[0]], min:wm[wk[0]]};
+    return out;
+  }
+
+  /* ---- what each voice says about goals ---- */
+  var V3_GOAL={
+    xeron:{
+      due:["“{dgoal}” has reached its end. Judge it: won, lost, or more time.","The time for “{dgoal}” is over. Give me a verdict.",
+        "“{dgoal}” waits for your word. Don't leave a battle unjudged.","Its clusters are spent. “{dgoal}”: did we take it or not?","Decide on “{dgoal}”. The daughters want to know."],
+      won:["“{wgoal}” is taken. The daughters are singing it on the walls.","We won “{wgoal}”. Remember the price, and the method.",
+        "“{wgoal}”, achieved. Xeron's realm is stronger for it.","A goal taken: “{wgoal}”. Now hold the ground you won.","“{wgoal}” is ours. Set the next one before the joy fades."],
+      lost:["“{lgoal}” was not taken. I grieve it; then we choose the next ground.","We lost “{lgoal}”. Losing a battle is not losing the war.",
+        "“{lgoal}”, not achieved. Name a new goal and fight smarter.","That goal fell: “{lgoal}”. The daughters fell too, and stood up."],
+      fin:["“{rgoal}” is in its final cluster. {rdays} left. Push.","This is the last cluster for “{rgoal}”. Everything you have.",
+        "{rdays} until “{rgoal}” is judged. Hold the line until then.","The end of “{rgoal}” is in sight. No retreat now."],
+      begin:["“{bgoal}” begins today. {bn} clusters of war. Start clean.","Day one of “{bgoal}”. The daughters take their positions.",
+        "“{bgoal}” starts now. Bind the first window like it matters, because it does.","The campaign for “{bgoal}” opens today."],
+      soon:["“{sgoal}” begins {sin}. Prepare the ground.","{sin}, “{sgoal}” starts. Sleep, and be ready.","The campaign for “{sgoal}” opens {sin}."],
+      run:["“{rgoal}”: cluster {rk} of {rn}. Every clean day is a step toward it.","Remember why we fight: “{rgoal}”.",
+        "“{rgoal}” is still running. {rleft} to go.","Cluster {rk} of {rn} for “{rgoal}”. Hold."],
+      empty:["The throne has no goal. A war without an objective is only survival.","No goal for Xeron's realm. Name one; the daughters fight better under a banner.",
+        "Set a goal for the throne. Holding is not the same as winning.","No objective on the map. Give me one."],
+      other_won:["{orealm} took its goal: “{og}”. The throne will not be outdone.","“{og}” fell to {orealm}. Good. Now ours.","{orealm} won “{og}”. The daughters cheered across the Lattice."],
+      other_fin:["{orealm}'s goal, “{og}”, ends in {odays}. Don't let a fall here cost it there.","“{og}” is nearly due in {orealm}. Help it: keep the walls clean.","{orealm} is in the last days of “{og}”. Protect it."],
+      r_set:["“{eg}” is on the map. It begins on {estart}.","A new objective: “{eg}”. The daughters have their orders.","“{eg}”, {elvl}. Begins on {estart}. Prepare.","Marked: “{eg}”. From {estart}, we fight for it."],
+      r_won:["“{eg}”, achieved. The walls shake with singing.","Taken. “{eg}” is ours.","Victory: “{eg}”. Xeron saw it.","“{eg}”. Won. I'm proud of you."],
+      r_lost:["“{eg}”: not achieved. I've seen worse days. Choose the next battle.","Lost. We bury it with honour and move on.","“{eg}” fell. Grieve tonight; plan tomorrow.","Not achieved. The war continues."],
+      r_ext:["“{eg}”, extended by {en}. More time is not more slack.","{en} more for “{eg}”. Use them better.","Extended. The siege goes on.","More time granted. Don't waste a day of it."]
+    },
+    arurael:{
+      due:["The time for “{dgoal}” has run out. Was it answered? Decide.","“{dgoal}” is waiting for a verdict. Be exact: achieved or not.",
+        "Its clusters are spent. Tell the Ahtuxasai what became of “{dgoal}”.","“{dgoal}”: the experiment is over. Record the result."],
+      won:["“{wgoal}”, achieved. Note what made it possible; that's the real lesson.","You reached “{wgoal}”. Knowledge became result.",
+        "“{wgoal}” is done. Clear water. What's the next question?","An answered goal: “{wgoal}”. The Ahtuxasai filed it with pride."],
+      lost:["“{lgoal}” wasn't reached. That's data, not a verdict. Why?","“{lgoal}” failed. Study the gap before setting the next one.",
+        "Not achieved: “{lgoal}”. A wrong answer teaches more than none.","“{lgoal}” is closed, unmet. Ask what was missing: time, method, or will."],
+      fin:["“{rgoal}” is in its last cluster: {rdays} left.","Final cluster for “{rgoal}”. Put the blocks where the goal is.",
+        "{rdays} until “{rgoal}” is judged. Make every block count toward it.","“{rgoal}” closes this cluster. Finish the work it needs."],
+      begin:["“{bgoal}” begins today: {bn} clusters to answer it.","Day one of “{bgoal}”. Start with the first block.","The study of “{bgoal}” opens today.","“{bgoal}” is live. Curiosity, meet deadline."],
+      soon:["“{sgoal}” begins {sin}. Prepare the first question.","{sin}, “{sgoal}” starts counting.","“{sgoal}” opens {sin}. Plan its first block."],
+      run:["“{rgoal}”: cluster {rk} of {rn}. Is today's work feeding it?","Keep “{rgoal}” in view. Tag the blocks that serve it.",
+        "“{rgoal}” has {rleft} to go.","Cluster {rk} of {rn} toward “{rgoal}”. Steady."],
+      empty:["No goal in my realm. Work without a question drifts.","Knowledge needs a direction. Set a goal for Arurael.",
+        "What do you want to know a year from now? Make it a goal.","No goal yet. Choose one worth chasing."],
+      other_won:["{orealm} reached “{og}”. Evidence that goals work.","“{og}”, achieved in {orealm}. Learn from how it was done.","{orealm} answered its goal: “{og}”."],
+      other_fin:["{orealm}'s “{og}” is due in {odays}. A focused mind helps every realm.","“{og}” in {orealm} ends in {odays}.","{orealm} is close to judging “{og}”."],
+      r_set:["“{eg}”: a question worth chasing. It begins on {estart}.","Recorded: “{eg}”, {elvl}. Starts on {estart}.","A goal is a hypothesis. “{eg}” is tested from {estart}.","“{eg}”. Good. The Ahtuxasai open a page."],
+      r_won:["“{eg}”, achieved. An explosion of light.","Answered: “{eg}”.","“{eg}”. Proven. Well done.","Achieved. Now ask what it taught you."],
+      r_lost:["“{eg}”: not achieved. Record why.","Unmet. A result is still a result.","Closed without success. Study it, then begin again.","Not achieved. The question remains open."],
+      r_ext:["“{eg}”: {en} more. Adjust the method, not just the deadline.","Extended by {en}. Use the time to learn what was missing.","More time for “{eg}”. Make it informed time.","{en} added. Same goal, better plan."]
+    },
+    xenlil:{
+      due:["“{dgoal}” has reached its day. Judge it as a king would: plainly.","The term of “{dgoal}” is over. Decide.",
+        "“{dgoal}” awaits judgment. No law stands unjudged.","Its clusters are done. “{dgoal}”: kept or broken?"],
+      won:["“{wgoal}”, achieved. The Fedaykin raise a banner.","A goal kept: “{wgoal}”. That's how a realm is built.",
+        "“{wgoal}”, done. Order, proven over clusters.","You achieved “{wgoal}”. Set the next law."],
+      lost:["“{lgoal}” was not achieved. Uproot the cause.","“{lgoal}” failed. A ruler admits it and reforms.",
+        "Not achieved: “{lgoal}”. Courage now; set the next one.","“{lgoal}” fell short. The law remains."],
+      fin:["Last cluster for “{rgoal}”: {rdays} left. No slack.","“{rgoal}” is judged in {rdays}. Ride hard.","Final cluster of “{rgoal}”. Order every day until then.","{rdays} to keep “{rgoal}”."],
+      begin:["“{bgoal}” begins today. {bn} clusters. Raise the banner.","Day one of “{bgoal}”. Order from the first hour.","The law of “{bgoal}” takes effect today.","“{bgoal}” starts now."],
+      soon:["“{sgoal}” begins {sin}. Prepare the body.","{sin}, “{sgoal}” takes effect.","“{sgoal}” starts {sin}. Be in formation."],
+      run:["“{rgoal}”: cluster {rk} of {rn}. The body keeps the count.","Remember “{rgoal}”. Every glass, every session serves it.",
+        "“{rgoal}”: {rleft} remain.","Cluster {rk} of {rn} for “{rgoal}”. Hold the standard."],
+      empty:["My realm has no goal. Order needs a purpose.","No goal for Xenlil. Name one; the Fedaykin need a destination.",
+        "A body with no goal drifts toward comfort. Set one.","Set a goal for the realm. The law alone is not enough."],
+      other_won:["{orealm} achieved “{og}”. The realm salutes it.","“{og}”, kept in {orealm}. Match it.","{orealm} kept its goal: “{og}”. Good."],
+      other_fin:["“{og}” in {orealm} is judged in {odays}. Sleep and strength serve it too.","{orealm}'s goal, “{og}”, ends in {odays}.","{orealm} rides toward “{og}”. Support it."],
+      r_set:["“{eg}”, decreed. It takes effect on {estart}.","A new law: “{eg}”. From {estart}.","“{eg}”, {elvl}. The Fedaykin take note.","Decreed. “{eg}” begins on {estart}."],
+      r_won:["“{eg}”, achieved. A ruler's work.","Kept. “{eg}” stands in the record.","Achieved. The banners go up.","“{eg}”. Done, and done properly."],
+      r_lost:["“{eg}”: not achieved. Reform, then try again.","Broken. Admit it; then rebuild.","Not achieved. The realm learns.","“{eg}” failed. The next one won't."],
+      r_ext:["“{eg}” extended by {en}. Not one day of slack.","{en} more for “{eg}”. Earn them.","Extended. The law still stands.","More time. The same standard."]
+    },
+    arexia:{
+      due:["“{dgoal}” has ended. I judge it now. Tell me.","The time of “{dgoal}” is dead. Achieved, or abandoned?","“{dgoal}” waits for judgment.","Its clusters are buried. Speak for “{dgoal}”."],
+      won:["“{wgoal}”. Achieved. Recorded.","“{wgoal}” is kept. I noted it.","You achieved “{wgoal}”. Acceptable.","“{wgoal}”. The pledge held."],
+      lost:["“{lgoal}” was abandoned. I recorded it.","“{lgoal}”. Not achieved. It is dead.","“{lgoal}” failed. Irkalla keeps it.","Not achieved: “{lgoal}”. Begin another."],
+      fin:["“{rgoal}” dies in {rdays}. Keep it alive until then.","Final cluster for “{rgoal}”. I am counting.","{rdays} left for “{rgoal}”.","“{rgoal}” is near its end. Observe."],
+      begin:["“{bgoal}” begins. {bn} clusters. I will count every one.","Today, “{bgoal}” starts.","“{bgoal}”. The count begins.","The pledge of “{bgoal}” begins today."],
+      soon:["“{sgoal}” begins {sin}.","{sin}, “{sgoal}”. Be ready.","“{sgoal}” starts {sin}. I will be counting."],
+      run:["“{rgoal}”: cluster {rk} of {rn}.","“{rgoal}”. {rleft} remain.","I have not forgotten “{rgoal}”. Neither should you.","Cluster {rk} of {rn}. “{rgoal}” is watched."],
+      empty:["No goal in my realm. A rite without a pledge.","My realm has no goal. Set one.","Nothing pledged. Pledge something.","No goal. I have nothing to judge."],
+      other_won:["{orealm} achieved “{og}”. Noted.","“{og}”, kept in {orealm}.","{orealm} kept a pledge: “{og}”."],
+      other_fin:["{orealm}'s “{og}” ends in {odays}.","“{og}”, in {orealm}: {odays} left.","{orealm} approaches judgment: “{og}”."],
+      r_set:["“{eg}”. Pledged. From {estart}.","Recorded: “{eg}”, {elvl}.","“{eg}” begins on {estart}. I will count.","A pledge: “{eg}”."],
+      r_won:["“{eg}”. Achieved.","Kept. Recorded.","“{eg}”. Acceptable.","Achieved. Noted."],
+      r_lost:["“{eg}”. Not achieved. Recorded.","Abandoned.","“{eg}” is dead.","Not achieved. Noted."],
+      r_ext:["“{eg}”. {en} more.","Extended. I am still counting.","More time for “{eg}”. Do not waste it.","{en} added. Noted."]
+    }
+  };
+  /* the Landsraad on goals */
+  var V3_COUNCIL={
+    xeron:{due:["“{goal}” waits for a verdict."], won:["The throne took “{goal}”.","“{goal}”: won this cluster."], fin:["“{goal}” is judged at the end of this cluster.","Last cluster for “{goal}”."]},
+    arurael:{due:["“{goal}” awaits its result."], won:["“{goal}”, answered.","Knowledge reached “{goal}”."], fin:["“{goal}” closes with this cluster.","Final cluster for “{goal}”."]},
+    xenlil:{due:["“{goal}” awaits judgment."], won:["The law kept “{goal}”.","“{goal}”: achieved."], fin:["“{goal}” ends with this cluster.","“{goal}”: the final cluster."]},
+    arexia:{due:["“{goal}”. Judge it."], won:["“{goal}”. Kept.","“{goal}”. Recorded."], fin:["“{goal}” ends this cluster.","“{goal}”. Final cluster."]}
+  };
+  var V3_CEREMONY={xeron:"And “{goal}” was taken.", arurael:"And “{goal}” was answered.", xenlil:"And “{goal}” was kept.", arexia:"“{goal}”: kept."};
+  function v3Council(god,c){
+    var G=v3Goals(god), h=vHash(c.date+"|"+god+"|"+c.q+"|cg"), cd=clDays(c.cluster-1);
+    if(G.due) return {k:"due", title:G.due.title};
+    var won=goalList().filter(function(g){ return g.god===god && g.status==="achieved" && g.done>=cd[0] && g.done<=cd[cd.length-1]; });
+    if(won.length && h%2===0) return {k:"won", title:won[0].title};
+    if(G.fin && (h>>>3)%2===0) return {k:"fin", title:G.fin.title};
+    return null;
+  }
+
+  /* ---- where the goal situations sit in each voice ---- */
+  function v3Sits(god){
+    var L=V3_GOAL[god], H=function(f,id,m){ return vHash(f.ctx.date+"|"+god+"|"+id)%m===0; };
+    var day=function(f){ return !f.locked && f.min>=7*60 && f.min<23*60; };
+    var recent=function(g,f){ return !!g && !f.locked && f.min>=6*60 && (g.done===f.ctx.date || f.min<12*60); };
+    return {
+      high:[
+        v2Sit("goal_due","order",function(f){ return day(f) && !!f.GL && !!f.GL.due; }, L.due),
+        v2Sit("goal_won","inspiration",function(f){ return recent(f.GL && f.GL.won, f); }, L.won),
+        v2Sit("goal_lost","understanding",function(f){ return recent(f.GL && f.GL.lost, f); }, L.lost),
+        v2Sit("goal_begin","inspiration",function(f){ return !f.locked && !!f.GL && !!f.GL.begin && f.min>=5*60 && f.min<15*60; }, L.begin),
+        v2Sit("goal_final","warning",function(f){ var g=f.GL && f.GL.fin; return day(f) && !!g && dayNum(g.end)-dayNum(f.ctx.date)<3; }, L.fin)
+      ],
+      mid:[
+        v2Sit("goal_soon","encouragement",function(f){ var g=f.GL && f.GL.soon; if(!g || f.locked) return false; var n=dayNum(g.start)-dayNum(f.ctx.date);
+          return (n===1 && f.min>=17*60) || (n===2 && f.min>=12*60 && H(f,"soon",2)); }, L.soon),
+        v2Sit("goal_last_cluster","advice",function(f){ var g=f.GL && f.GL.fin; return !!g && day(f) && f.min>=9*60 && f.min<21*60 && H(f,"fin",2); }, L.fin)
+      ],
+      low:[
+        v2Sit("goal_running","quiet",function(f){ return !!f.GL && !!f.GL.run && day(f) && f.min>=9*60 && f.min<21*60 && H(f,"run",3); }, L.run),
+        v2Sit("goal_other_won","praise",function(f){ return !!f.GO && f.GO.k==="won" && day(f) && H(f,"ow",2); }, L.other_won),
+        v2Sit("goal_other_fin","advice",function(f){ return !!f.GO && f.GO.k==="fin" && day(f) && H(f,"of",3); }, L.other_fin),
+        v2Sit("goal_empty","advice",function(f){ var c=f.ctx; return !!f.GL && f.GL.empty && c.started && c.day<=2 && day(f) && f.min>=9*60 && f.min<20*60 && H(f,"empty",2); }, L.empty)
+      ]
+    };
+  }
+  /* answers to a goal event, a tag, English, Fiber */
+  var V3_AR={
+    eng:["Ten minutes of English, done. Small, and it compounds.","English, sealed. Ten minutes well spent.","English: done. Language is a door; you opened it again.","Ten minutes. The words stay if you return tomorrow."],
+    tag:["{div} on {etag}. Noted.","{etag}. The Ahtuxasai file it.","Noted: {etag}.","{etag}, recorded. Know what your hours buy.","{div}: {etag}. Good.","{etag}. A named hour is a kept hour."]
+  };
+  var V3_XL_FIBER=["Fiber. The gut keeps order too.","Fiber, taken. Order begins inside.","Fiber: kept.","Fiber. A small law, kept.","Logged. The body's inner order."];
+  var V3_ARS={
+    paused:["{pdiv} is paused with {pleft} to go. Half a question is no answer.","A paused block: {pdiv}. Resume it while the thought is warm.",
+      "{pdiv} waits, {pleft} short of done.","The clock stopped on {pdiv}. Start it again.","{pleft} left on {pdiv}. Close it.","Paused blocks don't count. {pdiv} needs {pleft} more."],
+    tag_focus:["Most of today went to {ttag}: {ttagn} blocks. That's how understanding forms.","{ttag}, {ttagn} blocks deep. Stay with it.",
+      "Today belongs to {ttag}. Good; a subject needs repetition.","{ttagn} blocks on {ttag}. The Ahtuxasai see a pattern.","{ttag} again and again today. That's study, not browsing.","Your day has a subject: {ttag}."],
+    tag_scatter:["{tagk} blocks, {tagk} subjects. Depth needs repetition.","Each block went somewhere new. Choose one thing and return to it.",
+      "Scattered today: {tagk} subjects in {tagk} blocks.","Many questions, no answers yet. Tomorrow, fewer subjects.","A different subject every block. Breadth is fine; depth is better."],
+    tag_week:["This week went mostly to {wtag}: {wh}.","{wtag} leads the week, {wh} so far.","Seven days, and {wtag} took the most of them: {wh}.","Your week has a centre: {wtag}, {wh}."]
+  };
+  (function(){
+    var specs={xeron:XERON_SPEC, arurael:ARURAEL_SPEC, xenlil:XENLIL_SPEC, arexia:AREXIA_SPEC};
+    var says={xeron:XERON_SAYS, arurael:ARURAEL_SAYS, xenlil:XENLIL_SAYS, arexia:AREXIA_SAYS};
+    var at={xeron:["edge_many","morning","clean"], arurael:["run_15","morning","started"], xenlil:["run_18","morning","steady"], arexia:["run_9","half_kept","watching"]};
+    ["xeron","arurael","xenlil","arexia"].forEach(function(god){
+      var S=v3Sits(god), sp=specs[god], oldReact=sp.react, oldTok=sp.tokens;
+      v2Insert(says[god],at[god][0],S.high);
+      v2Insert(says[god],at[god][1],S.mid);
+      v2Insert(says[god],at[god][2],S.low);
+      sp.react=function(f,x,ev){
+        if(/^goal_/.test(ev.kind)) return V3_GOAL[god]["r_"+ev.kind.slice(5)];
+        if(god==="arurael"){
+          if(ev.kind==="div_done" && ev.detail && ev.detail.div==="English") return V3_AR.eng;
+          if(ev.kind==="tag") return V3_AR.tag;
+        }
+        if(god==="xenlil" && ev.kind==="habit" && ev.detail && ev.detail.k==="fiber") return V3_XL_FIBER;
+        return oldReact(f,x,ev);
+      };
+      sp.tokens=function(f,x,ev){
+        var t=oldTok(f,x,ev), d=(ev && ev.detail)||{};
+        if(d.goal!==undefined){ t.eg=d.goal; t.elvl=d.lvl||""; t.estart=d.start||""; t.en = d.n===1 ? "one cluster" : vWord(d.n||0)+" clusters"; }
+        if(d.tag) t.etag=d.tag;
+        if(god==="arurael"){
+          t.mins=fmtHM(f.mins||0); t.owed=fmtHM(f.owed||AR_DUTY);
+          if(f.paused){ var pm=Math.max(1,Math.ceil(f.paused.left/60000)); t.pdiv=f.paused.name; t.pleft = pm===1 ? "one minute" : vWord(pm)+" minutes"; }
+          var tg=f.tg||{};
+          if(tg.top){ t.ttag=tg.top.tag; t.ttagn=vWord(tg.top.n); }
+          t.tagk=vWord(tg.tagged||0);
+          if(tg.week){ var wh=Math.round(tg.week.min/60); t.wtag=tg.week.tag; t.wh = wh<=1 ? "about an hour" : "about "+vWord(wh)+" hours"; }
+        }
+        return t;
+      };
+    });
+    /* Arurael's blocks and tags */
+    v2Insert(ARURAEL_SAYS,"night",[
+      v2Sit("paused","advice",function(f){ return !!f.paused && !f.running && f.ctx.phase!=="night" && !f.locked; }, V3_ARS.paused)]);
+    v2Insert(ARURAEL_SAYS,"strong",[
+      v2Sit("tag_focus","encouragement",function(f){ var t=f.tg; return !!t && !!t.top && t.top.n>=3 && f.min>=14*60 && vHash(f.ctx.date+"|tf")%2===0; }, V3_ARS.tag_focus),
+      v2Sit("tag_scatter","advice",function(f){ var t=f.tg; return !!t && t.tagged>=4 && t.maxN===1 && f.min>=15*60; }, V3_ARS.tag_scatter)]);
+    v2Insert(ARURAEL_SAYS,"started",[
+      v2Sit("tag_week","quiet",function(f){ var t=f.tg; return !!t && !!t.week && t.week.min>=180 && vHash(f.ctx.date+"|tw")%3===0; }, V3_ARS.tag_week)]);
+  })();
+
   /* ---------- The Voices, deeper: what they know ----------
      Every positive act is written into the day with its minute (day.log), so the voices can
      learn your hours. From the record they read the whole world: each realm's day, cycle and
@@ -4523,7 +4910,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     for(var i=1;i<=7;i++){ var k=keyAdd(today,-i), r=past(k); if(!r || isBlank(r)) continue; var h=r.habits||{};
       var add=function(key,ok){ if(rate[key]===undefined) return; n[key]++; if(ok) rate[key]++; };
       add("water",(r.water||0)>=14); add("core_early",!!r.core); add("wake",!!h.wake); add("bed",!!h.bed);
-      add("supps",!!(h.mvom && h.cre)); add("skin",!!h.skin); if(isGymDay(k)) add("gym",!!r.gym); }
+      add("supps",v3SuppsOk(r,k)); add("skin",!!h.skin); if(isGymDay(k)) add("gym",!!r.gym); }
     var hsh=vHash(today+"|decree"), bestK=null, bestV=2;
     keys.forEach(function(k,i){ var v=n[k] ? rate[k]/n[k] : .5; v+=((hsh>>>i)%7)/1000; if(v<bestV){ bestV=v; bestK=k; } });
     if(bestK==="water") bestK = hsh%2 ? "water_noon" : "water_full";
@@ -4539,7 +4926,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       case "wake": return h.wake ? "kept" : (m>540 ? "broken" : "pending");
       case "bed": return h.bed ? "kept" : (m>1410 ? "broken" : "pending");
       case "gym": return r.gym ? "kept" : (m>=1200 ? "broken" : "pending");
-      case "supps": return (h.mvom && h.cre) ? "kept" : (m>=1320 ? "broken" : "pending");
+      case "supps": return v3SuppsOk(r,r.date) ? "kept" : (m>=1320 ? "broken" : "pending");
       case "skin": return h.skin ? "kept" : (m>=1320 ? "broken" : "pending");
     }
     return "pending";
@@ -4559,16 +4946,17 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(god==="arexia" && G.weakRite) t.wrune=RUNE[G.weakRite.q];
     if(f.sl){ if(!t.hrs) t.hrs=f.sl.hrs||"a few"; }
     if(god==="arexia"){ var x=arexiaRead(f); t.zn = x.z===1 ? "one rite" : vWord(x.z)+" rites"; t.zrune=x.zrune; }
+    v3Tok(god,f,t);
     return t;
   }
-  function v2Facts(god,f){ f=withCtx(f); f.G=voiceWorld(); f.mem=vMemPrev(god); return f; }
+  function v2Facts(god,f){ f=withCtx(f); f.G=voiceWorld(); f.mem=vMemPrev(god); f.GL=v3Goals(god); f.GO=v3Other(god); return f; }
   function v2Finish(god,f){ f.vt=v2Tokens(god,f); return f; }
 
   /* Xeron himself: a few words, on remarkable days, and very rarely on any clean one */
   function v2Allfather(f,r){
     if(f.locked || !r || /^(react|holder):/.test(r.id)) return null;
     var x=xeronRead(f), G=f.G||{}, h=vHash(f.date+"|allfather");
-    var remarkable=(x.s>=13 && x.s%13===0) || (x.boundN===8 && f.D===0 && f.T===0) || !!G.allPerfect;
+    var remarkable=(x.s>=13 && x.s%13===0) || (x.boundN===8 && f.D===0 && f.T===0) || !!G.allPerfect || !!(f.GL && f.GL.won && f.GL.won.done===f.date);
     if((remarkable && h%4===0) || (f.D===0 && h%300===0)) return V2_ALLFATHER[(h>>>4)%V2_ALLFATHER.length];
     return null;
   }
@@ -4636,10 +5024,20 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       if(!c.started || v==null) cat="none";
       else if(G.top===g && v>=70) cat="lead";
       else cat = v>=80 ? "strong" : v>=60 ? "steady" : "weak";
-      var pool=V2_COUNCIL[g][cat], line=pool[vHash(c.date+"|"+g+"|"+c.q+"|council")%pool.length];
-      html+=v2Row(g, vFill(line,{score:pct(v)}).replace(/&/g,"&amp;").replace(/</g,"&lt;"));
+      var pool=V2_COUNCIL[g][cat], line=pool[vHash(c.date+"|"+g+"|"+c.q+"|council")%pool.length], gx=c.started ? v3Council(g,c) : null;
+      if(gx){ var gp=V3_COUNCIL[g][gx.k]; line=gp[vHash(c.date+"|"+g+"|"+c.q+"|cg")%gp.length]; }
+      html+=v2Row(g, vFill(line,{score:pct(v), goal:gx ? gx.title : ""}).replace(/&/g,"&amp;").replace(/</g,"&lt;"));
     });
     host.innerHTML=html;
+    var gb=document.getElementById("councilGoals");
+    if(gb){
+      var won=[];
+      if(c.started){ var cd=clDays(c.cluster-1), a=cd[0], z=cd[cd.length-1];
+        won=goalList().filter(function(g){ return g.status==="achieved" && g.done>=a && g.done<=z; }); }
+      gb.hidden=!won.length;
+      gb.innerHTML = won.length ? '<span class="c-who">Achieved in Cluster '+c.cluster+'</span>'+won.map(function(g){
+        return '<div class="c-goal" style="--hue:'+V2_ZOD[g.god][0]+'"><i>\u2713</i><b>'+g.lvl+'</b><span>'+goalEsc(g.title)+' \u00b7 '+V2_NAMES[g.god]+'</span></div>'; }).join('') : '';
+    }
   }
 
   /* ---------- the end of a cluster: one ceremony, on the first open after it ---------- */
@@ -4649,7 +5047,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var prev=clusterScores(c.cluster-2), rows="";
     V2_GODS.forEach(function(g){
       var v=prev[g].all, lvl = v==null ? "mid" : v>=80 ? "high" : v>=55 ? "mid" : "low";
-      var pool=V2_CEREMONY[g][lvl]; rows+=v2Row(g, vFill(pool[vHash(c.date+g)%pool.length],{score:pct(v)}));
+      var pool=V2_CEREMONY[g][lvl], cd=clDays(c.cluster-2), won=goalList().filter(function(x){ return x.god===g && x.status==="achieved" && x.done>=cd[0] && x.done<=cd[cd.length-1]; });
+      var ln=vFill(pool[vHash(c.date+g)%pool.length],{score:pct(v)});
+      if(won.length) ln+=" "+vFill(V3_CEREMONY[g],{goal:goalEsc(won[0].title)});
+      rows+=v2Row(g, ln);
     });
     document.getElementById("reTitle").textContent="Cluster "+(c.cluster-1)+" has ended";
     document.getElementById("reRows").innerHTML=rows;
@@ -5258,8 +5659,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     document.getElementById("atTime").innerHTML="<b>"+fmtHM(done+extra)+"</b> / "+fmtHM(AR_DUTY);
     var duty=TASKS.every(function(t){ return t.k==="extra" || taskCount(d,t.k)>=t.n; }), dn=document.getElementById("atDone");
     dn.hidden=!duty;
-    if(duty) dn.textContent = taskCount(d,"extra")>=WORK_SLOTS ? "Everything, extra included: "+fmtHM(done+extra)+" of focus." :
-      "The day's duty is complete: every division and all eight blocks of work. Extra is yours.";
+    if(duty) dn.textContent = taskCount(d,"extra")>=WORK_SLOTS ? "All done, extra included." : "Duty complete.";
     var items=arSessions(d), html="";
     items.forEach(function(it,i){
       var t=taskOf(it.k);
@@ -5380,13 +5780,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   function tagSave(){
     var r=rec(TG.date), tags=tagParse(document.getElementById("tgInput").value);
-    if(r && Array.isArray(r.arLog) && r.arLog[TG.li]){ r.arLog[TG.li].tags=tags; actNow(); save(); }
+    if(r && Array.isArray(r.arLog) && r.arLog[TG.li]){
+      var was=(r.arLog[TG.li].tags||[]).join(","); r.arLog[TG.li].tags=tags; actNow(); save();
+      if(tags.length && tags.join(",")!==was && r===state.day){ var tk=taskOf(r.arLog[TG.li].k); voiceEvent("arurael","tag",{tag:tags.join(", "), div:tk ? tk.name : ""}); }
+    }
     fb("on"); tagClose(); renderAr();
   }
   /* a block finished: ask what it was, when the page is in view and nothing else is asking */
   function tagAskPending(){
     var a=ART.ask; if(!a || document.hidden) return;
-    if(!document.getElementById("tagModal").hidden || !document.getElementById("modal").hidden) return;
+    if(document.querySelector(".modal:not([hidden])")) return;
     var r=rec(a.date); ART.ask=null; arSave();
     if(!r || r!==state.day || !Array.isArray(r.arLog) || !r.arLog[a.i]) return;
     var e=r.arLog[a.i], items=arSessions(r), it=null;
@@ -5635,7 +6038,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       fb("tap");
       var start=keyAdd(dayKey(),1);
       ask("Reset the Golden Path?",
-        "Everything is erased: every daily record in every tab, today included, and the sealed checkups. "+
+        "Everything is erased: every daily record in every tab, today included, the sealed checkups and all goals. "+
         "Cluster 1 begins at 00:00 tomorrow, "+clDate(start,{weekday:"long",month:"short",day:"numeric"})+", and nothing can be recorded until then. It cannot be undone.",
         "Reset",function(){
           /* stop anything running, then start from nothing */
@@ -5795,16 +6198,17 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var H=vHost(), note=document.getElementById("syncNote"), more=document.getElementById("syncMore"), alt=document.getElementById("syncAlt");
     var at=+(lsGet("dial.vault.at")||0);
     btn.classList.toggle("newer", !!VAULT_NEWER); moreDot();
+    setTimeout(function(){ var n=document.getElementById("syncNote"); if(n) n.hidden=!n.innerHTML; },0);
     if(H){
       var folder=H.vaultFolder();
       setText("syncLabel", VAULT_NEWER ? "Sync with folder · newer backup" : "Sync with folder");
-      if(!folder) note.innerHTML="Keeps your record as <b>"+VAULT_FILE+"</b> in a folder on this phone. Nothing leaves the phone.";
-      else if(VAULT_NEWER) note.innerHTML="A newer <b>"+VAULT_FILE+"</b> is in <b>"+folder+"</b>. Sync to load it.";
-      else note.innerHTML="<b>"+VAULT_FILE+"</b> in <b>"+folder+"</b> · synced "+vWhen(at)+(lsGet("dial.vault.last")!=null ? " · updates on its own" : "");
+      if(!folder) note.innerHTML="";
+      else if(VAULT_NEWER) note.innerHTML="Newer file in <b>"+folder+"</b>";
+      else note.innerHTML="<b>"+folder+"</b>"+(at ? " · "+vWhen(at) : "");
       more.hidden=!folder; setText("syncAltLbl","Change folder");
     } else {
       setText("syncLabel","Save backup file");
-      note.innerHTML="Saves <b>"+VAULT_FILE+"</b> to your downloads"+(at ? " · last "+vWhen(at) : "")+". Load it on another device to carry your record over.";
+      note.innerHTML = at ? "Last "+vWhen(at) : "";
       more.hidden=false; setText("syncAltLbl","Load a backup file");
     }
   }
@@ -5819,6 +6223,215 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     });
     renderSync();
     setTimeout(vaultCheck, 1200);
+  }
+
+  /* ---------- Goals ----------
+     Each god holds four horizons, one goal at a time in each: C12 (12 clusters, about 3 months),
+     C46 (about a year), C130 (about 2.8 years) and C229 (about 5 years). A goal is written as a
+     draft; activated, it waits for the next cluster that begins (never the running one) and runs
+     for its number of clusters. While it runs it can be marked achieved, or ended as not achieved.
+     When its last cluster is over, the app asks: achieved, not achieved, or extended by some
+     clusters. There are no percentages: a goal is achieved or it isn't. Closed goals stay in the
+     god's history; the Landsraad shows the goals achieved during the cluster on show.
+     state.goals: [{id, god, lvl, title, note, made, status: draft|set|achieved|missed,
+                    start, end (day keys), ext (clusters added), done (day closed)}] */
+  var GOAL_LV=[
+    {k:"C12",  n:12,  name:"Short-term",  span:"3 months"},
+    {k:"C46",  n:46,  name:"Mid-term",    span:"1 year"},
+    {k:"C130", n:130, name:"Long-term",   span:"2.8 years"},
+    {k:"C229", n:229, name:"Strategic",   span:"5 years"}
+  ];
+  var GOAL_GODS=["xeron","arurael","xenlil","arexia"];
+  var GOAL_ED=null, GOAL_ASKED={}, goalT=0;
+  function goalList(){ if(!Array.isArray(state.goals)) state.goals=[]; return state.goals; }
+  function goalLv(k){ for(var i=0;i<GOAL_LV.length;i++) if(GOAL_LV[i].k===k) return GOAL_LV[i]; return GOAL_LV[0]; }
+  function goalSlot(god,lv){ var l=goalList(); for(var i=0;i<l.length;i++){ var g=l[i]; if(g.god===god && g.lvl===lv && (g.status==="draft" || g.status==="set")) return g; } return null; }
+  function goalPast(god){ return goalList().filter(function(g){ return g.god===god && (g.status==="achieved" || g.status==="missed"); })
+    .sort(function(a,b){ return (b.done||"")<(a.done||"") ? -1 : 1; }); }
+  /* the first day of the next cluster to begin */
+  function goalNextStart(){ var t=dayKey(); if(t<CL_START) return CL_START; return keyAdd(CL_START,(clIndex(t)+1)*CL_LEN); }
+  function goalPhase(g){
+    if(g.status!=="set") return g.status;
+    var t=dayKey();
+    return t<g.start ? "waiting" : t<=g.end ? "active" : "due";
+  }
+  function goalClusters(g){ return Math.round((dayNum(g.end)-dayNum(g.start)+1)/CL_LEN); }
+  function goalShort(k){ return clDate(k, k.slice(0,4)===dayKey().slice(0,4) ? {month:"short",day:"numeric"} : {month:"short",day:"numeric",year:"numeric"}); }
+  function goalLong(k){ return clDate(k,{weekday:"short",month:"short",day:"numeric",year:"numeric"}); }
+  function goalStatus(g){                               /* the chip */
+    var p=goalPhase(g), t=dayKey();
+    if(p==="draft") return ["draft","Draft"];
+    if(p==="waiting") return ["waiting",goalShort(g.start)];
+    if(p==="active") return ["active","C"+(clIndex(t)-clIndex(g.start)+1)+"/"+goalClusters(g)];
+    if(p==="due") return ["due","Decide"];
+    if(p==="achieved") return ["achieved","✓"];
+    return ["missed","✕"];
+  }
+  function goalEsc(x){ return String(x||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"); }
+  function goalChanged(){ actNow(); save(); renderGoals(); renderCouncil(); }
+
+  /* ---- lists: the funnel (all gods) and each god's card ---- */
+  function goalRows(god){
+    var html='';
+    GOAL_LV.forEach(function(lv){
+      var g=goalSlot(god,lv.k), st=g ? goalStatus(g) : null;
+      html+='<button type="button" class="gl-slot" data-god="'+god+'" data-lv="'+lv.k+'" aria-label="'+lv.k+' '+lv.name+'"><b class="gl-code">'+lv.k+'</b>'+
+        (g ? '<span class="gl-name">'+goalEsc(g.title)+'</span><span class="gl-st" data-p="'+st[0]+'">'+st[1]+'</span>'
+           : '<span class="gl-name unset"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span></span>')+'</button>';
+    });
+    return '<div class="gl-slots">'+html+'</div>';
+  }
+  function goalPastHtml(god){
+    var p=goalPast(god); if(!p.length) return '';
+    return '<details class="gl-past"><summary>Past · '+p.length+'</summary><ul>'+p.map(function(g){
+      return '<li data-id="'+g.id+'"><i class="'+(g.status==="achieved" ? 'ok">✓' : 'no">✕')+'</i><span>'+goalEsc(g.title)+'</span><em>'+g.lvl+' · '+goalShort(g.done||g.end)+'</em></li>'; }).join('')+'</ul></details>';
+  }
+  function renderGoals(){
+    if(!state) return;
+    GOAL_GODS.forEach(function(god){
+      var el=document.getElementById("goals-"+god); if(!el) return;
+      el.style.setProperty("--hue",V2_ZOD[god][0]);
+      el.innerHTML='<div class="gc-h">'+'<svg viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="6.2" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="3.4" fill="none" stroke="currentColor" stroke-width="1.5"/><circle cx="8" cy="8" r="1" fill="currentColor"/></svg>'+'Goals</div>'+goalRows(god)+goalPastHtml(god);
+    });
+    var sh=document.getElementById("goalSheet");
+    if(sh && !sh.hidden) renderGoalSheet();
+    var due=goalList().some(function(g){ return goalPhase(g)==="due"; });
+    document.getElementById("goalDot").hidden=!due;
+  }
+  function renderGoalSheet(){
+    var html='';
+    GOAL_GODS.forEach(function(god){
+      html+='<div class="gl-god" style="--hue:'+V2_ZOD[god][0]+'"><div class="gl-god-h"><svg viewBox="0 0 24 22" aria-hidden="true">'+V2_ZOD[god][1]+'</svg>'+V2_NAMES[god]+'</div>'+goalRows(god)+goalPastHtml(god)+'</div>';
+    });
+    document.getElementById("glBody").innerHTML=html;
+  }
+  function sheetOpen(id){ var md=document.getElementById(id); clearTimeout(md._t); md.classList.remove("out","in"); md.hidden=false; void md.offsetWidth; md.classList.add("in"); }
+  function sheetClose(id){ var md=document.getElementById(id); if(md.hidden) return; md.classList.remove("in"); md.classList.add("out");
+    clearTimeout(md._t); md._t=setTimeout(function(){ md.hidden=true; md.classList.remove("out"); if(typeof tagAskPending==="function") tagAskPending(); },270); }
+
+  /* ---- the editor ---- */
+  function goalOpen(god, lvk, g){
+    var lv=goalLv(lvk);
+    GOAL_ED={god:god, lv:lvk, id: g ? g.id : null, ext:1};
+    var ed=document.getElementById("goalEdit"); ed.querySelector(".sheet").style.setProperty("--hue",V2_ZOD[god][0]);
+    document.getElementById("geName").value = g ? g.title : "";
+    document.getElementById("geNote").value = g ? (g.note||"") : "";
+    goalPaint();
+    sheetOpen("goalEdit");
+    if(!g) setTimeout(function(){ try{ document.getElementById("geName").focus(); }catch(e){} },320);
+  }
+  function goalCur(){ if(!GOAL_ED || !GOAL_ED.id) return null; var l=goalList(); for(var i=0;i<l.length;i++) if(l[i].id===GOAL_ED.id) return l[i]; return null; }
+  function goalPaint(){
+    var E=GOAL_ED, g=goalCur(), lv=goalLv(E.lv), p=g ? goalPhase(g) : "new", t=dayKey(), btns=[], when="";
+    document.getElementById("geEy").innerHTML='<svg viewBox="0 0 24 22" aria-hidden="true">'+V2_ZOD[E.god][1]+'</svg>'+V2_NAMES[E.god]+' <b>'+lv.k+'</b>';
+    var chip=document.getElementById("geChip"), st=g ? goalStatus(g) : null;
+    chip.hidden=!st; if(st){ chip.dataset.p=st[0]; chip.textContent = st[0]==="achieved" ? "✓ Achieved" : st[0]==="missed" ? "✕ Not achieved" : st[1]; }
+    var nm=document.getElementById("geName"), nt=document.getElementById("geNote"), ro=document.getElementById("geRo");
+    var final=(p==="achieved" || p==="missed");
+    nm.hidden=final; nt.hidden=final; ro.hidden=!final;
+    if(final) ro.innerHTML='<b>'+goalEsc(g.title)+'</b>'+(g.note ? '<span>'+goalEsc(g.note)+'</span>' : '');
+    var dirty = !!g && !final && (nm.value.trim()!==g.title || nt.value.trim()!==(g.note||""));
+    var span=function(a,b){ return goalShort(a)+' <i>→</i> '+goalShort(b); };
+    if(p==="new" || p==="draft"){ var s0=goalNextStart(); when=span(s0, keyAdd(s0, lv.n*CL_LEN-1))+'<em>'+lv.n+' clusters · '+lv.span+'</em>'; }
+    else if(p==="waiting") when=span(g.start,g.end)+'<em>'+goalClusters(g)+' clusters · in '+(dayNum(g.start)-dayNum(t))+'d</em>';
+    else if(p==="active") when=span(g.start,g.end)+'<em>'+(dayNum(g.end)-dayNum(t)+1)+'d left</em>';
+    else if(p==="due") when=span(g.start,g.end)+'<em>ended</em>';
+    else when=(g.start ? span(g.start, g.done||g.end) : goalShort(g.done||g.end))+'<em>'+lv.n+' clusters</em>';
+    document.getElementById("geWhen").innerHTML=when;
+    var ex=document.getElementById("geExt"); ex.hidden=(p!=="due");
+    if(p==="due"){
+      var minN=Math.max(1, Math.ceil((dayNum(t)-dayNum(g.end)+1)/CL_LEN));
+      if(E.ext<minN) E.ext=minN;
+      setText("geExtN", E.ext); setText("geExtTo", "→ "+goalShort(keyAdd(g.end,E.ext*CL_LEN)));
+      document.getElementById("geExtMinus").disabled=E.ext<=minN;
+    }
+    var del=["×","ic",goalDelete,"Delete"];
+    if(p==="new") btns=[["Save draft","",goalSaveDraft],["Activate","pri",goalActivate]];
+    else if(p==="draft") btns=[del].concat(dirty ? [["Save","",goalSave]] : []).concat([["Activate","pri",goalActivate]]);
+    else if(p==="waiting") btns=[["Back to draft","",goalUnset]].concat(dirty ? [["Save","pri",goalSave]] : []);
+    else if(p==="active") btns=(dirty ? [["Save","",goalSave]] : []).concat([["Not achieved","no",goalMiss],["Achieved","ok",goalAchieve]]);
+    else if(p==="due") btns=[["Not achieved","no",goalMiss],["Extend","",goalExtend],["Achieved","ok",goalAchieve]];
+    else btns=[del];
+    var box=document.getElementById("geBtns"); box.innerHTML="";
+    btns.forEach(function(b){ var el=document.createElement("button"); el.type="button"; if(b[1]) el.className=b[1];
+      if(b[1]==="ic"){ el.innerHTML='<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/></svg>'; el.setAttribute("aria-label",b[3]); } else el.textContent=b[0];
+      el.addEventListener("click",function(){ fb("tap"); b[2](); }); box.appendChild(el); });
+    box.hidden=!btns.length;
+  }
+  function goalForm(quiet){
+    var t=document.getElementById("geName").value.trim().replace(/\s+/g," "), n=document.getElementById("geNote").value.trim();
+    if(!t){ if(!quiet){ toast("Write the goal first."); document.getElementById("geName").focus(); } return null; }
+    return {title:t, note:n};
+  }
+  function goalNew(f){
+    var g={id:"g"+Date.now().toString(36)+Math.floor(Math.random()*1e4).toString(36), god:GOAL_ED.god, lvl:GOAL_ED.lv,
+      title:f.title, note:f.note, made:dayKey(), status:"draft", ext:0};
+    goalList().push(g); GOAL_ED.id=g.id; return g;
+  }
+  function goalCancel(){ sheetClose("goalEdit"); }
+  function goalSaveDraft(){ var f=goalForm(); if(!f) return; goalNew(f); goalChanged(); sheetClose("goalEdit"); toast("Draft saved."); }
+  function goalSave(){ var g=goalCur(), f=goalForm(); if(!g || !f) return; g.title=f.title; g.note=f.note; goalChanged(); sheetClose("goalEdit"); toast("Saved."); }
+  function goalActivate(){
+    var f=goalForm(); if(!f) return;
+    var g=goalCur() || goalNew(f), lv=goalLv(g.lvl), start=goalNextStart();
+    g.title=f.title; g.note=f.note; g.status="set"; g.start=start; g.end=keyAdd(start, lv.n*CL_LEN-1); g.ext=0;
+    goalChanged(); sheetClose("goalEdit"); v3GoalEv(g,"goal_set");
+    toast("Starts "+goalShort(start)+".");
+  }
+  function goalUnset(){ var g=goalCur(); if(!g) return; var f=goalForm(true); if(f){ g.title=f.title; g.note=f.note; }
+    g.status="draft"; delete g.start; delete g.end; g.ext=0; goalChanged(); goalPaint(); }
+  function goalAchieve(){
+    var g=goalCur(); if(!g) return; var f=goalForm(true); if(f){ g.title=f.title; g.note=f.note; }
+    ask("Achieved?", g.title, "Achieved",
+      function(){ g.status="achieved"; g.done=dayKey(); goalChanged(); sheetClose("goalEdit"); v3GoalEv(g,"goal_won"); fb("done"); sfx("done"); toast("Achieved."); });
+  }
+  function goalMiss(){
+    var g=goalCur(); if(!g) return;
+    ask("Not achieved?", g.title, "Not achieved",
+      function(){ g.status="missed"; g.done=dayKey(); goalChanged(); sheetClose("goalEdit"); v3GoalEv(g,"goal_lost"); toast("Not achieved."); });
+  }
+  function goalExtend(){
+    var g=goalCur(); if(!g) return;
+    g.end=keyAdd(g.end, GOAL_ED.ext*CL_LEN); g.ext=(g.ext||0)+GOAL_ED.ext;
+    goalChanged(); sheetClose("goalEdit"); v3GoalEv(g,"goal_ext",{n:GOAL_ED.ext}); toast("Extended to "+goalShort(g.end)+".");
+  }
+  function goalDelete(){
+    var g=goalCur(); if(!g) return;
+    ask("Delete this goal?", g.title, "Delete",
+      function(){ state.goals=goalList().filter(function(x){ return x.id!==g.id; }); goalChanged(); sheetClose("goalEdit"); });
+  }
+  /* a goal whose time is up asks, once per opening, when nothing else is showing */
+  function goalAskDue(){
+    if(!state || document.hidden || !goalList().length) return;
+    var open=["modal","goalEdit","goalSheet","tagModal","menu"].some(function(id){ var e=document.getElementById(id); return e && !e.hidden; });
+    var re=document.getElementById("riteEnd"); if(open || (re && !re.hidden)) return;
+    var today=dayKey(), g=goalList().filter(function(x){ return goalPhase(x)==="due" && GOAL_ASKED[x.id]!==today; })[0];
+    if(!g) return;
+    GOAL_ASKED[g.id]=today; goalOpen(g.god, g.lvl, g);
+  }
+  function buildGoals(){
+    document.getElementById("goalBtn").addEventListener("click",function(){ fb("tap"); renderGoalSheet(); sheetOpen("goalSheet"); });
+    document.getElementById("glClose").addEventListener("click",function(){ fb("tap"); sheetClose("goalSheet"); });
+    document.getElementById("goalSheet").addEventListener("click",function(e){ if(e.target.id==="goalSheet") sheetClose("goalSheet"); });
+    document.getElementById("goalEdit").addEventListener("click",function(e){ if(e.target.id==="goalEdit") sheetClose("goalEdit"); });
+    document.addEventListener("click",function(e){
+      var b=e.target.closest(".gl-slot");
+      if(b){ fb("tap"); goalOpen(b.dataset.god, b.dataset.lv, goalSlot(b.dataset.god, b.dataset.lv)); return; }
+      var li=e.target.closest(".gl-past li[data-id]");
+      if(li){ var g=goalList().filter(function(x){ return x.id===li.dataset.id; })[0]; if(g){ fb("tap"); goalOpen(g.god, g.lvl, g); } }
+    });
+    document.getElementById("geX").addEventListener("click",function(){ fb("tap"); sheetClose("goalEdit"); });
+    ["geName","geNote"].forEach(function(id){ document.getElementById(id).addEventListener("input",function(){ if(GOAL_ED) goalPaint(); }); });
+    document.getElementById("geExtMinus").addEventListener("click",function(){ GOAL_ED.ext=Math.max(1,GOAL_ED.ext-1); goalPaint(); });
+    document.getElementById("geExtPlus").addEventListener("click",function(){ GOAL_ED.ext=Math.min(229,GOAL_ED.ext+1); goalPaint(); });
+    document.addEventListener("keydown",function(e){
+      if(e.key!=="Escape" || !document.getElementById("modal").hidden) return;
+      if(!document.getElementById("goalEdit").hidden) sheetClose("goalEdit"); else sheetClose("goalSheet");
+    });
+    document.getElementById("geName").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("geNote").focus(); } });
+    renderGoals();
+    setTimeout(goalAskDue, 2200);
+    document.addEventListener("visibilitychange",function(){ if(!document.hidden){ renderGoals(); setTimeout(goalAskDue, 900); } });
   }
 
   /* ---------- the More menu ---------- */
@@ -6078,14 +6691,14 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     else if(linked && st==="off") st=(gdValid() || gdNative()) ? "ok" : "expired";
     if(st==="fail" && !GD.why) st=linked ? "expired" : "off";
     var T={
-      off:["Connect Google Drive","Keeps your record in your own Google Drive and syncs it between your devices."],
-      working:["Syncing…","Google Drive"],
-      ok:["Google Drive", (at ? "Synced "+vWhen(at) : "Connected")+" · the newest record wins"],
-      expired:["Reconnect Google Drive","Sign-in ran out"+last+". Tap to sign in again."],
+      off:["Connect Google Drive",""],
+      working:["Syncing…",""],
+      ok:["Google Drive", at ? "Synced "+vWhen(at) : ""],
+      expired:["Reconnect Google Drive", at ? "Last synced "+vWhen(at) : ""],
       fail:[linked ? "Reconnect Google Drive" : "Connect Google Drive", gdExplain(GD.why)],
-      error:["Google Drive","Couldn't sync: "+gdExplain(GD.why)+" Saved on this device"+last+". Tap to try again."]
+      error:["Google Drive", gdExplain(GD.why)]
     }[st];
-    lb.textContent=T[0]; setText("drvNote",T[1]);
+    lb.textContent=T[0]; setText("drvNote",T[1]); document.getElementById("drvNote").hidden=!T[1];
     document.getElementById("drvBtn").dataset.state=st;
     document.getElementById("drvOff").hidden=!linked;
     document.getElementById("drvPush").hidden=!linked; document.getElementById("drvPull").hidden=!linked;
@@ -6219,6 +6832,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     });
     SEL=null; ["rTip","xTip","zTip","aTip","cTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
     if(v==="dial"){ kindle(); render(); } else { douse(); RENDER[v](); }
+    if(typeof renderGoals==="function") renderGoals();
     window.scrollTo(0, SCROLL[v]||0);
     /* the new tab slides in from the side it lives on */
     var el=document.getElementById(VIEW_EL[v]);
@@ -6239,7 +6853,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   state=load();
   if(state.clStart) CL_START=state.clStart;
   rollover();
-  buildDial(); buildCards(); buildPips(); buildHabits(); buildHealth(); buildCore(); buildXr(); buildAe(); buildAr(); buildCl(); buildSync(); buildMenu();
+  buildDial(); buildCards(); buildPips(); buildHabits(); buildHealth(); buildCore(); buildXr(); buildAe(); buildAr(); buildCl(); buildSync(); buildMenu(); buildGoals();
   render(); renderXen(); renderXr(); renderAr(); arTick();
   if(NT){ coreSync(); setInterval(function(){ if(!CORE.run) coreSync(); }, 500); }
   planNotes();
@@ -6282,7 +6896,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     sw.peer=v; sw.peerY=y;
   }
   document.addEventListener("touchstart",function(e){
-    if(BUSY || e.touches.length!==1 || !document.getElementById("modal").hidden || scrollsSideways(e.target)){ sw=null; return; }
+    if(BUSY || e.touches.length!==1 || document.querySelector(".modal:not([hidden])") || !document.getElementById("menu").hidden || scrollsSideways(e.target)){ sw=null; return; }
     var t=e.touches[0]; sw={x:t.clientX, y:t.clientY, lock:null, dx:0, peer:null, track:[[t.clientX,Date.now()]]};
   },{passive:true});
   document.addEventListener("touchmove",function(e){
