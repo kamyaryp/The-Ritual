@@ -18,6 +18,7 @@ import android.webkit.WebViewClient;
 import com.google.android.gms.auth.api.identity.AuthorizationRequest;
 import com.google.android.gms.auth.api.identity.AuthorizationResult;
 import com.google.android.gms.auth.api.identity.Identity;
+import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.common.api.Scope;
 
 import org.json.JSONObject;
@@ -174,9 +175,10 @@ public class MainActivity extends Activity {
         if (request == DRIVE_AUTH) {
             try {
                 AuthorizationResult r = Identity.getAuthorizationClient(this).getAuthorizationResultFromIntent(data);
-                driveAuthed(r.getAccessToken() != null, r.getAccessToken());
+                if (r.getAccessToken() != null) driveAuthed(true, r.getAccessToken());
+                else driveAuthed(false, result == RESULT_OK ? "api:0 no token" : "cancelled");
             } catch (Exception e) {
-                driveAuthed(false, "cancelled");
+                driveAuthed(false, result == RESULT_OK || e instanceof ApiException ? why(e) : "cancelled");
             }
             return;
         }
@@ -209,10 +211,16 @@ public class MainActivity extends Activity {
                             driveAuthed(r.getAccessToken() != null, r.getAccessToken());
                         }
                     })
-                    .addOnFailureListener(e -> driveAuthed(false, String.valueOf(e.getMessage())));
+                    .addOnFailureListener(e -> driveAuthed(false, why(e)));
         } catch (Exception e) {
-            driveAuthed(false, String.valueOf(e.getMessage()));
+            driveAuthed(false, why(e));
         }
+    }
+
+    /** "api:<Google's status code> <message>", so the page can say what went wrong. */
+    private static String why(Exception e) {
+        if (e instanceof ApiException) return "api:" + ((ApiException) e).getStatusCode() + " " + String.valueOf(e.getMessage());
+        return "api:-1 " + e.getClass().getSimpleName() + ": " + String.valueOf(e.getMessage());
     }
 
     private void driveAuthed(boolean ok, String token) {

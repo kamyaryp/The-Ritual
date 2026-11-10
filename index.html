@@ -622,7 +622,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 .mn-it.danger,.mn-it.danger svg{color:var(--xeron)}
 .mn-it[data-state="ok"] svg{color:#30d158}
 .mn-it[data-state="working"] svg{color:var(--ink);animation:atBlink 1s steps(2,start) infinite}
-.mn-it[data-state="expired"] svg,.mn-it[data-state="error"] svg{color:var(--xenlil)}
+.mn-it[data-state="expired"] svg,.mn-it[data-state="error"] svg,.mn-it[data-state="fail"] svg{color:var(--xenlil)}
 .mn-sep{height:1px;margin:6px 4px;background:var(--line)}
 #syncMore[hidden]{display:none}
 .toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-size:12.5px;padding:8px 14px;border-radius:var(--r);z-index:20}
@@ -5820,7 +5820,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   /* ---------- the More menu ---------- */
   function moreDot(){
     var d=document.getElementById("moreDot"); if(!d) return;
-    d.hidden=!(VAULT_NEWER || (typeof GD!=="undefined" && GD && gdLinked() && (GD.state==="expired" || GD.state==="error")));
+    d.hidden=!(VAULT_NEWER || (typeof GD!=="undefined" && GD && gdLinked() && /^(expired|error|fail)$/.test(GD.state)));
   }
   function menuOpen(){
     var mn=document.getElementById("menu"), b=document.getElementById("moreBtn");
@@ -5988,7 +5988,31 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     });
   }
   window.driveFetched=function(id,st,tx){ var f=GD.cb[id]; delete GD.cb[id]; if(f) f(+st||0, tx||""); };
-  function gdOk(r){ if(r.status===401) throw {code:401}; if(r.status<200 || r.status>=300) throw {code:r.status||0}; return r; }
+  function gdOk(r){
+    if(r.status>=200 && r.status<300) return r;
+    var e={code:r.status||0, msg:"", reason:""};
+    try{ var j=JSON.parse(r.text||"{}").error||{}; e.msg=j.message||""; e.reason=(j.errors && j.errors[0] && j.errors[0].reason) || (j.details && j.details[0] && j.details[0].reason) || j.status || ""; }catch(_){}
+    if(e.code===403 && /scope|insufficientPermissions/i.test(e.reason+" "+e.msg)) e.scope=true;
+    throw e;
+  }
+  /* what went wrong, in words */
+  function gdExplain(why){
+    why=String(why||"");
+    var m=why.match(/^api:(\d+)/), code=m ? +m[1] : null;
+    if(code===10) return "Google doesn't recognise this app yet. In Google Cloud, add an Android OAuth client for com.ritual.dial with the app's SHA-1 (error 10).";
+    if(code===16 || why==="cancelled") return "Sign-in was cancelled.";
+    if(code===7 || code===8) return "Couldn't reach Google. Check the connection and try again.";
+    if(code===12500) return "Google sign-in failed on this phone (12500). Update Google Play services and try again.";
+    if(why.indexOf("api:")===0) return "Google sign-in failed ("+why.slice(4)+").";
+    if(why==="scope") return "Drive access wasn't allowed. Tap to connect again and tick the Google Drive permission.";
+    if(why==="web:access_denied") return "Access wasn't allowed.";
+    if(why==="web:popup_closed") return "The Google window closed before sign-in finished.";
+    if(why==="web:popup_failed_to_open") return "The browser blocked Google's sign-in window. Allow pop-ups for this site.";
+    if(why.indexOf("web:")===0) return "Google sign-in failed ("+why.slice(4)+").";
+    if(why.indexOf("drive:")===0) return "Drive answered "+why.slice(6)+".";
+    if(why==="offline") return "No connection to Google Drive.";
+    return why || "Something went wrong.";
+  }
   function gdFind(){
     if(GD.fileId) return Promise.resolve(GD.fileId);
     var q=encodeURIComponent("name='"+GD_FILE+"'");
@@ -6044,10 +6068,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(!interactive){ done(false); return; }
     if(!gdGisReady()){ gdGis(); toast(navigator.onLine===false ? "You're offline." : "Google sign-in is loading. Tap again in a moment."); done(false,"loading"); return; }
     GD.client=GD.client || google.accounts.oauth2.initTokenClient({client_id:GD_CLIENT, scope:GD_SCOPE,
-      callback:function(r){ var f=GD.authCb; GD.authCb=null; if(r && r.access_token){ gdSetToken(r.access_token, +r.expires_in||3600); if(f) f(true); } else if(f) f(false); },
-      error_callback:function(){ var f=GD.authCb; GD.authCb=null; if(f) f(false); }});
+      callback:function(r){
+        var f=GD.authCb; GD.authCb=null;
+        if(r && r.access_token && !google.accounts.oauth2.hasGrantedAllScopes(r, GD_SCOPE)){ GD.consent=true; if(f) f(false,"scope"); return; }
+        if(r && r.access_token){ GD.consent=false; gdSetToken(r.access_token, +r.expires_in||3600); if(f) f(true); }
+        else if(f) f(false, "web:"+((r && r.error) || "failed"));
+      },
+      error_callback:function(err){ var f=GD.authCb; GD.authCb=null; if(f) f(false, "web:"+((err && err.type) || "failed")); }});
     GD.authCb=done;
-    GD.client.requestAccessToken({prompt: gdLinked() ? "" : "consent"});
+    GD.client.requestAccessToken({prompt: (gdLinked() && !GD.consent) ? "" : "consent"});
   }
   window.driveAuthed=function(ok, tok){ var f=GD.authCb; GD.authCb=null; if(ok && tok){ gdSetToken(tok, 3000); if(f) f(true); } else if(f) f(false, tok); };
 
@@ -6057,7 +6086,13 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(!interactive && !gdLinked()) return;
     if(GD.busy){ GD.again=true; return; }
     gdAuth(interactive, function(ok, why){
-      if(!ok){ if(why!=="loading"){ gdUi(gdLinked() ? "expired" : "off"); if(interactive && why && why!=="consent" && gdNative()) toast("Google sign-in didn't finish."); } return; }
+      if(!ok){
+        if(why==="loading") return;
+        if(!interactive || !why || why==="consent"){ gdUi(gdLinked() ? "expired" : "off"); return; }
+        GD.why=why; gdUi("fail");
+        if(why!=="cancelled" && why!=="api:16" && why!=="web:popup_closed") toast(gdExplain(why));
+        return;
+      }
       GD.busy=true; gdUi("working");
       rollover();
       var round=function(retry){
@@ -6074,8 +6109,12 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         lsSet("dial.gd.at", String(Date.now())); gdUi("ok");
         if(ch) toast("Updated from Google Drive."); else if(interactive) toast("Synced with Google Drive.");
       }).catch(function(e){
-        if(e && e.code===401){ GD.token=null; GD.exp=0; try{ localStorage.removeItem("dial.gd.token"); }catch(_){} gdUi("expired"); }
-        else gdUi("error");
+        var drop=function(){ GD.token=null; GD.exp=0; try{ localStorage.removeItem("dial.gd.token"); }catch(_){} };
+        if(e && e.code===401){ drop(); gdUi("expired"); return; }
+        if(e && e.scope){ drop(); GD.consent=true; GD.why="scope"; gdUi("fail"); if(interactive) toast(gdExplain("scope")); return; }
+        GD.why = !e || e instanceof Error ? (e && e.message ? "app: "+e.message : "offline") :
+          (e.code ? "drive:"+e.code+(e.msg ? " \u2014 "+e.msg : "") : "offline");
+        gdUi("error"); if(interactive) toast(gdExplain(GD.why));
       }).then(function(){ GD.busy=false; if(GD.again){ GD.again=false; gdSync(false); } });
     });
   }
@@ -6084,14 +6123,16 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function renderDrive(){
     var lb=document.getElementById("drvLabel"); if(!lb) return;
     var st=GD.state, at=+(lsGet("dial.gd.at")||0), linked=gdLinked(), last=at ? " · last synced "+vWhen(at) : "";
-    if(!linked && st!=="working") st="off";
+    if(!linked && st!=="working" && st!=="fail") st="off";
     else if(linked && st==="off") st=(gdValid() || gdNative()) ? "ok" : "expired";
+    if(st==="fail" && !GD.why) st=linked ? "expired" : "off";
     var T={
       off:["Connect Google Drive","Keeps your record in your own Google Drive and syncs it between your devices."],
       working:["Syncing…","Google Drive"],
       ok:["Google Drive", (at ? "Synced "+vWhen(at) : "Connected")+" · updates on its own"],
       expired:["Reconnect Google Drive","Sign-in ran out"+last+". Tap to sign in again."],
-      error:["Google Drive","Couldn't reach Drive, saved on this device"+last+". Tap to try again."]
+      fail:[linked ? "Reconnect Google Drive" : "Connect Google Drive", gdExplain(GD.why)],
+      error:["Google Drive","Couldn't sync: "+gdExplain(GD.why)+" Saved on this device"+last+". Tap to try again."]
     }[st];
     lb.textContent=T[0]; setText("drvNote",T[1]);
     document.getElementById("drvBtn").dataset.state=st;
