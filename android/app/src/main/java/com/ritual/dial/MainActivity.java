@@ -1,6 +1,7 @@
 package com.ritual.dial;
 
 import android.app.Activity;
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.os.Build;
@@ -21,6 +22,7 @@ import android.webkit.WebViewClient;
 public class MainActivity extends Activity {
 
     private WebView web;
+    private static final int PICK_FOLDER = 7;
 
     /** Whether the app is on screen, so a countdown it already announced isn't announced twice. */
     static volatile boolean foreground = false;
@@ -56,6 +58,36 @@ public class MainActivity extends Activity {
         @JavascriptInterface
         public void setPlan(String json) {
             Notes.setPlan(getApplicationContext(), json);
+        }
+
+        /** The backup folder: its name ("" when none is chosen), the file's text, writing it, choosing it. */
+        @JavascriptInterface
+        public String vaultFolder() {
+            return Vault.folderName(getApplicationContext());
+        }
+
+        @JavascriptInterface
+        public String vaultRead(String name) {
+            return Vault.read(getApplicationContext(), name);
+        }
+
+        @JavascriptInterface
+        public boolean vaultWrite(String name, String text) {
+            return Vault.write(getApplicationContext(), name, text);
+        }
+
+        @JavascriptInterface
+        public void vaultPick() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() {
+                    Intent i = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+                    i.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION | Intent.FLAG_GRANT_WRITE_URI_PERMISSION
+                            | Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION);
+                    try { startActivityForResult(i, PICK_FOLDER); }
+                    catch (Exception e) { tellPage(false); }
+                }
+            });
         }
 
         @JavascriptInterface
@@ -101,6 +133,28 @@ public class MainActivity extends Activity {
                 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1);
         }
+    }
+
+    /** The folder picker came back: keep the folder and let the page sync with it. */
+    @Override
+    protected void onActivityResult(int request, int result, Intent data) {
+        super.onActivityResult(request, result, data);
+        if (request != PICK_FOLDER) return;
+        boolean ok = false;
+        if (result == RESULT_OK && data != null && data.getData() != null) {
+            try { Vault.choose(this, data.getData(), data.getFlags()); ok = true; }
+            catch (Exception ignored) { }
+        }
+        tellPage(ok);
+    }
+
+    private void tellPage(final boolean ok) {
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                if (web != null) web.evaluateJavascript("window.vaultPicked&&window.vaultPicked(" + ok + ")", null);
+            }
+        });
     }
 
     @Override

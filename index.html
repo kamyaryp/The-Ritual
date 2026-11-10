@@ -189,6 +189,20 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .reset-big svg{width:20px;height:20px}
 .reset-big:hover{background:rgba(255,0,10,.14)}
 .reset-big:active{transform:scale(.985)}
+/* sync: the record as a file you keep, above the reset */
+.sync{display:flex;flex-direction:column;gap:10px;margin-bottom:14px}
+.sync-big{display:flex;align-items:center;justify-content:center;gap:12px;width:100%;height:68px;padding:0 20px;
+  font:inherit;font-size:17px;font-weight:600;letter-spacing:-.005em;color:var(--ink);
+  background:var(--panel);border:1.5px solid var(--line);border-radius:12px;cursor:pointer;
+  transition:background .15s,border-color .15s,transform .1s}
+.sync-big svg{width:20px;height:20px}
+.sync-big:hover{border-color:var(--ink-3)}
+.sync-big:active{transform:scale(.985)}
+.sync-big.newer{border-color:var(--xenlil);color:var(--xenlil)}
+.sync-note{margin:0;font-size:12.5px;line-height:1.5;color:var(--ink-3);text-align:center}
+.sync-note b{font-weight:500;color:var(--ink-2)}
+.sync-more{display:flex;justify-content:center;gap:10px}
+.sync-more[hidden]{display:none}
 .segrow{display:grid;grid-template-columns:76px 1fr 1fr 52px;align-items:center;gap:var(--gap);padding:9px 0;border-top:1px solid var(--line-2)}
 .segrow:first-child{border-top:0}
 .segrow .nm{font-size:13.5px;font-weight:500;color:var(--hue)}
@@ -710,6 +724,17 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       <div class="cards cl-report" id="clReport"></div>
     </section>
     <section class="chron cl-reset">
+      <div class="sync" id="sync">
+        <button type="button" class="sync-big" id="syncBtn">
+          <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 6.2A5 5 0 0 0 3.6 4.4" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M3.3 1.9v2.8h2.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 9.8a5 5 0 0 0 9.4 1.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M12.7 14.1v-2.8H9.9" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          <span id="syncLabel">Sync</span>
+        </button>
+        <p class="sync-note" id="syncNote"></p>
+        <div class="sync-more" id="syncMore" hidden>
+          <button type="button" class="act" id="syncAlt"></button>
+        </div>
+        <input type="file" id="syncFile" accept="application/json,.json" hidden>
+      </div>
       <button type="button" class="reset-big" id="clReset">
         <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
         Reset the Golden Path
@@ -1003,8 +1028,11 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     }catch(e){ return fresh(); }
   }
   var saveWarned=false;
+  var RESTORING=false;                               /* a backup is being loaded: the old state must not write over it */
   function save(){
-    try{ localStorage.setItem(KEY, JSON.stringify(state)); saveWarned=false; }
+    if(RESTORING) return;
+    try{ localStorage.setItem(KEY, JSON.stringify(state)); localStorage.setItem("dial.stamp", String(Date.now())); saveWarned=false;
+         if(typeof vaultSoon==="function") vaultSoon(); }
     catch(e){ if(!saveWarned){ saveWarned=true; try{ toast("Could not save \u2014 storage is full or blocked."); }catch(_){} } }
     planNotes();
   }
@@ -5170,6 +5198,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 
   function renderClBelow(){ var keep=SEL; renderCl(true); }
   function renderCl(){
+    renderSync();
     var started=dayKey()>=CL_START, cur=clNow(), c=clSel(), days=clDays(c), seen=clElapsed(days);
     document.getElementById("clNowStat").innerHTML = started ? "cluster <b>"+(cur+1)+"</b>" : "";
     drawClChart();
@@ -5207,6 +5236,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           if(ART.blk) awake(false);
           ART={date:dayKey(), blk:null, endsAt:0, left:{}}; arSave(); if(NT) ntSend({kind:"ar", op:"clear"});
           aeClear(); coreReset();
+          if(typeof vaultKeep==="function") vaultKeep("golden-path-before-reset.json");   /* the old record stays in the backup folder */
           state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start};
           VMEM={}; try{ localStorage.removeItem("dial.vmem"); }catch(e){}
           CL_START=start; CLSEL=null; save(); hideTip();
@@ -5215,6 +5245,175 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
         });
     });
   }
+  /* ---------- Sync: the record as a file you keep ----------
+     No server. In the app, a folder on the phone is chosen once (Documents, say) and the record
+     lives there as golden-path.json, rewritten quietly within a minute of every change and when
+     the app goes to the background. Sync compares the two: the newer wins. A phone with nothing
+     recorded always takes the file; loading over a real record asks first and keeps the old one
+     as golden-path-before-restore.json beside it. A new phone: copy the file into a folder there,
+     install, press Sync, choose that folder. In a browser there is no folder: Sync saves the file
+     to downloads, and "Load a backup file" reads one back.
+     The file: {app:"golden-path", v:1, savedAt (the last change it holds), data:{storage key: text}}. */
+  var VAULT_FILE="golden-path.json", VAULT_PREV="golden-path-before-restore.json", VAULT_KEYS=[KEY,"dial.vmem"];
+  var vaultT=0, VAULT_NEWER=false;
+  function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+  function lsSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
+  function vHost(){ var H=window.RitualHost; return H && H.vaultRead && H.vaultWrite && H.vaultFolder && H.vaultPick ? H : null; }
+  function vStamp(){ return +(lsGet("dial.stamp")||0); }
+  function vWhen(t){ if(!t) return "never"; var d=new Date(t);
+    return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})+", "+hm(d.getHours()*60+d.getMinutes()); }
+  function vaultPack(){
+    var d={}; VAULT_KEYS.forEach(function(k){ var v=lsGet(k); if(v!=null) d[k]=v; });
+    if(!d[KEY]) d[KEY]=JSON.stringify(state);
+    return {app:"golden-path", v:1, savedAt:vStamp()||Date.now(), data:d};
+  }
+  function vaultParse(txt){
+    try{ var o=JSON.parse(txt); if(o && o.app==="golden-path" && o.data && typeof o.data[KEY]==="string"){
+      var st=JSON.parse(o.data[KEY]); if(st && st.day){ o.state=st; o.savedAt=+o.savedAt||0; return o; } } }catch(e){}
+    return null;
+  }
+  function vDays(st){                                 /* days with anything recorded */
+    var n=0; (st.history||[]).forEach(function(r){ if(r && !isBlank(r)) n++; });
+    if(st.day && !isBlank(st.day)) n++;
+    return n;
+  }
+  function vHas(st){ return vDays(st)>0 || Object.keys(st.hc||{}).length>0; }
+  function vDaysText(n){ return n===1 ? "1 day" : n+" days"; }
+
+  /* replace this device's record with the file's, keeping the old one, and start again from it */
+  function vaultApply(o){
+    var H=vHost(), before=vaultPack();
+    if(vHas(state)){
+      lsSet("dial.before", JSON.stringify(before));
+      if(H) H.vaultWrite(VAULT_PREV, JSON.stringify(before));
+    }
+    RESTORING=true; clearTimeout(vaultT); vaultT=0;
+    VAULT_KEYS.forEach(function(k){ if(typeof o.data[k]==="string") lsSet(k,o.data[k]); });
+    lsSet("dial.stamp", String(o.savedAt)); lsSet("dial.vault.last", String(o.savedAt)); lsSet("dial.vault.at", String(Date.now()));
+    location.reload();
+  }
+  function vaultKeep(name){                           /* a copy of the current record under another name, if a folder is set */
+    var H=vHost(); if(!H || !vHas(state) || !H.vaultFolder()) return false;
+    return H.vaultWrite(name, JSON.stringify(vaultPack()));
+  }
+  function vaultWriteNow(manual){
+    var H=vHost(); if(!H) return false;
+    var o=vaultPack(), ok=H.vaultWrite(VAULT_FILE, JSON.stringify(o));
+    if(ok){ lsSet("dial.vault.last", String(o.savedAt)); lsSet("dial.vault.at", String(Date.now())); VAULT_NEWER=false; }
+    if(manual) toast(ok ? "Saved to "+H.vaultFolder()+"." : "Couldn't write the file. Choose the folder again.");
+    renderSync();
+    return ok;
+  }
+
+  /* the button */
+  function vaultSync(){
+    var H=vHost();
+    if(!H){ webBackupSave(); return; }
+    var folder=H.vaultFolder();
+    if(!folder){
+      ask("Choose a backup folder",
+        "Pick a folder on this phone, such as Documents. Golden Path keeps "+VAULT_FILE+" there and updates it as you go. "+
+        "On a new phone, copy that file into a folder, then press Sync and choose that folder.",
+        "Choose", function(){ H.vaultPick(); });
+      return;
+    }
+    var txt=H.vaultRead(VAULT_FILE), file=txt ? vaultParse(txt) : null;
+    if(txt && !file){ toast(VAULT_FILE+" in "+folder+" can't be read, so it was left alone."); return; }
+    var mine=vHas(state), theirs=!!file && vHas(file.state);
+    if(theirs && (!mine || file.savedAt>vStamp())){
+      if(!mine){ toast("Loading the backup…"); vaultApply(file); return; }
+      ask("Load the newer backup?",
+        "The file in "+folder+" holds "+vDaysText(vDays(file.state))+", last changed "+vWhen(file.savedAt)+". "+
+        "This phone holds "+vDaysText(vDays(state))+", last changed "+vWhen(vStamp())+". "+
+        "Loading replaces this phone's record with the file's; the current one is kept as "+VAULT_PREV+" in the same folder.",
+        "Load", function(){ vaultApply(file); });
+      return;
+    }
+    vaultWriteNow(true);
+  }
+  /* the folder was chosen (or the picker was closed) */
+  window.vaultPicked=function(ok){
+    if(!ok){ toast("No folder chosen."); renderSync(); return; }
+    vaultSync();
+  };
+
+  /* quietly, after changes: only once this install has synced, and never over a file changed elsewhere */
+  function vaultSoon(){
+    if(RESTORING || !vHost() || lsGet("dial.vault.last")==null) return;
+    clearTimeout(vaultT); vaultT=setTimeout(vaultAuto, 60000);
+  }
+  function vaultAuto(){
+    clearTimeout(vaultT); vaultT=0;
+    var H=vHost(); if(!H || RESTORING || !H.vaultFolder()) return;
+    var txt=H.vaultRead(VAULT_FILE), f=txt ? vaultParse(txt) : null, last=+(lsGet("dial.vault.last")||0);
+    if(txt && !f) return;
+    if(f && f.savedAt!==last && f.savedAt>vStamp()){ VAULT_NEWER=true; renderSync(); return; }
+    if(f && f.savedAt===vStamp()) return;
+    vaultWriteNow(false);
+  }
+  function vaultCheck(){                              /* on opening: is there a newer file waiting? */
+    var H=vHost(); if(!H || lsGet("dial.vault.last")==null || !H.vaultFolder()) return;
+    var txt=H.vaultRead(VAULT_FILE), f=txt ? vaultParse(txt) : null, last=+(lsGet("dial.vault.last")||0);
+    VAULT_NEWER = !!f && f.savedAt!==last && f.savedAt>vStamp();
+    renderSync();
+  }
+  document.addEventListener("visibilitychange",function(){ if(document.hidden && vaultT) vaultAuto(); });
+
+  /* in a browser: the file goes to downloads, and comes back through a file picker */
+  function webBackupSave(){
+    try{
+      var blob=new Blob([JSON.stringify(vaultPack())],{type:"application/json"}), url=URL.createObjectURL(blob), a=document.createElement("a");
+      a.href=url; a.download=VAULT_FILE; document.body.appendChild(a); a.click(); a.remove();
+      setTimeout(function(){ URL.revokeObjectURL(url); }, 4000);
+      lsSet("dial.vault.at", String(Date.now())); renderSync();
+      toast("Saved "+VAULT_FILE+" to your downloads.");
+    }catch(e){ toast("Couldn't save the file here."); }
+  }
+  function webBackupLoad(file){
+    var rd=new FileReader();
+    rd.onload=function(){
+      var o=vaultParse(String(rd.result||""));
+      if(!o){ toast("That isn't a Golden Path backup."); return; }
+      if(!vHas(state)){ vaultApply(o); return; }
+      ask("Load this backup?",
+        "It holds "+vDaysText(vDays(o.state))+", last changed "+vWhen(o.savedAt)+". "+
+        "This device holds "+vDaysText(vDays(state))+", last changed "+vWhen(vStamp())+". Loading replaces this device's record with the file's.",
+        "Load", function(){ vaultApply(o); });
+    };
+    rd.readAsText(file);
+  }
+
+  function renderSync(){
+    var btn=document.getElementById("syncBtn"); if(!btn) return;
+    var H=vHost(), note=document.getElementById("syncNote"), more=document.getElementById("syncMore"), alt=document.getElementById("syncAlt");
+    var at=+(lsGet("dial.vault.at")||0);
+    btn.classList.toggle("newer", !!VAULT_NEWER);
+    if(H){
+      var folder=H.vaultFolder();
+      setText("syncLabel", VAULT_NEWER ? "Sync · newer backup" : "Sync");
+      if(!folder) note.innerHTML="Keeps your record as <b>"+VAULT_FILE+"</b> in a folder on this phone. Nothing leaves the phone.";
+      else if(VAULT_NEWER) note.innerHTML="A newer <b>"+VAULT_FILE+"</b> is in <b>"+folder+"</b>. Sync to load it.";
+      else note.innerHTML="<b>"+VAULT_FILE+"</b> in <b>"+folder+"</b> · synced "+vWhen(at)+(lsGet("dial.vault.last")!=null ? " · updates on its own" : "");
+      more.hidden=!folder; alt.textContent="Change folder";
+    } else {
+      setText("syncLabel","Save backup file");
+      note.innerHTML="Saves <b>"+VAULT_FILE+"</b> to your downloads"+(at ? " · last "+vWhen(at) : "")+". Load it on another device to carry your record over.";
+      more.hidden=false; alt.textContent="Load a backup file";
+    }
+  }
+  function buildSync(){
+    document.getElementById("syncBtn").addEventListener("click",function(){ fb("tap"); vaultSync(); });
+    document.getElementById("syncAlt").addEventListener("click",function(){
+      fb("tap"); var H=vHost();
+      if(H) H.vaultPick(); else document.getElementById("syncFile").click();
+    });
+    document.getElementById("syncFile").addEventListener("change",function(){
+      var f=this.files && this.files[0]; this.value=""; if(f) webBackupLoad(f);
+    });
+    renderSync();
+    setTimeout(vaultCheck, 1200);
+  }
+
   /* the detailed report for the cluster on show */
   /* the detailed report for the cluster on show, split into its two cycles like the segments */
   function renderReport(seen, sc){
@@ -5362,7 +5561,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   state=load();
   if(state.clStart) CL_START=state.clStart;
   rollover();
-  buildDial(); buildCards(); buildPips(); buildHabits(); buildHealth(); buildCore(); buildXr(); buildAe(); buildAr(); buildCl();
+  buildDial(); buildCards(); buildPips(); buildHabits(); buildHealth(); buildCore(); buildXr(); buildAe(); buildAr(); buildCl(); buildSync();
   render(); renderXen(); renderXr(); renderAr(); arTick();
   if(NT){ coreSync(); setInterval(function(){ if(!CORE.run) coreSync(); }, 500); }
   planNotes();
