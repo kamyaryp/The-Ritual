@@ -281,12 +281,16 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .v-decree .ok{color:#7fd17a}
 .v-decree .no{color:#ff5a5a}
 /* the Landsraad: the four voices on the cluster as a whole */
-.council{position:relative;padding:18px 18px 8px;border:1px solid var(--line);border-radius:var(--r);
-  background:radial-gradient(120% 90% at 50% 0%,rgba(237,235,229,.06),transparent 70%),var(--panel)}
+.council{--vc:237,235,229;--va:237,235,229;position:relative;overflow:hidden;padding:20px 20px 10px;border-radius:var(--r);
+  border:1px solid rgba(var(--vc),.26);
+  background:radial-gradient(120% 95% at 50% 0%,rgba(var(--vc),.11),rgba(var(--vc),.03) 45%,transparent 72%),var(--panel)}
+.council::before{content:"";position:absolute;inset:5px;border:1px solid rgba(var(--vc),.12);border-radius:2px;pointer-events:none}
+.council::after{content:"";position:absolute;left:50%;bottom:-60px;width:220px;height:90px;transform:translateX(-50%);
+  background:radial-gradient(closest-side,rgba(var(--va),.08),transparent);pointer-events:none}
 .c-head{display:flex;align-items:center;justify-content:center;gap:10px}
-.c-rule{flex:0 1 64px;height:1px;background:linear-gradient(90deg,transparent,rgba(237,235,229,.35))}
-.c-rule.r{background:linear-gradient(270deg,transparent,rgba(237,235,229,.35))}
-.c-title{margin:0;padding-left:.34em;font-size:10.5px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--ink-2)}
+.c-rule{flex:0 1 64px;height:1px;background:linear-gradient(90deg,transparent,rgba(var(--va),.65))}
+.c-rule.r{background:linear-gradient(270deg,transparent,rgba(var(--va),.65))}
+.c-title{margin:0;padding-left:.34em;font-size:10.5px;font-weight:600;letter-spacing:.34em;text-transform:uppercase;color:var(--ink)}
 .c-rows{display:flex;flex-direction:column;margin-top:8px}
 .c-row{display:flex;align-items:flex-start;gap:12px;padding:11px 0;border-top:1px solid var(--line-2)}
 .c-row:first-child{border-top:0}
@@ -380,7 +384,7 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .at-main svg{width:18px;height:18px;flex:none}
 .at-main:disabled{background:transparent;border-color:var(--line);color:var(--ink-3);cursor:default}
 .at-main .lbl{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-.at-main .lbl em{font-style:normal;font-family:var(--mono);font-weight:500;opacity:.75;margin-left:6px}
+.at-main .lbl em{font-style:normal;font-variant-numeric:tabular-nums;opacity:.75;margin-left:6px}
 .at-main.timing{grid-column:1/7;background:var(--panel-2);border-color:var(--line);color:var(--ink);justify-content:stretch;padding:0}
 .at-fill{position:absolute;left:0;top:0;bottom:0;width:0;background:var(--hue);opacity:.32;transition:width .25s linear;pointer-events:none}
 .at-main.paused .at-fill{opacity:.18}
