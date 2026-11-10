@@ -669,6 +669,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   <div class="menu" id="menu" role="menu" aria-label="More" hidden>
     <p class="mn-h">Google Drive</p>
     <button type="button" class="mn-it" id="drvBtn" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.6 12.5h7a3 3 0 0 0 .4-6 4.2 4.2 0 0 0-8-.9A3.5 3.5 0 0 0 4.6 12.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="mn-t"><span id="drvLabel">Connect Google Drive</span><span class="mn-s" id="drvNote"></span></span></button>
+    <button type="button" class="mn-it sub" id="drvPush" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 12.5V4M4.5 7.5 8 4l3.5 3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Use this device's record everywhere</span></button>
+    <button type="button" class="mn-it sub" id="drvPull" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5V12M4.5 8.5 8 12l3.5-3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Replace this device with Drive's record</span></button>
     <button type="button" class="mn-it sub" id="drvOff" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5H3.5v9H6M10 5l3 3-3 3M13 8H6.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Disconnect</span></button>
     <div class="mn-sep"></div>
     <p class="mn-h">Backup file</p>
@@ -1166,7 +1168,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     if(RESTORING) return;
     try{ localStorage.setItem(KEY, JSON.stringify(state)); localStorage.setItem("dial.stamp", String(Date.now())); saveWarned=false;
          if(typeof vaultSoon==="function") vaultSoon();
-         if(typeof syncStamp==="function" && syncStamp()) gdSoon(); }
+         }
     catch(e){ if(!saveWarned){ saveWarned=true; try{ toast("Could not save \u2014 storage is full or blocked."); }catch(_){} } }
     planNotes();
   }
@@ -4388,7 +4390,22 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   var V2_LOG={rite:function(d){ return "r"+d.q; }, nature:"nat", dep:"dep", thr:"thr", bound:function(d){ return "b"+d.q; },
     bind_start:function(d){ return "bs"+d.q; }, div_start:"ds", div_done:"dv", work:"wk", extra:"xt", water:"w", gym:"gym",
     habit:function(d){ return "h:"+d.k; }, seal:"hc", core_start:"cs", core_done:"core"};
+  /* the last real record on this device: a rite, a glass, a block, a count, a habit, an undo.
+     Starting or pausing a timer is not a record, and neither is a sync. The newest record on
+     any device decides whose whole record the others take (Google Drive and the backup file). */
+  function isActKind(k){ return /^(rite|unrite|nature|unnature|dep|thr|bound|div_done|work|extra|water|gym|habit|seal|core_done|undo)$/.test(k); }
+  function actNow(){ lsSet("dial.act", String(Date.now())); if(typeof gdSoon==="function") gdSoon(); }
+  function actTime(){
+    var v=+(lsGet("dial.act")||0); if(v) return v;
+    var best=0;                                       /* nothing noted yet: the newest entry in the day logs */
+    if(state && state.day) state.history.concat([state.day]).forEach(function(r){
+      if(!r || !r.date || !Array.isArray(r.log)) return;
+      r.log.forEach(function(e){ var t=new Date(+r.date.slice(0,4), +r.date.slice(5,7)-1, +r.date.slice(8,10), 0, +e[0]||0).getTime(); if(t>best) best=t; });
+    });
+    return best;
+  }
   function voiceEvent(god,kind,detail){
+    if(isActKind(kind)) actNow();
     VOICE_EV[god]={kind:kind, at:Date.now(), detail:detail||{}};
     var code=V2_LOG[kind];
     if(code && state && state.day){
@@ -5363,7 +5380,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   function tagSave(){
     var r=rec(TG.date), tags=tagParse(document.getElementById("tgInput").value);
-    if(r && Array.isArray(r.arLog) && r.arLog[TG.li]){ r.arLog[TG.li].tags=tags; save(); }
+    if(r && Array.isArray(r.arLog) && r.arLog[TG.li]){ r.arLog[TG.li].tags=tags; actNow(); save(); }
     fb("on"); tagClose(); renderAr();
   }
   /* a block finished: ask what it was, when the page is in view and nothing else is asking */
@@ -5626,7 +5643,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           ART={date:dayKey(), blk:null, endsAt:0, left:{}}; arSave(); if(NT) ntSend({kind:"ar", op:"clear"});
           aeClear(); coreReset();
           if(typeof vaultKeep==="function") vaultKeep("golden-path-before-reset.json");   /* the old record stays in the backup folder */
-          if(typeof syncReset==="function") syncReset();                                    /* a reset wins over older records online */
+          actNow();                                                                          /* a reset is a record: it wins everywhere */
           state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start};
           VMEM={}; try{ localStorage.removeItem("dial.vmem"); }catch(e){}
           CL_START=start; CLSEL=null; save(); hideTip();
@@ -5649,13 +5666,13 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   function lsGet(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
   function lsSet(k,v){ try{ localStorage.setItem(k,v); return true; }catch(e){ return false; } }
   function vHost(){ var H=window.RitualHost; return H && H.vaultRead && H.vaultWrite && H.vaultFolder && H.vaultPick ? H : null; }
-  function vStamp(){ return +(lsGet("dial.stamp")||0); }
+  function vStamp(){ return actTime(); }               /* the last real record here */
   function vWhen(t){ if(!t) return "never"; var d=new Date(t);
     return d.toLocaleDateString("en-US",{month:"short",day:"numeric"})+", "+hm(d.getHours()*60+d.getMinutes()); }
   function vaultPack(){
     var d={}; VAULT_KEYS.forEach(function(k){ var v=lsGet(k); if(v!=null) d[k]=v; });
     if(!d[KEY]) d[KEY]=JSON.stringify(state);
-    return {app:"golden-path", v:1, savedAt:vStamp()||Date.now(), data:d};
+    return {app:"golden-path", v:1, savedAt:vStamp(), data:d};
   }
   function vaultParse(txt){
     try{ var o=JSON.parse(txt); if(o && o.app==="golden-path" && o.data && typeof o.data[KEY]==="string"){
@@ -5679,7 +5696,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     }
     RESTORING=true; clearTimeout(vaultT); vaultT=0;
     VAULT_KEYS.forEach(function(k){ if(typeof o.data[k]==="string") lsSet(k,o.data[k]); });
-    lsSet("dial.stamp", String(o.savedAt)); lsSet("dial.vault.last", String(o.savedAt)); lsSet("dial.vault.at", String(Date.now()));
+    lsSet("dial.act", String(o.savedAt||Date.now())); lsSet("dial.vault.last", String(o.savedAt)); lsSet("dial.vault.at", String(Date.now()));
     location.reload();
   }
   function vaultKeep(name){                           /* a copy of the current record under another name, if a folder is set */
@@ -5829,6 +5846,18 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     document.addEventListener("keydown",function(e){ if(e.key==="Escape") menuClose(); });
     mn.addEventListener("click",function(e){ if(e.target.closest(".mn-it")) menuClose(); });   /* after the item has acted */
     document.getElementById("drvBtn").addEventListener("click",function(){ fb("tap"); gdSync(true); });
+    /* when the wrong device won: choose by hand which record is the one */
+    document.getElementById("drvPush").addEventListener("click",function(){
+      fb("tap");
+      ask("Use this device's record everywhere?", "Google Drive takes this device's record as it is now ("+vDaysText(vDays(state))+", Cluster 1 from "+
+        clDate(CL_START,{month:"short",day:"numeric"})+"). Your other devices replace theirs with it when they next sync.", "Use this one",
+        function(){ GD.force=null; actNow(); clearTimeout(GD.t); GD.t=0; gdSync(true); });
+    });
+    document.getElementById("drvPull").addEventListener("click",function(){
+      fb("tap");
+      ask("Replace this device with Drive's record?", "This device's record is replaced by the one in Google Drive, whatever its age. A copy of this device's record is kept on the device.", "Replace",
+        function(){ GD.force="pull"; gdSync(true); });
+    });
     document.getElementById("drvOff").addEventListener("click",function(){
       fb("tap");
       ask("Disconnect Google Drive?", "This device stops syncing. Your record stays here, and the copy in your Drive stays there for your other devices.", "Disconnect",
@@ -5838,6 +5867,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           gdUi("off"); toast("Google Drive disconnected.");
         });
     });
+    try{ localStorage.removeItem("dial.sync"); }catch(e){}           /* the old per-day merge's bookkeeping */
+    if(lsGet("dial.gd.note")){ try{ localStorage.removeItem("dial.gd.note"); }catch(e){} setTimeout(function(){ toast("Loaded the newest record from Google Drive."); }, 600); }
     gdLoadToken(); renderDrive();
     if(gdLinked()){
       if(!gdNative()) gdGis();
@@ -5852,110 +5883,34 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   /* ---------- Google Drive: the record online ----------
      The record also lives in the owner's own Google Drive, in the app's hidden folder (scope
      drive.appdata: the app sees nothing else there), as the-ritual.json. Every device that
-     connects reads it, merges, and writes it back, a few seconds after each change and when
-     the app comes back to the front, so the phone and the web stay the same.
-     Merging is per unit, newest wins: each day's record is a unit, and so are the checkups,
-     the cluster settings and the voices' memory. A unit's time is when this device last saw
-     it change (dial.sync keeps a hash of each). A blank day, or anything on a device with
-     nothing recorded yet, has no time at all, so it never overwrites a real record.
-     A reset stamps an epoch: a newer epoch online replaces everything older, everywhere.
-     Days dated after this device's today (another time zone) are held and passed on untouched.
+     connects compares, a few seconds after each record, when the app opens and when it comes
+     back to the front. Nothing is merged: the device holding the newest record wins whole.
+     If the file's last record is newer than this device's, this device takes the file and
+     loses its own (kept once as dial.before); if this device's is newer, it writes the file.
+     Connecting or syncing is not a record, so a new device always takes what's online.
+     The file: {app:"the-ritual", v:2, act (time of its last record), savedAt, data:{key: text}}.
+     An old merged file (v1) counts as older than anything and is replaced on the next write.
      The web asks Google through its sign-in script (a tap is needed when the hour-long
      sign-in runs out); the Android app signs in and talks to Drive natively, silently. */
   var GD_CLIENT="63396757473-qbt9ubfll5dec1cb49j25othnjvbfr69.apps.googleusercontent.com";
   var GD_SCOPE="https://www.googleapis.com/auth/drive.appdata", GD_FILE="the-ritual.json", GD_API="https://www.googleapis.com";
   var GD={token:null, exp:0, fileId:null, busy:false, again:false, state:"off", t:0, seq:0, cb:{}, authCb:null, client:null, gis:0, gisCb:[]};
-  var SY=null;
-  function syLoad(){
-    if(!SY){ try{ SY=JSON.parse(lsGet("dial.sync")||"null"); }catch(e){ SY=null; }
-      if(!SY || typeof SY!=="object") SY={};
-      SY.epoch=+SY.epoch||0; SY.u=SY.u||{}; SY.h=SY.h||{}; SY.hold=SY.hold||{}; }
-    return SY;
+  function gdPayload(){
+    var o=vaultPack(); o.app="the-ritual"; o.v=2; o.act=actTime(); o.savedAt=Date.now();
+    return JSON.stringify(o);
   }
-  function sySave(){ lsSet("dial.sync", JSON.stringify(SY)); }
-  function syHash(str){ var h=2166136261; for(var i=0;i<str.length;i++){ h^=str.charCodeAt(i); h=Math.imul(h,16777619); } return (h>>>0).toString(36)+"."+str.length; }
-  function syUnits(){
-    var u={};
-    state.history.forEach(function(r){ if(r && r.date) u["d:"+r.date]=r; });
-    u["d:"+state.day.date]=state.day;
-    u.hc=state.hc||{};
-    u.meta={hcSince:state.hcSince||null, clStart:state.clStart||null};
-    u.vmem=(typeof VMEM==="object" && VMEM) ? VMEM : {};
-    return u;
+  function gdParse(R){
+    if(!R || typeof R!=="object" || R.v!==2 || !R.data || typeof R.data[KEY]!=="string") return null;
+    try{ var st=JSON.parse(R.data[KEY]); if(st && st.day) return {act:+R.act||0, data:R.data, state:st}; }catch(e){}
+    return null;
   }
-  function syEmpty(k,v){
-    if(k.indexOf("d:")===0) return isBlank(v);
-    if(k==="meta") return !vHas(state);
-    return !v || !Object.keys(v).length;
-  }
-  /* note what changed since the last look; true when something real did */
-  function syncStamp(){
-    if(!state || !state.day) return false;
-    var S=syLoad(), U=syUnits(), now=Date.now(), real=false, any=false;
-    for(var k in U){
-      var h=syHash(JSON.stringify(U[k]));
-      if(S.h[k]===h) continue;
-      if(!(S.h[k]===undefined && syEmpty(k,U[k]))){ S.u[k]=now; real=true; }
-      S.h[k]=h; any=true;
-    }
-    if(any) sySave();
-    return real;
-  }
-  function syncReset(){ SY={epoch:Date.now(), u:{}, h:{}, hold:{}}; sySave(); setTimeout(gdSoon,0); }   /* tell the other devices */
-  /* take what's newer online; true when anything here changed */
-  function syMerge(R){
-    var S=syLoad(); syncStamp();
-    if(!R || typeof R!=="object" || !R.units || typeof R.units!=="object") return false;
-    var re=+R.epoch||0, today=dayKey();
-    if(re<S.epoch) return false;                       /* reset here after that was written: ours stands */
-    var whole=re>S.epoch, L=syUnits(), take={}, n=0;
-    for(var k in R.units){
-      var x=R.units[k]; if(!x || typeof x!=="object") continue;
-      if(whole || !(k in L) || (+x.u||0)>(S.u[k]||0)){ take[k]=x; n++; }
-    }
-    if(!whole && !n) return false;
-    var hist={}, dayTaken=false;
-    if(!whole) state.history.forEach(function(r){ hist[r.date]=r; });
-    for(var k2 in take){
-      var v=take[k2].v;
-      if(k2.indexOf("d:")===0){
-        var dt=k2.slice(2);
-        if(!v || typeof v!=="object" || !/^\d{4}-\d\d-\d\d$/.test(dt)) continue;
-        if(dt>today){ S.hold[k2]=take[k2]; continue; }
-        delete S.hold[k2];
-        v.date=dt;
-        if(dt===state.day.date){ state.day=upgrade(v); dayTaken=true; }
-        else { mergePills(v); hist[dt]=v; }
-      }
-      else if(k2==="hc") state.hc=(v && typeof v==="object") ? v : {};
-      else if(k2==="meta" && v && typeof v==="object"){
-        if(v.hcSince) state.hcSince=v.hcSince;
-        if(v.clStart){ state.clStart=v.clStart; CL_START=v.clStart; } else if(whole){ delete state.clStart; CL_START="2026-11-02"; }
-      }
-      else if(k2==="vmem"){ VMEM=(v && typeof v==="object") ? v : {}; lsSet("dial.vmem", JSON.stringify(VMEM)); }
-    }
-    if(whole){
-      if(!dayTaken) state.day=freshDay(state.day.date);
-      if(!take.hc) state.hc={};
-      if(!take.vmem){ VMEM={}; lsSet("dial.vmem","{}"); }
-      S.epoch=re;
-    }
-    delete hist[state.day.date];
-    state.history=Object.keys(hist).sort().map(function(d){ return hist[d]; });
-    var U=syUnits();
-    for(var k3 in take) if(k3 in U){ S.u[k3]=+take[k3].u||0; S.h[k3]=syHash(JSON.stringify(U[k3])); }
-    if(whole) for(var k4 in S.u) if(!(k4 in U) && !take[k4]){ delete S.u[k4]; delete S.h[k4]; }
-    sySave();
-    if(typeof CLSEL!=="undefined") CLSEL=null;
-    save();
-    render(); renderXen(); renderXr(); renderAr(); renderCl();
-    return true;
-  }
-  function syPayload(){
-    var S=syLoad(), U=syUnits(), out={app:"the-ritual", v:1, epoch:S.epoch, savedAt:Date.now(), units:{}};
-    for(var k in U) out.units[k]={u:S.u[k]||0, v:U[k]};
-    for(var h in S.hold) if(!(h in out.units)) out.units[h]=S.hold[h];
-    return JSON.stringify(out);
+  /* take the file whole: this device's record is replaced, and the page starts again from it */
+  function gdApply(r){
+    if(vHas(state)) lsSet("dial.before", JSON.stringify(vaultPack()));
+    RESTORING=true; clearTimeout(vaultT); vaultT=0; clearTimeout(GD.t); GD.t=0;
+    VAULT_KEYS.forEach(function(k){ if(typeof r.data[k]==="string") lsSet(k, r.data[k]); else try{ localStorage.removeItem(k); }catch(e){} });
+    lsSet("dial.act", String(r.act)); lsSet("dial.gd.at", String(Date.now())); lsSet("dial.gd.note","1");
+    location.reload();
   }
 
   /* talking to Drive: fetch on the web, the phone's own connection in the app */
@@ -6017,7 +5972,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     });
   }
   function gdPush(){
-    var body=syPayload();
+    var body=gdPayload();
     return gdFind().then(function(id){
       if(id) return gdReq("PATCH","/upload/drive/v3/files/"+id+"?uploadType=media","application/json",body).then(gdOk);
       var b="rt"+Math.random().toString(36).slice(2);
@@ -6067,7 +6022,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   window.driveAuthed=function(ok, tok){ var f=GD.authCb; GD.authCb=null; if(ok && tok){ gdSetToken(tok, 3000); if(f) f(true); } else if(f) f(false, tok); };
 
-  /* one round: pull, merge, push */
+  /* one round: read the file, then the newer record wins whole */
   function gdSync(interactive){
     if(RESTORING) return;
     if(!interactive && !gdLinked()) return;
@@ -6083,7 +6038,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
       GD.busy=true; gdUi("working");
       rollover();
       var round=function(retry){
-        return gdPull().then(function(R){ var ch=syMerge(R); return gdPush().then(function(){ return ch; }); })
+        return gdPull().then(function(R){
+            var r=gdParse(R), mine=actTime();
+            if(GD.force==="pull"){ GD.force=null; if(r){ gdApply(r); return "pulled"; } return "none"; }
+            GD.force=null;
+            if(r && r.act>mine){ gdApply(r); return "pulled"; }             /* a newer record elsewhere */
+            if(r && r.act===mine) return "same";
+            if(!r && !mine && !vHas(state)) return "same";                  /* nothing anywhere yet */
+            return gdPush().then(function(){ return "pushed"; });          /* ours is the newest */
+          })
           .catch(function(e){
             if(e && e.code===401 && retry && gdNative()){       /* the phone's sign-in ran out: ask it again, quietly, once */
               GD.token=null; GD.exp=0;
@@ -6092,9 +6055,10 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
             throw e;
           });
       };
-      round(true).then(function(ch){
+      round(true).then(function(how){
+        if(how==="pulled") return;                                       /* the page is reloading */
         lsSet("dial.gd.at", String(Date.now())); gdUi("ok");
-        if(ch) toast("Updated from Google Drive."); else if(interactive) toast("Synced with Google Drive.");
+        if(interactive) toast(how==="pushed" ? "Saved to Google Drive." : how==="none" ? "There's no record in Google Drive yet." : "Already up to date with Google Drive.");
       }).catch(function(e){
         var drop=function(){ GD.token=null; GD.exp=0; try{ localStorage.removeItem("dial.gd.token"); }catch(_){} };
         if(e && e.code===401){ drop(); gdUi("expired"); return; }
@@ -6116,7 +6080,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     var T={
       off:["Connect Google Drive","Keeps your record in your own Google Drive and syncs it between your devices."],
       working:["Syncing…","Google Drive"],
-      ok:["Google Drive", (at ? "Synced "+vWhen(at) : "Connected")+" · updates on its own"],
+      ok:["Google Drive", (at ? "Synced "+vWhen(at) : "Connected")+" · the newest record wins"],
       expired:["Reconnect Google Drive","Sign-in ran out"+last+". Tap to sign in again."],
       fail:[linked ? "Reconnect Google Drive" : "Connect Google Drive", gdExplain(GD.why)],
       error:["Google Drive","Couldn't sync: "+gdExplain(GD.why)+" Saved on this device"+last+". Tap to try again."]
@@ -6124,6 +6088,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     lb.textContent=T[0]; setText("drvNote",T[1]);
     document.getElementById("drvBtn").dataset.state=st;
     document.getElementById("drvOff").hidden=!linked;
+    document.getElementById("drvPush").hidden=!linked; document.getElementById("drvPull").hidden=!linked;
     moreDot();
   }
 
