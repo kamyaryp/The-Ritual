@@ -702,6 +702,81 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 .c-goal b{font-family:var(--mono);font-size:11.5px;font-weight:500;color:var(--hue);flex:0 0 auto}
 .c-goal i{font-style:normal;color:#30d158}
 .toast{position:fixed;left:50%;bottom:calc(76px + env(safe-area-inset-bottom,0px));transform:translateX(-50%);background:var(--panel-2);border:1px solid var(--line);color:var(--ink);font-size:12.5px;padding:8px 14px;border-radius:var(--r);z-index:20}
+/* the Warehouse: a page of its own over the app */
+html.wh-on body{overflow:hidden}
+html.wh-on .toast{z-index:60}
+.wh{position:fixed;inset:0;z-index:35;background:var(--bg);overflow-y:auto;overscroll-behavior:contain;-webkit-overflow-scrolling:touch;
+  padding-top:env(safe-area-inset-top,0px);opacity:0;transform:translateX(24px);transition:opacity .22s ease,transform .26s cubic-bezier(.2,.8,.2,1)}
+.wh.in{opacity:1;transform:none}
+.wh[hidden]{display:none}
+.wh-in{max-width:720px;margin:0 auto;padding:0 max(16px,env(safe-area-inset-right,0px)) calc(40px + env(safe-area-inset-bottom,0px)) max(16px,env(safe-area-inset-left,0px))}
+.wh-bar{position:sticky;top:0;z-index:3;display:flex;align-items:center;gap:6px;height:64px;background:var(--bg)}
+.wh-h{flex:1 1 auto;margin:0;color:var(--ink);font-size:21px;font-weight:500;letter-spacing:-.02em}
+.wh-ib{flex:0 0 auto;width:40px;height:40px;border:0;border-radius:var(--r);background:transparent;color:var(--ink);display:grid;place-items:center;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+.wh-ib:first-child{margin-left:-10px}
+.wh-ib:last-child{margin-right:-8px}
+.wh-ib:hover{background:var(--panel-2)}
+.wh-ib svg{width:22px;height:22px}
+.wh-tabs{position:sticky;top:64px;z-index:3;display:flex;gap:6px;overflow-x:auto;scrollbar-width:none;padding:2px 0 14px;background:var(--bg);margin:0 -16px;padding-left:16px;padding-right:16px}
+.wh-tabs::-webkit-scrollbar{display:none}
+.wh-tab{flex:0 0 auto;display:flex;align-items:center;gap:7px;height:34px;padding:0 12px;border:1px solid var(--line);border-radius:var(--r-s);background:transparent;
+  color:var(--ink-2);font:inherit;font-size:13.5px;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.wh-tab.on{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:500}
+.wh-tab i{font-style:normal;font-family:var(--mono);font-size:10.5px;line-height:16px;min-width:16px;height:16px;padding:0 4px;box-sizing:border-box;border-radius:8px;background:#ff453a;color:#fff;text-align:center}
+.wh-tab i.b{background:var(--panel-2);color:var(--ink);border:1px solid var(--line);line-height:14px}
+.wh-tab.on i.b{background:var(--bg);color:var(--ink);border-color:var(--bg)}
+.wh-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--r);padding:2px 14px 2px;margin-bottom:12px}
+.wh-gh{display:flex;align-items:center;gap:8px;margin:0;padding:12px 0 4px;font-size:10.5px;font-weight:600;letter-spacing:.09em;text-transform:uppercase;color:var(--ink-3)}
+.wh-gh span{font-family:var(--mono);font-weight:500;letter-spacing:0}
+.wh-zx{margin-left:auto;width:28px;height:24px;border:1px solid var(--line);border-radius:var(--r-s);background:transparent;color:var(--ink-2);font-size:15px;line-height:1;cursor:pointer;padding:0}
+.wh-row{display:flex;align-items:center;gap:12px;min-height:54px;padding:8px 0;border-top:1px solid var(--line-2);cursor:pointer;-webkit-tap-highlight-color:transparent;outline:none}
+.wh-gh + .wh-row{border-top:0}
+.wh-row:focus-visible{background:var(--panel-2)}
+.wh-t{flex:1 1 auto;display:flex;flex-direction:column;gap:2px;min-width:0}
+.wh-t b{font-size:15px;font-weight:500;color:var(--ink);line-height:1.3}
+.wh-t i{font-style:normal;font-size:12.5px;color:var(--ink-3);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.wh-pill{--sc:142,142,147;flex:0 0 auto;display:flex;align-items:center;gap:6px;height:28px;padding:0 10px;border:1px solid rgba(var(--sc),.28);border-radius:var(--r-s);
+  background:rgba(var(--sc),.13);color:rgb(var(--sc));font:inherit;font-size:12.5px;font-weight:500;cursor:pointer;white-space:nowrap;-webkit-tap-highlight-color:transparent}
+.wh-pill em{font-style:normal;font-family:var(--mono);font-size:11px;font-weight:400;opacity:.8}
+.wh-pill.unset{border-color:var(--line);background:transparent;color:var(--ink-3);min-width:40px;justify-content:center}
+.wh-none{margin:28px 0;text-align:center;font-size:14px;color:var(--ink-3)}
+.wh-fig{display:flex;justify-content:center;padding:18px 0 14px}
+.wh-fig svg{width:132px;height:auto;overflow:visible}
+.wh-z{--sc:107,103,96;fill:rgba(var(--sc),.2);stroke:rgb(var(--sc));stroke-width:1.3;stroke-linejoin:round;cursor:pointer;transition:opacity .2s ease,filter .2s ease}
+.wh-z.unset{fill:var(--panel-2);stroke:var(--box)}
+.wh-z.on{stroke-width:2;fill:rgba(var(--sc),.34);filter:drop-shadow(0 0 5px rgba(var(--sc),.55))}
+.wh-z.unset.on{stroke:var(--ink-2);filter:none}
+.wh-z.dim{opacity:.35}
+.wh-veil{position:fixed;inset:0;z-index:36}
+.wh-veil[hidden]{display:none}
+.wh-pop{position:fixed;z-index:37;min-width:176px;padding:6px;background:var(--panel-2);border:1px solid var(--line);border-radius:var(--r);box-shadow:0 16px 40px rgba(0,0,0,.55);
+  opacity:0;transform:translateY(-4px);transition:opacity .14s ease,transform .14s ease}
+.wh-pop.in{opacity:1;transform:none}
+.wh-pop[hidden]{display:none}
+.wh-opt{display:flex;align-items:center;gap:10px;width:100%;height:38px;padding:0 10px;border:0;border-radius:var(--r-s);background:transparent;color:var(--ink);font:inherit;font-size:14px;text-align:left;cursor:pointer}
+.wh-opt:hover{background:var(--panel)}
+.wh-opt i,.we-st i{width:8px;height:8px;border-radius:50%;background:rgb(var(--sc));flex:0 0 auto}
+.wh-opt.on{background:rgba(var(--sc),.14);color:rgb(var(--sc));font-weight:500}
+#whEdit{z-index:46}
+.we-ey{flex:1 1 auto;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
+.we-left{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
+.we-f{display:flex;flex-direction:column;gap:8px;margin-top:14px}
+.we-f input,.we-f textarea{font:inherit;font-size:15px;color:var(--ink);background:var(--well);border:1px solid var(--line);border-radius:var(--r);padding:11px 13px;width:100%;box-sizing:border-box;outline:none;resize:none;min-width:0}
+.we-f #weSem{font-size:18px;font-weight:500}
+.we-f textarea{font-size:14px;color:var(--ink-2);line-height:1.5}
+.we-f input:focus,.we-f textarea:focus{border-color:var(--ink-3)}
+.we-f input[type=number]{-moz-appearance:textfield;appearance:textfield}
+.we-f input::-webkit-outer-spin-button,.we-f input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+.wh-card .wh-row + .wh-gh{border-top:1px solid var(--line-2);margin-top:2px}
+.we-two{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.we-g{display:flex;flex-wrap:wrap;gap:6px;margin-top:14px}
+.we-chip{height:30px;padding:0 11px;border:1px solid var(--line);border-radius:var(--r-s);background:transparent;color:var(--ink-2);font:inherit;font-size:13px;cursor:pointer}
+.we-chip.on{background:var(--ink);border-color:var(--ink);color:var(--bg);font-weight:500}
+.we-sts{display:grid;grid-template-columns:repeat(3,1fr);gap:6px;margin-top:10px}
+.we-st{display:flex;align-items:center;gap:7px;height:36px;padding:0 10px;border:1px solid var(--line);border-radius:var(--r-s);background:transparent;color:var(--ink-2);font:inherit;font-size:12.5px;cursor:pointer;white-space:nowrap;overflow:hidden}
+.we-st.on{background:rgba(var(--sc),.14);border-color:rgba(var(--sc),.5);color:rgb(var(--sc));font-weight:500}
+.mn-n{margin-left:auto;align-self:center;font-family:var(--mono);font-size:11px;font-weight:500;line-height:18px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:#ff453a;color:#fff;text-align:center}
+.mn-n[hidden]{display:none}
 </style>
 </head>
 <body>
@@ -751,6 +826,36 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   </div>
 </div>
 
+<div class="wh" id="wh" hidden>
+  <div class="wh-in">
+    <div class="wh-bar">
+      <button type="button" class="wh-ib" id="whBack" aria-label="Back"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+      <h2 class="wh-h">Warehouse</h2>
+      <button type="button" class="wh-ib" id="whAdd" aria-label="Add"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg></button>
+    </div>
+    <div class="wh-tabs" id="whTabs" role="tablist" aria-label="Sections"></div>
+    <div id="whBody"></div>
+  </div>
+</div>
+<div class="wh-veil" id="whVeil" hidden></div>
+<div class="wh-pop" id="whPop" role="menu" hidden></div>
+<div class="modal" id="whEdit" hidden>
+  <div class="sheet tall" role="dialog" aria-modal="true" aria-labelledby="weEy">
+    <div class="ge-top"><span class="we-ey" id="weEy"></span><span class="we-left" id="weLeft"></span><button type="button" class="ge-x" id="weX" aria-label="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div class="we-f">
+      <input id="weSem" type="text" autocomplete="off" maxlength="80" placeholder="Purpose" enterkeyhint="next">
+      <div class="we-two"><input id="weName" type="text" autocomplete="off" maxlength="120" placeholder="Product"><input id="weBrand" type="text" autocomplete="off" maxlength="80" placeholder="Brand"></div>
+    </div>
+    <div class="we-g" id="weGrp"></div>
+    <div class="we-sts" id="weSt"></div>
+    <div class="we-f">
+      <div class="we-two"><input id="weLasts" type="number" inputmode="numeric" min="0" max="3650" placeholder="Lasts · days"><span></span></div>
+      <textarea id="weNote" maxlength="600" rows="2" placeholder="Note"></textarea>
+    </div>
+    <div class="ge-btns" id="weBtns" hidden></div>
+  </div>
+</div>
+
 <div class="wrap">
   <header>
     <div class="brand">
@@ -774,6 +879,8 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   </header>
   <div class="menu-veil" id="menuVeil" hidden></div>
   <div class="menu" id="menu" role="menu" aria-label="More" hidden>
+    <button type="button" class="mn-it" id="whBtn" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 5 8 2.5 13.5 5v6L8 13.5 2.5 11zM2.5 5 8 7.5 13.5 5M8 7.5v6" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg><span class="mn-t">Warehouse</span><b class="mn-n" id="whN" hidden></b></button>
+    <div class="mn-sep"></div>
     <p class="mn-h">Google Drive</p>
     <button type="button" class="mn-it" id="drvBtn" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4.6 12.5h7a3 3 0 0 0 .4-6 4.2 4.2 0 0 0-8-.9A3.5 3.5 0 0 0 4.6 12.5z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="mn-t"><span id="drvLabel">Connect Google Drive</span><span class="mn-s" id="drvNote"></span></span></button>
     <button type="button" class="mn-it sub" id="drvPush" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 12.5V4M4.5 7.5 8 4l3.5 3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Use this device's record everywhere</span></button>
@@ -5103,6 +5210,322 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     ARURAEL_SPEC.tokens=function(f,x,ev){ var t=oT(f,x,ev); if(ev && ev.kind==="tag" && ev.detail){ var g=v4GoalFor(ev.detail.tag); if(g) t.tgoal=String(g.title||"").trim(); } return t; };
   })();
 
+  /* ---------- the Warehouse: what you keep, by what it is for ----------
+     A page of its own (More menu → Warehouse, back with the arrow, the phone's back or Esc).
+     Each item is named by its purpose first (Serotonin), then the product and brand (Sermenta ·
+     Sobhan Darou), grouped inside its section. Status runs as a supply line:
+       Stocked → Low → Needed → In basket → Ordered → Stocked, and Unavailable when the market has none.
+     An item may say how long one lasts: once stocked it turns Low by itself near the end
+     (14 days, or a third of its life) and Needed when it runs out. Outfit is read on a body:
+     each part takes the colour of its worst item; tap a part to see only it. "To buy" gathers
+     everything that needs a hand. state.wh travels with the record (sync, backup); Reset keeps it.
+     state.wh = {items:[{id, sec, grp, sem, name, brand, st, at, lasts, note}]} */
+  var WH_SEC=[
+    {k:"buy",     name:"To buy"},
+    {k:"health",  name:"Health",  groups:["Mind","Nutrition"]},
+    {k:"skin",    name:"Skin",    groups:["Protect","Care","Treat"]},
+    {k:"hygiene", name:"Hygiene", groups:["Hair","Body","Oral","Sleep"]},
+    {k:"outfit",  name:"Outfit",  groups:["Head","Ears","Outer","Torso","Intimate","Legs","Feet"]},
+    {k:"device",  name:"Device",  groups:["Car","Home"]}
+  ];
+  var WH_ST=[
+    {k:"ok",      name:"Stocked",     alt:"Good", rgb:"48,209,88"},
+    {k:"low",     name:"Low",         alt:"Worn", rgb:"255,179,64"},
+    {k:"need",    name:"Needed",                  rgb:"255,69,58"},
+    {k:"basket",  name:"In basket",               rgb:"208,140,79"},
+    {k:"ordered", name:"Ordered",                 rgb:"10,132,255"},
+    {k:"na",      name:"Unavailable",             rgb:"142,142,147"}
+  ];
+  var WH_RANK={need:0, low:1, basket:2, ordered:3, na:4, ok:5, "":6};
+  var WH={tab:"health", zone:null, pushed:false, edit:null, pop:null, t:0};
+  function whSec(k){ for(var i=0;i<WH_SEC.length;i++) if(WH_SEC[i].k===k) return WH_SEC[i]; return WH_SEC[1]; }
+  function whStDef(k){ for(var i=0;i<WH_ST.length;i++) if(WH_ST[i].k===k) return WH_ST[i]; return null; }
+  function whStName(k,sec){ var d=whStDef(k); if(!d) return "—"; return sec==="outfit" && d.alt ? d.alt : d.name; }
+  function whEsc(x){ return String(x==null ? "" : x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"); }
+  /* the first stock, from the Notion page it replaces */
+  function whSeed(){
+    var I=function(id,sec,grp,sem,name,brand,st){ return {id:id, sec:sec, grp:grp, sem:sem, name:name||"", brand:brand||"", st:st||"", at: st==="ok" ? dayKey() : "", lasts:0, note:""}; };
+    return {items:[
+      I("h1","health","Mind","Serotonin","Sermenta","Sobhan Darou","ok"),
+      I("h2","health","Mind","Adrenaline","Propranolol","Rooz Darou","ok"),
+      I("h3","health","Mind","Sleep","Melatonin","Simorgh Darou Attar","ok"),
+      I("h4","health","Nutrition","Micronutrients","Multivitamin","Karen","ok"),
+      I("h5","health","Nutrition","Omega-3","Golden Seas Omega 3","Karen","ok"),
+      I("h6","health","Nutrition","Strength","Creatine Monohydrate","Doobis","ok"),
+      I("h7","health","Nutrition","Protein","Whey Protein Concentrate Sachet","Kalleh Pro","basket"),
+      I("s1","skin","Protect","Sun protection","Sunscreen","","ok"),
+      I("s2","skin","Protect","Lips","SPF Lip Balm","","basket"),
+      I("s3","skin","Care","Hydration","Moisturizer","","basket"),
+      I("s4","skin","Care","Cleansing","Cleanser","","basket"),
+      I("s5","skin","Care","Pores","Pore Detox","","ok"),
+      I("s6","skin","Treat","Eczema","Anti-Eczema","","ok"),
+      I("y1","hygiene","Hair","Hair color","Hair Color Kit","","ok"),
+      I("y2","hygiene","Hair","Detangling","Detangling Shampoo","","ok"),
+      I("y3","hygiene","Hair","Dandruff","Anti-Dandruff Shampoo","","ok"),
+      I("y4","hygiene","Hair","Hair hydration","Hair Hydrator","","ok"),
+      I("y5","hygiene","Hair","Hair repair","Hair Mask","","ok"),
+      I("y6","hygiene","Body","Body wash","Body Shampoo","","ok"),
+      I("y7","hygiene","Body","Lubrication","Lubricating Gel","","ok"),
+      I("y8","hygiene","Body","Shaving","Blade","","ok"),
+      I("y9","hygiene","Oral","Teeth","Toothpaste","","ok"),
+      I("y10","hygiene","Oral","Brushing","Toothbrush","","ok"),
+      I("y11","hygiene","Oral","Gums","Floss","","basket"),
+      I("y12","hygiene","Sleep","Silence","Earplug","","ok"),
+      I("o1","outfit","Head","Hair ties","Hair Holder"),
+      I("o2","outfit","Ears","Earrings","Earrings"),
+      I("o3","outfit","Outer","Jacket","Jacket"),
+      I("o4","outfit","Torso","Home wear","Domestic Outfit"),
+      I("o5","outfit","Torso","Training wear","Gym Outfit"),
+      I("o6","outfit","Intimate","Underwear","Underwear"),
+      I("o7","outfit","Intimate","Intimates","Intimate Feminine Outfit"),
+      I("o8","outfit","Legs","Pants","Pants"),
+      I("o9","outfit","Feet","Socks","Socks"),
+      I("o10","outfit","Feet","Everyday shoes","Shoes"),
+      I("o11","outfit","Feet","Training shoes","Gym Shoes"),
+      I("d1","device","Car","Fuel","Octane Booster"),
+      I("d2","device","Car","Windshield","Windshield Cleaner"),
+      I("d3","device","Car","Paint","Car Polisher"),
+      I("d4","device","Home","Screens","Screen Cleaner"),
+      I("d5","device","Home","Garden","Cat Deterrent")
+    ]};
+  }
+  function whData(){
+    if(!state.wh || !Array.isArray(state.wh.items)) state.wh=whSeed();
+    return state.wh;
+  }
+  /* the status as it stands today: a stocked item with a life runs low, then out */
+  function whNow(it){
+    var st=it.st||"", left=null;
+    if(st==="ok" && it.lasts>0 && it.at){
+      left=it.lasts-(dayNum(dayKey())-dayNum(it.at));
+      if(left<=0) st="need"; else if(left<=Math.min(14,Math.ceil(it.lasts/3))) st="low";
+    }
+    return {st:st, left:left};
+  }
+  function whAttention(sec){ return whData().items.filter(function(it){ var s=whNow(it).st; return (!sec || it.sec===sec) && (s==="need" || s==="low"); }).length; }
+  function whToBuy(){ return whData().items.filter(function(it){ return /^(need|low|basket|ordered)$/.test(whNow(it).st); }); }
+  function whChanged(){ actNow(); save(); whRender(); whMenu(); }
+
+  /* ---- the page ---- */
+  function whOpen(tab){
+    var p=document.getElementById("wh"); whData();
+    if(tab) WH.tab=tab;
+    whRender(); p.hidden=false; void p.offsetWidth; p.classList.add("in");
+    document.documentElement.classList.add("wh-on");
+    if(!WH.pushed){ try{ history.pushState({wh:1},""); WH.pushed=true; }catch(e){} }
+  }
+  function whHide(){
+    var p=document.getElementById("wh"); if(p.hidden) return;
+    whPopClose(); p.classList.remove("in"); document.documentElement.classList.remove("wh-on");
+    clearTimeout(WH.t); WH.t=setTimeout(function(){ if(!p.classList.contains("in")) p.hidden=true; },260);
+  }
+  function whClose(){ if(WH.pushed){ WH.pushed=false; try{ history.back(); }catch(e){} } whHide(); }
+  function whMenu(){
+    var n=whAttention(), b=document.getElementById("whN"); if(!b) return;
+    b.hidden=!n; b.textContent=n;
+  }
+  function whPill(it,sec){
+    var v=whNow(it), d=whStDef(v.st);
+    if(!d) return '<button type="button" class="wh-pill unset" data-pill="'+it.id+'" aria-label="Status">—</button>';
+    var days = v.left!=null && v.st!=="need" ? '<em>'+v.left+'d</em>' : '';
+    return '<button type="button" class="wh-pill" data-pill="'+it.id+'" style="--sc:'+d.rgb+'">'+whStName(v.st,sec)+days+'</button>';
+  }
+  function whRow(it,sub){
+    var second = sub!=null ? sub : [it.name!==it.sem ? it.name : "", it.brand].filter(Boolean).join(" · ");
+    return '<div class="wh-row" role="button" tabindex="0" data-id="'+it.id+'"><span class="wh-t"><b>'+whEsc(it.sem)+'</b>'+(second ? '<i>'+whEsc(second)+'</i>' : '')+'</span>'+whPill(it,it.sec)+'</div>';
+  }
+  function whSort(a,b){ var ra=WH_RANK[whNow(a).st]||0, rb=WH_RANK[whNow(b).st]||0; return ra!==rb ? ra-rb : String(a.sem).localeCompare(String(b.sem)); }
+  /* the body for Outfit: every part takes the colour of its worst item */
+  var WH_BODY=[
+    ["Head",'<circle cx="60" cy="22" r="13"/>'],
+    ["Ears",'<ellipse cx="45.5" cy="23" rx="2.6" ry="4.6"/><ellipse cx="74.5" cy="23" rx="2.6" ry="4.6"/>'],
+    ["Outer",'<path d="M36 46c-7 2-10 7-11 14l-4 40c-.5 4 5 5 6 1l7-36z"/><path d="M84 46c7 2 10 7 11 14l4 40c.5 4-5 5-6 1l-7-36z"/>'],
+    ["Torso",'<path d="M55.5 33h9v12h-9z"/><path d="M40 44h40c5 0 7 3 6 8l-4 46H38l-4-46c-1-5 1-8 6-8z"/>'],
+    ["Intimate",'<path d="M38 100h44l-2 20c-6 4-14 5-20 5s-14-1-20-5z"/>'],
+    ["Legs",'<path d="M41 124c5 3 11 4 17 4l-1 76h-12z"/><path d="M79 124c-5 3-11 4-17 4l1 76h12z"/>'],
+    ["Feet",'<path d="M45 208h12v6c0 3-2 4-5 4h-11c-3 0-3-4 0-5z"/><path d="M75 208H63v6c0 3 2 4 5 4h11c3 0 3-4 0-5z"/>']
+  ];
+  function whBody(items){
+    var svg='';
+    WH_BODY.forEach(function(z){
+      var mine=items.filter(function(it){ return it.grp===z[0]; }), worst=null;
+      mine.forEach(function(it){ var s=whNow(it).st; if(s && (worst===null || WH_RANK[s]<WH_RANK[worst])) worst=s; });
+      var d=whStDef(worst);
+      svg+='<g class="wh-z'+(d ? '' : ' unset')+(WH.zone===z[0] ? ' on' : '')+(WH.zone && WH.zone!==z[0] ? ' dim' : '')+'" data-zone="'+z[0]+'"'+(d ? ' style="--sc:'+d.rgb+'"' : '')+
+        ' role="button" aria-label="'+z[0]+'">'+z[1]+'</g>';
+    });
+    return '<div class="wh-card wh-fig"><svg viewBox="12 4 96 218" aria-label="Outfit">'+svg+'</svg></div>';
+  }
+  function whRender(){
+    var host=document.getElementById("whBody"); if(!host) return;
+    var D=whData(), tabs='';
+    WH_SEC.forEach(function(s){
+      var n = s.k==="buy" ? whToBuy().length : whAttention(s.k);
+      tabs+='<button type="button" class="wh-tab'+(WH.tab===s.k ? ' on' : '')+'" data-tab="'+s.k+'" role="tab" aria-selected="'+(WH.tab===s.k)+'">'+s.name+(n ? '<i'+(s.k==="buy" ? ' class="b"' : '')+'>'+n+'</i>' : '')+'</button>';
+    });
+    document.getElementById("whTabs").innerHTML=tabs;
+    document.getElementById("whAdd").hidden = WH.tab==="buy";
+    var html='';
+    if(WH.tab==="buy"){
+      var list=whToBuy();
+      if(!list.length) html='<p class="wh-none">Nothing to buy.</p>';
+      ["need","low","basket","ordered"].forEach(function(k){
+        var rows=list.filter(function(it){ return whNow(it).st===k; }).sort(whSort);
+        if(!rows.length) return;
+        html+='<div class="wh-card"><p class="wh-gh">'+whStDef(k).name+'<span>'+rows.length+'</span></p>'+
+          rows.map(function(it){ return whRow(it,[whSec(it.sec).name, it.name!==it.sem ? it.name : "", it.brand].filter(Boolean).join(" · ")); }).join('')+'</div>';
+      });
+    } else {
+      var sec=whSec(WH.tab), items=D.items.filter(function(it){ return it.sec===sec.k; });
+      if(sec.k==="outfit") html+=whBody(items);
+      var groups=sec.groups.slice();
+      items.forEach(function(it){ if(groups.indexOf(it.grp)<0) groups.push(it.grp); });
+      var one = sec.k==="outfit", acc='';          /* the body's parts read best as one list */
+      groups.forEach(function(g){
+        if(one && WH.zone && WH.zone!==g) return;
+        var rows=items.filter(function(it){ return it.grp===g; }).sort(whSort);
+        if(!rows.length) return;
+        var x = one && WH.zone===g ? '<button type="button" class="wh-zx" data-zone-clear="1" aria-label="Show all">×</button>' : '';
+        var part='<p class="wh-gh">'+whEsc(g)+x+'</p>'+rows.map(function(it){ return whRow(it); }).join('');
+        if(one) acc+=part; else html+='<div class="wh-card">'+part+'</div>';
+      });
+      if(acc) html+='<div class="wh-card">'+acc+'</div>';
+      if(!items.length) html+='<p class="wh-none">Empty.</p>';
+    }
+    host.innerHTML=html;
+  }
+  /* ---- a status in two taps ---- */
+  function whPopOpen(id,btn){
+    var it=whFind(id); if(!it) return;
+    var pop=document.getElementById("whPop"), cur=whNow(it).st, html='';
+    WH_ST.forEach(function(s){
+      html+='<button type="button" class="wh-opt'+(s.k===cur ? ' on' : '')+'" data-st="'+s.k+'" style="--sc:'+s.rgb+'"><i></i>'+whStName(s.k,it.sec)+'</button>';
+    });
+    pop.innerHTML=html; WH.pop=id;
+    document.getElementById("whVeil").hidden=false; pop.hidden=false;
+    var r=btn.getBoundingClientRect(), h=pop.offsetHeight, w=pop.offsetWidth;
+    var top = r.bottom+6+h > window.innerHeight-8 ? Math.max(8, r.top-6-h) : r.bottom+6;
+    pop.style.top=top+"px"; pop.style.left=Math.max(8, Math.min(window.innerWidth-w-8, r.right-w))+"px";
+    void pop.offsetWidth; pop.classList.add("in");
+  }
+  function whPopClose(){
+    var pop=document.getElementById("whPop"); if(!pop || pop.hidden) return;
+    pop.classList.remove("in"); pop.hidden=true; document.getElementById("whVeil").hidden=true; WH.pop=null;
+  }
+  function whFind(id){ var l=whData().items; for(var i=0;i<l.length;i++) if(l[i].id===id) return l[i]; return null; }
+  function whSetSt(it,st){
+    if(it.st===st && st!=="ok") return;
+    it.st=st; if(st==="ok") it.at=dayKey();
+  }
+  /* ---- an item, in full ---- */
+  function whEditOpen(id){
+    var it=id ? whFind(id) : null, sec=whSec(it ? it.sec : WH.tab);
+    WH.edit={id:id||null, sec:sec.k, grp: it ? it.grp : (sec.k==="outfit" && WH.zone ? WH.zone : sec.groups[0]), st: it ? (it.st||"") : "ok"};
+    document.getElementById("weEy").textContent=sec.name;
+    document.getElementById("weSem").value= it ? it.sem : "";
+    document.getElementById("weName").value= it ? it.name : "";
+    document.getElementById("weBrand").value= it ? it.brand : "";
+    document.getElementById("weLasts").value= it && it.lasts ? it.lasts : "";
+    document.getElementById("weNote").value= it ? it.note : "";
+    WH.edit.base=whEditSnap();
+    whEditPaint();
+    var md=document.getElementById("whEdit"); md.hidden=false; void md.offsetWidth; md.classList.add("in");
+    if(!it) setTimeout(function(){ document.getElementById("weSem").focus(); },320);
+  }
+  function whEditSnap(){
+    var E=WH.edit;
+    return [E.grp, E.st, document.getElementById("weSem").value.trim(), document.getElementById("weName").value.trim(), document.getElementById("weBrand").value.trim(),
+      document.getElementById("weLasts").value.trim(), document.getElementById("weNote").value.trim()].join("\u0001");
+  }
+  function whEditPaint(){
+    var E=WH.edit, sec=whSec(E.sec), it=E.id ? whFind(E.id) : null;
+    document.getElementById("weGrp").innerHTML=sec.groups.map(function(g){ return '<button type="button" class="we-chip'+(E.grp===g ? ' on' : '')+'" data-grp="'+whEsc(g)+'">'+whEsc(g)+'</button>'; }).join('');
+    document.getElementById("weSt").innerHTML=WH_ST.map(function(s){ return '<button type="button" class="we-st'+(E.st===s.k ? ' on' : '')+'" data-st="'+s.k+'" style="--sc:'+s.rgb+'"><i></i>'+whStName(s.k,E.sec)+'</button>'; }).join('');
+    var v=it ? whNow(it) : null, info='';
+    if(it && v.left!=null) info = v.left>0 ? v.left+'d left' : 'Out';
+    document.getElementById("weLeft").textContent=info;
+    var dirty=whEditSnap()!==E.base, ok=!!document.getElementById("weSem").value.trim(), b='';
+    if(dirty && ok) b+='<button type="button" class="pri" data-we="save">Save</button>';
+    if(it) b+='<button type="button" class="ic" data-we="del" aria-label="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
+    var bt=document.getElementById("weBtns"); bt.innerHTML=b; bt.hidden=!b;
+  }
+  function whEditClose(){
+    var md=document.getElementById("whEdit"); if(md.hidden) return;
+    document.activeElement && document.activeElement.blur && document.activeElement.blur();
+    md.classList.remove("in"); md.classList.add("out");
+    setTimeout(function(){ md.hidden=true; md.classList.remove("out"); },270);
+    WH.edit=null;
+  }
+  function whEditSave(){
+    var E=WH.edit; if(!E) return;
+    var sem=document.getElementById("weSem").value.trim(); if(!sem) return;
+    var it=E.id ? whFind(E.id) : null;
+    if(!it){ it={id:"w"+Date.now().toString(36), sec:E.sec, st:"", at:"", lasts:0, note:""}; whData().items.push(it); }
+    it.grp=E.grp; it.sem=sem; it.name=document.getElementById("weName").value.trim(); it.brand=document.getElementById("weBrand").value.trim();
+    var L=parseInt(document.getElementById("weLasts").value,10); L = L>0 ? Math.min(L,3650) : 0;
+    if(L && !it.at) it.at=dayKey();
+    it.lasts=L; it.note=document.getElementById("weNote").value.trim();
+    whSetSt(it,E.st);
+    whEditClose(); whChanged(); fb("on");
+  }
+  function buildWarehouse(){
+    var p=document.getElementById("wh");
+    document.getElementById("whBtn").addEventListener("click",function(){ fb("tap"); whOpen(); });
+    document.getElementById("whBack").addEventListener("click",function(){ fb("tap"); whClose(); });
+    document.getElementById("whAdd").addEventListener("click",function(){ fb("tap"); whEditOpen(null); });
+    document.getElementById("whTabs").addEventListener("click",function(e){
+      var b=e.target.closest("[data-tab]"); if(!b) return; fb("tap"); WH.tab=b.dataset.tab; WH.zone=null; whRender();
+      p.scrollTop=0; b.scrollIntoView({inline:"nearest", block:"nearest"});
+    });
+    document.getElementById("whBody").addEventListener("click",function(e){
+      var pill=e.target.closest("[data-pill]"); if(pill){ fb("tap"); whPopOpen(pill.dataset.pill,pill); return; }
+      var z=e.target.closest("[data-zone]"); if(z){ fb("tap"); WH.zone = WH.zone===z.dataset.zone ? null : z.dataset.zone; whRender(); return; }
+      if(e.target.closest("[data-zone-clear]")){ fb("tap"); WH.zone=null; whRender(); return; }
+      var row=e.target.closest(".wh-row"); if(row){ fb("tap"); whEditOpen(row.dataset.id); }
+    });
+    document.getElementById("whBody").addEventListener("keydown",function(e){ if(e.key==="Enter"){ var row=e.target.closest(".wh-row"); if(row) whEditOpen(row.dataset.id); } });
+    document.getElementById("whVeil").addEventListener("click",whPopClose);
+    document.getElementById("whPop").addEventListener("click",function(e){
+      var o=e.target.closest("[data-st]"); if(!o) return; var it=whFind(WH.pop); whPopClose(); if(!it) return;
+      whSetSt(it,o.dataset.st); fb("on"); whChanged();
+    });
+    var md=document.getElementById("whEdit");
+    md.addEventListener("click",function(e){
+      if(e.target===md){ whEditClose(); return; }
+      var c=e.target.closest("[data-grp]"); if(c){ WH.edit.grp=c.dataset.grp; whEditPaint(); return; }
+      var s=e.target.closest("[data-st]"); if(s){ WH.edit.st = WH.edit.st===s.dataset.st ? "" : s.dataset.st; whEditPaint(); return; }
+      var b=e.target.closest("[data-we]"); if(!b) return;
+      if(b.dataset.we==="save") whEditSave();
+      else if(b.dataset.we==="del"){ var it=whFind(WH.edit.id);
+        ask("Delete?", it.sem, "Delete", function(){ state.wh.items=whData().items.filter(function(x){ return x.id!==it.id; }); whEditClose(); whChanged(); }); }
+    });
+    document.getElementById("weX").addEventListener("click",whEditClose);
+    ["weSem","weName","weBrand","weLasts","weNote"].forEach(function(id){ document.getElementById(id).addEventListener("input",function(){ if(WH.edit) whEditPaint(); }); });
+    document.getElementById("weSem").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("weName").focus(); } });
+    document.addEventListener("keydown",function(e){
+      if(e.key!=="Escape") return;
+      if(!document.getElementById("whPop").hidden){ whPopClose(); return; }
+      if(!md.hidden){ whEditClose(); return; }
+      if(!document.getElementById("modal").hidden) return;
+      if(!p.hidden) whClose();
+    });
+    window.addEventListener("popstate",function(){ if(WH.pushed){ WH.pushed=false; whEditClose(); whHide(); } });
+    /* the phone's back button: close what is on top, else leave the app */
+    window.ritualBack=function(){
+      var mn=document.getElementById("menu");
+      if(mn && !mn.hidden){ menuClose(); return true; }
+      if(!document.getElementById("whPop").hidden){ whPopClose(); return true; }
+      if(!document.getElementById("modal").hidden){ document.getElementById("mNo").click(); return true; }
+      if(!md.hidden){ whEditClose(); return true; }
+      var tg=document.getElementById("tagModal"); if(tg && !tg.hidden){ tagClose(); return true; }
+      var ge=document.getElementById("goalEdit"); if(ge && !ge.hidden){ sheetClose("goalEdit"); return true; }
+      var gs=document.getElementById("goalSheet"); if(gs && !gs.hidden){ sheetClose("goalSheet"); return true; }
+      if(p.classList.contains("in")){ whClose(); return true; }
+      return false;
+    };
+    whMenu();
+  }
+
   /* ---------- The Voices, deeper: what they know ----------
      Every positive act is written into the day with its minute (day.log), so the voices can
      learn your hours. From the record they read the whole world: each realm's day, cycle and
@@ -6390,7 +6813,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
           aeClear(); coreReset();
           if(typeof vaultKeep==="function") vaultKeep("golden-path-before-reset.json");   /* the old record stays in the backup folder */
           actNow();                                                                          /* a reset is a record: it wins everywhere */
-          state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start};
+          state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start, wh:state.wh};       /* the warehouse isn't a record: it stays */
           VMEM={}; try{ localStorage.removeItem("dial.vmem"); }catch(e){}
           CL_START=start; CLSEL=null; save(); hideTip();
           render(); renderXen(); renderXr(); renderAr(); renderCl();
@@ -6784,7 +7207,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   }
   function menuOpen(){
     var mn=document.getElementById("menu"), b=document.getElementById("moreBtn");
-    renderSync(); renderDrive();
+    renderSync(); renderDrive(); whMenu();
     if(!gdNative()) gdGis();                            /* ready before a tap asks Google to sign in */
     document.getElementById("menuVeil").hidden=false; mn.hidden=false; b.setAttribute("aria-expanded","true");
     void mn.offsetWidth; mn.classList.add("in");
@@ -7196,7 +7619,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
   state=load();
   if(state.clStart) CL_START=state.clStart;
   rollover();
-  buildDial(); buildCards(); buildPips(); buildHabits(); buildHealth(); buildCore(); buildXr(); buildAe(); buildAr(); buildCl(); buildSync(); buildMenu(); buildGoals();
+  buildDial(); buildCards(); buildPips(); buildHabits(); buildHealth(); buildCore(); buildXr(); buildAe(); buildAr(); buildCl(); buildSync(); buildMenu(); buildGoals(); buildWarehouse();
   render(); renderXen(); renderXr(); renderAr(); arTick();
   if(NT){ coreSync(); setInterval(function(){ if(!CORE.run) coreSync(); }, 500); }
   planNotes();
@@ -7239,7 +7662,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
     sw.peer=v; sw.peerY=y;
   }
   document.addEventListener("touchstart",function(e){
-    if(BUSY || e.touches.length!==1 || document.querySelector(".modal:not([hidden])") || !document.getElementById("menu").hidden || scrollsSideways(e.target)){ sw=null; return; }
+    if(BUSY || e.touches.length!==1 || document.querySelector(".modal:not([hidden])") || !document.getElementById("menu").hidden || !document.getElementById("wh").hidden || scrollsSideways(e.target)){ sw=null; return; }
     var t=e.touches[0]; sw={x:t.clientX, y:t.clientY, lock:null, dx:0, peer:null, track:[[t.clientX,Date.now()]]};
   },{passive:true});
   document.addEventListener("touchmove",function(e){

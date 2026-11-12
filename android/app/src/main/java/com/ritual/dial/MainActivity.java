@@ -257,4 +257,16 @@ public class MainActivity extends Activity {
         foreground = true;
         web.onResume();
     }
+
+    /** Back closes what the page has on top (the Warehouse, a sheet, the menu); with nothing open, it leaves. */
+    @Override
+    public void onBackPressed() {
+        if (web == null) { super.onBackPressed(); return; }
+        web.evaluateJavascript("(window.ritualBack&&window.ritualBack())?'1':'0'", new android.webkit.ValueCallback<String>() {
+            @Override
+            public void onReceiveValue(String v) {
+                if (!"\"1\"".equals(v)) MainActivity.super.onBackPressed();
+            }
+        });
+    }
 }
