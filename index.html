@@ -757,7 +757,7 @@ html.wh-on .toast{z-index:60}
 .wh-opt:hover{background:var(--panel)}
 .wh-opt i,.we-st i{width:8px;height:8px;border-radius:50%;background:rgb(var(--sc));flex:0 0 auto}
 .wh-opt.on{background:rgba(var(--sc),.14);color:rgb(var(--sc));font-weight:500}
-#whEdit{z-index:46}
+#whEdit,#whSecEd{z-index:45}
 .we-ey{flex:1 1 auto;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-3)}
 .we-left{font-family:var(--mono);font-size:12px;color:var(--ink-2)}
 .we-f{display:flex;flex-direction:column;gap:8px;margin-top:14px}
@@ -777,6 +777,21 @@ html.wh-on .toast{z-index:60}
 .we-st.on{background:rgba(var(--sc),.14);border-color:rgba(var(--sc),.5);color:rgb(var(--sc));font-weight:500}
 .mn-n{margin-left:auto;align-self:center;font-family:var(--mono);font-size:11px;font-weight:500;line-height:18px;min-width:18px;height:18px;padding:0 5px;box-sizing:border-box;border-radius:9px;background:#ff453a;color:#fff;text-align:center}
 .mn-n[hidden]{display:none}
+.wh-tab .pen{width:13px;height:13px;margin-right:-3px;opacity:.7}
+.wh-tab.add{padding:0;width:34px;justify-content:center;color:var(--ink-3);border-style:dashed}
+.wh-tab.add svg{width:15px;height:15px}
+.ws-list{display:flex;flex-direction:column;gap:6px;margin-top:14px}
+.ws-g{display:flex;align-items:center;gap:8px}
+.ws-g input{flex:1 1 auto;min-width:0;font:inherit;font-size:15px;color:var(--ink);background:var(--well);border:1px solid var(--line);border-radius:var(--r-s);padding:9px 12px;outline:none}
+.ws-g input:focus{border-color:var(--ink-3)}
+.ws-g.lock input{color:var(--ink-2);background:transparent}
+.ws-n{flex:0 0 22px;text-align:right;font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.ws-rm,.ws-lk{flex:0 0 36px;height:36px;display:grid;place-items:center;border:1px solid var(--line);border-radius:var(--r-s);background:transparent;color:var(--ink-3);font-size:17px;line-height:1;padding:0;cursor:pointer}
+.ws-lk{border-color:transparent;cursor:default}
+.ws-lk svg{width:15px;height:15px}
+.ws-rm:hover{color:var(--xeron);border-color:rgba(255,0,10,.45)}
+.ws-add{margin-top:2px;height:36px;padding:0 12px;border:1px dashed var(--line);border-radius:var(--r-s);background:transparent;color:var(--ink-2);font:inherit;font-size:13px;cursor:pointer;align-self:flex-start}
+#whBtn svg{color:var(--xenlil)}
 </style>
 </head>
 <body>
@@ -853,6 +868,14 @@ html.wh-on .toast{z-index:60}
       <textarea id="weNote" maxlength="600" rows="2" placeholder="Note"></textarea>
     </div>
     <div class="ge-btns" id="weBtns" hidden></div>
+  </div>
+</div>
+<div class="modal" id="whSecEd" hidden>
+  <div class="sheet tall" role="dialog" aria-modal="true" aria-label="Section">
+    <div class="ge-top"><span class="we-ey">Section</span><button type="button" class="ge-x" id="wsX" aria-label="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div class="we-f"><input id="wsName" type="text" autocomplete="off" maxlength="40" placeholder="Name"></div>
+    <div class="ws-list"><div id="wsGroups" style="display:contents"></div><button type="button" class="ws-add" id="wsAdd">+ Group</button></div>
+    <div class="ge-btns" id="wsBtns" hidden></div>
   </div>
 </div>
 
@@ -4887,6 +4910,7 @@ html.wh-on .toast{z-index:60}
        - milestones: day 100, cluster 10, the fullest day, the first perfect cycle, the first clean cluster
        - the Landsraad: one god now and then answers the weakest realm */
   var V4_WD=["Sunday","Monday","Tuesday","Wednesday","Thursday","Friday","Saturday"];
+  var V4_OFF_HINT=[4,5];           /* Thursday and Friday, off work (as told); the record confirms or overrules each with three weeks of it */
   function v4Night(k){
     var r=k===dayKey() ? state.day : past(k), y=past(keyAdd(k,-1)); if(!r) return null;
     var slept=null, woke=null;
@@ -4926,7 +4950,7 @@ html.wh-on .toast{z-index:60}
     D.forEach(function(d){ byWd[d.wd].push(d); });
     for(var w=0;w<7;w++){
       var me=byWd[w], rest=D.filter(function(d){ return d.wd!==w; });
-      if(me.length<2 || rest.length<6) continue;
+      if(me.length<3 || rest.length<6){ if(V4_OFF_HINT.indexOf(w)>=0) off.push(w); continue; }   /* too little record yet: the days you said */
       var a=v4Mean(me,function(d){ return d.W; }), b=v4Mean(rest,function(d){ return d.W; });
       if(b>=3 && a<=b*0.4) off.push(w);
     }
@@ -5225,7 +5249,7 @@ html.wh-on .toast{z-index:60}
     {k:"health",  name:"Health",  groups:["Mind","Nutrition"]},
     {k:"skin",    name:"Skin",    groups:["Protect","Care","Treat"]},
     {k:"hygiene", name:"Hygiene", groups:["Hair","Body","Oral","Sleep"]},
-    {k:"outfit",  name:"Outfit",  groups:["Head","Ears","Outer","Torso","Intimate","Legs","Feet"]},
+    {k:"outfit",  name:"Outfit",  groups:["Head","Ears","Outer","Torso","Intimate","Legs","Feet"], body:true},
     {k:"device",  name:"Device",  groups:["Car","Home"]}
   ];
   var WH_ST=[
@@ -5238,9 +5262,16 @@ html.wh-on .toast{z-index:60}
   ];
   var WH_RANK={need:0, low:1, basket:2, ordered:3, na:4, ok:5, "":6};
   var WH={tab:"health", zone:null, pushed:false, edit:null, pop:null, t:0};
-  function whSec(k){ for(var i=0;i<WH_SEC.length;i++) if(WH_SEC[i].k===k) return WH_SEC[i]; return WH_SEC[1]; }
+  /* the sections are yours: kept in state.wh.secs (rename, groups, add, delete); To buy is always first */
+  var WH_ZONES=["Head","Ears","Outer","Torso","Intimate","Legs","Feet"];
+  function whSecs(){
+    var D=whData();
+    if(!Array.isArray(D.secs)) D.secs=WH_SEC.filter(function(s){ return s.k!=="buy"; }).map(function(s){ return {k:s.k, name:s.name, groups:s.groups.slice(), body:!!s.body}; });
+    return D.secs;
+  }
+  function whSec(k){ if(k==="buy") return WH_SEC[0]; var l=whSecs(); for(var i=0;i<l.length;i++) if(l[i].k===k) return l[i]; return l[0]||{k:"buy", name:"", groups:[]}; }
   function whStDef(k){ for(var i=0;i<WH_ST.length;i++) if(WH_ST[i].k===k) return WH_ST[i]; return null; }
-  function whStName(k,sec){ var d=whStDef(k); if(!d) return "—"; return sec==="outfit" && d.alt ? d.alt : d.name; }
+  function whStName(k,sec){ var d=whStDef(k); if(!d) return "—"; return d.alt && whSec(sec).body ? d.alt : d.name; }
   function whEsc(x){ return String(x==null ? "" : x).replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/"/g,"&quot;"); }
   /* the first stock, from the Notion page it replaces */
   function whSeed(){
@@ -5304,6 +5335,10 @@ html.wh-on .toast{z-index:60}
   }
   function whAttention(sec){ return whData().items.filter(function(it){ var s=whNow(it).st; return (!sec || it.sec===sec) && (s==="need" || s==="low"); }).length; }
   function whToBuy(){ return whData().items.filter(function(it){ return /^(need|low|basket|ordered)$/.test(whNow(it).st); }); }
+  function whCarry(raw){
+    try{ var o=JSON.parse(raw); if(o && !o.wh && state && state.wh){ o.wh=state.wh; return JSON.stringify(o); } }catch(e){}
+    return raw;
+  }
   function whChanged(){ actNow(); save(); whRender(); whMenu(); }
 
   /* ---- the page ---- */
@@ -5332,7 +5367,7 @@ html.wh-on .toast{z-index:60}
   }
   function whRow(it,sub){
     var second = sub!=null ? sub : [it.name!==it.sem ? it.name : "", it.brand].filter(Boolean).join(" · ");
-    return '<div class="wh-row" role="button" tabindex="0" data-id="'+it.id+'"><span class="wh-t"><b>'+whEsc(it.sem)+'</b>'+(second ? '<i>'+whEsc(second)+'</i>' : '')+'</span>'+whPill(it,it.sec)+'</div>';
+    return '<div class="wh-row" role="button" tabindex="0" data-id="'+it.id+'"><span class="wh-t"><b dir="auto">'+whEsc(it.sem)+'</b>'+(second ? '<i dir="auto">'+whEsc(second)+'</i>' : '')+'</span>'+whPill(it,it.sec)+'</div>';
   }
   function whSort(a,b){ var ra=WH_RANK[whNow(a).st]||0, rb=WH_RANK[whNow(b).st]||0; return ra!==rb ? ra-rb : String(a.sem).localeCompare(String(b.sem)); }
   /* the body for Outfit: every part takes the colour of its worst item */
@@ -5359,10 +5394,12 @@ html.wh-on .toast{z-index:60}
   function whRender(){
     var host=document.getElementById("whBody"); if(!host) return;
     var D=whData(), tabs='';
-    WH_SEC.forEach(function(s){
+    if(WH.tab!=="buy" && !whSecs().some(function(s){ return s.k===WH.tab; })) WH.tab=(whSecs()[0]||{k:"buy"}).k;
+    [WH_SEC[0]].concat(whSecs()).forEach(function(s){
       var n = s.k==="buy" ? whToBuy().length : whAttention(s.k);
-      tabs+='<button type="button" class="wh-tab'+(WH.tab===s.k ? ' on' : '')+'" data-tab="'+s.k+'" role="tab" aria-selected="'+(WH.tab===s.k)+'">'+s.name+(n ? '<i'+(s.k==="buy" ? ' class="b"' : '')+'>'+n+'</i>' : '')+'</button>';
+      tabs+='<button type="button" class="wh-tab'+(WH.tab===s.k ? ' on' : '')+'" data-tab="'+s.k+'" role="tab" aria-selected="'+(WH.tab===s.k)+'">'+s.name+(n ? '<i'+(s.k==="buy" ? ' class="b"' : '')+'>'+n+'</i>' : '')+(WH.tab===s.k && s.k!=="buy" ? WH_PEN : '')+'</button>';
     });
+    tabs+='<button type="button" class="wh-tab add" data-newsec="1" aria-label="Add section"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button>';
     document.getElementById("whTabs").innerHTML=tabs;
     document.getElementById("whAdd").hidden = WH.tab==="buy";
     var html='';
@@ -5377,10 +5414,10 @@ html.wh-on .toast{z-index:60}
       });
     } else {
       var sec=whSec(WH.tab), items=D.items.filter(function(it){ return it.sec===sec.k; });
-      if(sec.k==="outfit") html+=whBody(items);
+      if(sec.body) html+=whBody(items);
       var groups=sec.groups.slice();
       items.forEach(function(it){ if(groups.indexOf(it.grp)<0) groups.push(it.grp); });
-      var one = sec.k==="outfit", acc='';          /* the body's parts read best as one list */
+      var one = !!sec.body, acc='';          /* the body's parts read best as one list */
       groups.forEach(function(g){
         if(one && WH.zone && WH.zone!==g) return;
         var rows=items.filter(function(it){ return it.grp===g; }).sort(whSort);
@@ -5419,8 +5456,8 @@ html.wh-on .toast{z-index:60}
   }
   /* ---- an item, in full ---- */
   function whEditOpen(id){
-    var it=id ? whFind(id) : null, sec=whSec(it ? it.sec : WH.tab);
-    WH.edit={id:id||null, sec:sec.k, grp: it ? it.grp : (sec.k==="outfit" && WH.zone ? WH.zone : sec.groups[0]), st: it ? (it.st||"") : "ok"};
+    var it=id ? whFind(id) : null, sec=whSec(it ? it.sec : WH.tab); if(!sec.groups || !sec.groups.length) return;
+    WH.edit={id:id||null, sec:sec.k, grp: it ? it.grp : (sec.body && WH.zone ? WH.zone : sec.groups[0]), st: it ? (it.st||"") : "ok"};
     document.getElementById("weEy").textContent=sec.name;
     document.getElementById("weSem").value= it ? it.sem : "";
     document.getElementById("weName").value= it ? it.name : "";
@@ -5468,13 +5505,103 @@ html.wh-on .toast{z-index:60}
     whSetSt(it,E.st);
     whEditClose(); whChanged(); fb("on");
   }
+  /* ---- a section: its name and groups; add, rename, delete ----
+     Tap the open tab (it shows a pen) to edit it, + at the end of the tabs to add one.
+     Renaming a group renames it on its items; a group taken away hands its items to the first
+     group left. On the body section the seven body parts stay (the body is drawn from them);
+     groups can be added beside them. Deleting a section deletes its items. */
+  var WH_PEN='<svg class="pen" viewBox="0 0 16 16" aria-hidden="true"><path d="M10.6 3.2l2.2 2.2-6.9 6.9H3.7v-2.2z" fill="none" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round"/></svg>';
+  var WH_LOCK='<svg viewBox="0 0 16 16" aria-hidden="true"><rect x="4" y="7.2" width="8" height="6" rx="1.2" fill="none" stroke="currentColor" stroke-width="1.3"/><path d="M5.8 7.2V5.6a2.2 2.2 0 0 1 4.4 0v1.6" fill="none" stroke="currentColor" stroke-width="1.3"/></svg>';
+  var WHS=null;
+  function whSecOpen(k){
+    var sec=k ? whSec(k) : null;
+    WHS={k:k||null, body:!!(sec && sec.body), groups: sec ? sec.groups.map(function(g){ return {o:g, n:g}; }) : [{o:null, n:""}]};
+    document.getElementById("wsName").value = sec ? sec.name : "";
+    whSecList(); WHS.base=whSecSnap(); whSecBtns();
+    var md=document.getElementById("whSecEd"); md.hidden=false; void md.offsetWidth; md.classList.add("in");
+    if(!k) setTimeout(function(){ document.getElementById("wsName").focus(); },320);
+  }
+  function whSecSnap(){ return document.getElementById("wsName").value.trim()+"\u0001"+WHS.groups.map(function(g){ return (g.o||"")+"="+g.n.trim(); }).join("\u0002"); }
+  function whSecList(){
+    var html='';
+    WHS.groups.forEach(function(g,i){
+      var lock=WHS.body && g.o && WH_ZONES.indexOf(g.o)>=0;
+      var n=WHS.k ? whData().items.filter(function(it){ return it.sec===WHS.k && it.grp===g.o; }).length : 0;
+      html+='<div class="ws-g'+(lock ? ' lock' : '')+'"><input data-gi="'+i+'" type="text" autocomplete="off" maxlength="40" placeholder="Group" value="'+whEsc(g.n)+'"'+(lock ? ' readonly' : '')+'>'+
+        '<span class="ws-n">'+(n||'')+'</span>'+
+        (lock ? '<span class="ws-lk" aria-label="Body part">'+WH_LOCK+'</span>' : '<button type="button" class="ws-rm" data-rm="'+i+'" aria-label="Remove">×</button>')+'</div>';
+    });
+    document.getElementById("wsGroups").innerHTML=html;
+  }
+  function whSecValid(){
+    var name=document.getElementById("wsName").value.trim(), seen={}, ok=!!name, any=false;
+    WHS.groups.forEach(function(g){ var n=g.n.trim(); if(!n){ if(g.o) ok=false; return; } any=true; var k=n.toLowerCase(); if(seen[k]) ok=false; seen[k]=1; });
+    return ok && any;
+  }
+  function whSecBtns(){
+    var dirty=whSecSnap()!==WHS.base, b='';
+    if(dirty && whSecValid()) b+='<button type="button" class="pri" data-ws="save">Save</button>';
+    if(WHS.k) b+='<button type="button" class="ic" data-ws="del" aria-label="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
+    var bt=document.getElementById("wsBtns"); bt.innerHTML=b; bt.hidden=!b;
+  }
+  function whSecClose(){
+    var md=document.getElementById("whSecEd"); if(md.hidden) return;
+    document.activeElement && document.activeElement.blur && document.activeElement.blur();
+    md.classList.remove("in"); md.classList.add("out");
+    setTimeout(function(){ md.hidden=true; md.classList.remove("out"); },270);
+    WHS=null;
+  }
+  function whSecSave(){
+    if(!WHS || !whSecValid()) return;
+    var name=document.getElementById("wsName").value.trim(), gs=WHS.groups.filter(function(g){ return g.n.trim(); }).map(function(g){ return {o:g.o, n:g.n.trim()}; });
+    if(!WHS.k){
+      var k="s"+Date.now().toString(36);
+      whSecs().push({k:k, name:name, groups:gs.map(function(g){ return g.n; }), body:false});
+      WH.tab=k; WH.zone=null;
+    } else {
+      var sec=whSec(WHS.k), map={}, first=gs[0].n;
+      gs.forEach(function(g){ if(g.o) map[g.o]=g.n; });
+      whData().items.forEach(function(it){ if(it.sec!==WHS.k) return; it.grp = map.hasOwnProperty(it.grp) ? map[it.grp] : first; });
+      if(WH.zone && !map.hasOwnProperty(WH.zone)) WH.zone=null;
+      sec.name=name; sec.groups=gs.map(function(g){ return g.n; });
+    }
+    whSecClose(); whChanged(); fb("on");
+  }
+  function buildSecSheet(){
+    var md=document.getElementById("whSecEd");
+    md.addEventListener("click",function(e){
+      if(e.target===md){ whSecClose(); return; }
+      var rm=e.target.closest("[data-rm]");
+      if(rm){ WHS.groups.splice(+rm.dataset.rm,1); if(!WHS.groups.length) WHS.groups.push({o:null, n:""}); whSecList(); whSecBtns(); return; }
+      var b=e.target.closest("[data-ws]"); if(!b) return;
+      if(b.dataset.ws==="save") whSecSave();
+      else if(b.dataset.ws==="del"){
+        var sec=whSec(WHS.k), n=whData().items.filter(function(it){ return it.sec===sec.k; }).length;
+        ask("Delete section?", sec.name+(n ? " · "+n+" items" : ""), "Delete", function(){
+          var D=whData(); D.items=D.items.filter(function(it){ return it.sec!==sec.k; }); D.secs=whSecs().filter(function(s){ return s.k!==sec.k; });
+          WH.tab=(D.secs[0]||{k:"buy"}).k; WH.zone=null; whSecClose(); whChanged();
+        });
+      }
+    });
+    document.getElementById("wsGroups").addEventListener("input",function(e){ var i=e.target.dataset.gi; if(i==null || !WHS) return; WHS.groups[+i].n=e.target.value; whSecBtns(); });
+    document.getElementById("wsName").addEventListener("input",function(){ if(WHS) whSecBtns(); });
+    document.getElementById("wsAdd").addEventListener("click",function(){
+      fb("tap"); WHS.groups.push({o:null, n:""}); whSecList(); whSecBtns();
+      var ins=document.querySelectorAll("#wsGroups input"); if(ins.length) ins[ins.length-1].focus();
+    });
+    document.getElementById("wsX").addEventListener("click",whSecClose);
+  }
+
   function buildWarehouse(){
     var p=document.getElementById("wh");
     document.getElementById("whBtn").addEventListener("click",function(){ fb("tap"); whOpen(); });
     document.getElementById("whBack").addEventListener("click",function(){ fb("tap"); whClose(); });
     document.getElementById("whAdd").addEventListener("click",function(){ fb("tap"); whEditOpen(null); });
     document.getElementById("whTabs").addEventListener("click",function(e){
-      var b=e.target.closest("[data-tab]"); if(!b) return; fb("tap"); WH.tab=b.dataset.tab; WH.zone=null; whRender();
+      if(e.target.closest("[data-newsec]")){ fb("tap"); whSecOpen(null); return; }
+      var b=e.target.closest("[data-tab]"); if(!b) return; fb("tap");
+      if(WH.tab===b.dataset.tab && b.dataset.tab!=="buy"){ whSecOpen(b.dataset.tab); return; }
+      WH.tab=b.dataset.tab; WH.zone=null; whRender();
       p.scrollTop=0; b.scrollIntoView({inline:"nearest", block:"nearest"});
     });
     document.getElementById("whBody").addEventListener("click",function(e){
@@ -5505,18 +5632,21 @@ html.wh-on .toast{z-index:60}
     document.addEventListener("keydown",function(e){
       if(e.key!=="Escape") return;
       if(!document.getElementById("whPop").hidden){ whPopClose(); return; }
-      if(!md.hidden){ whEditClose(); return; }
       if(!document.getElementById("modal").hidden) return;
+      if(!md.hidden){ whEditClose(); return; }
+      if(!document.getElementById("whSecEd").hidden){ whSecClose(); return; }
       if(!p.hidden) whClose();
     });
     window.addEventListener("popstate",function(){ if(WH.pushed){ WH.pushed=false; whEditClose(); whHide(); } });
     /* the phone's back button: close what is on top, else leave the app */
+    buildSecSheet();
     window.ritualBack=function(){
       var mn=document.getElementById("menu");
       if(mn && !mn.hidden){ menuClose(); return true; }
       if(!document.getElementById("whPop").hidden){ whPopClose(); return true; }
       if(!document.getElementById("modal").hidden){ document.getElementById("mNo").click(); return true; }
       if(!md.hidden){ whEditClose(); return true; }
+      if(!document.getElementById("whSecEd").hidden){ whSecClose(); return true; }
       var tg=document.getElementById("tagModal"); if(tg && !tg.hidden){ tagClose(); return true; }
       var ge=document.getElementById("goalEdit"); if(ge && !ge.hidden){ sheetClose("goalEdit"); return true; }
       var gs=document.getElementById("goalSheet"); if(gs && !gs.hidden){ sheetClose("goalSheet"); return true; }
@@ -5526,6 +5656,32 @@ html.wh-on .toast{z-index:60}
     whMenu();
   }
 
+  /* on a day off, Arurael's duty is the studies; work isn't owed (the score is unchanged) */
+  (function(){
+    var oRead=ARURAEL_SPEC.read;
+    ARURAEL_SPEC.read=function(f){
+      var x=oRead(f);
+      if(f.V4 && f.V4.off){
+        x.duty = f.E>=2 && f.S>=1 && f.L>=1;
+        var left=[];
+        if(f.E<2) left.push(f.E===1 ? "one Execution & Science block" : "both Execution & Science blocks");
+        if(f.S<1) left.push("Share");
+        if(f.L<1) left.push("English");
+        x.left = left.length<2 ? (left[0]||"") : left.slice(0,-1).join(", ")+" and "+left[left.length-1];
+        x.offDay=true;
+      }
+      return x;
+    };
+    v2Insert(ARURAEL_SAYS,"full",[v2Sit("full_off","praise",function(f,x){ return !!x.offDay && x.duty; },[
+      "A day off from work, and every study kept. Clear water.",
+      "Studies complete on a free day. That's choice, not duty.",
+      "No work owed, and still every block of study. Good.",
+      "The day was yours, and you gave part of it to learning.",
+      "A free day, well spent. The Ahtuxasai noticed."])]);
+    ARURAEL_SAYS.forEach(function(sc){
+      if(/^(unfinished|filled_by_extra)$/.test(sc.id)){ var w=sc.when; sc.when=function(f,x){ return (!x.offDay || !!x.left) && w(f,x); }; }
+    });
+  })();
   /* ---------- The Voices, deeper: what they know ----------
      Every positive act is written into the day with its minute (day.log), so the voices can
      learn your hours. From the record they read the whole world: each realm's day, cycle and
@@ -6864,7 +7020,7 @@ html.wh-on .toast{z-index:60}
       if(H) H.vaultWrite(VAULT_PREV, JSON.stringify(before));
     }
     RESTORING=true; clearTimeout(vaultT); vaultT=0;
-    VAULT_KEYS.forEach(function(k){ if(typeof o.data[k]==="string") lsSet(k,o.data[k]); });
+    VAULT_KEYS.forEach(function(k){ if(typeof o.data[k]==="string") lsSet(k, k===KEY ? whCarry(o.data[k]) : o.data[k]); });
     lsSet("dial.act", String(o.savedAt||Date.now())); lsSet("dial.vault.last", String(o.savedAt)); lsSet("dial.vault.at", String(Date.now()));
     location.reload();
   }
@@ -7287,7 +7443,7 @@ html.wh-on .toast{z-index:60}
   function gdApply(r){
     if(vHas(state)) lsSet("dial.before", JSON.stringify(vaultPack()));
     RESTORING=true; clearTimeout(vaultT); vaultT=0; clearTimeout(GD.t); GD.t=0;
-    VAULT_KEYS.forEach(function(k){ if(typeof r.data[k]==="string") lsSet(k, r.data[k]); else try{ localStorage.removeItem(k); }catch(e){} });
+    VAULT_KEYS.forEach(function(k){ if(typeof r.data[k]==="string") lsSet(k, k===KEY ? whCarry(r.data[k]) : r.data[k]); else try{ localStorage.removeItem(k); }catch(e){} });
     lsSet("dial.act", String(r.act)); lsSet("dial.gd.at", String(Date.now())); lsSet("dial.gd.note","1");
     location.reload();
   }
