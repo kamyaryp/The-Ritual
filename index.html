@@ -741,10 +741,10 @@ html.wh-on .toast{z-index:60}
 .wh-pill.unset{border-color:var(--line);background:transparent;color:var(--ink-3);min-width:40px;justify-content:center}
 .wh-none{margin:28px 0;text-align:center;font-size:14px;color:var(--ink-3)}
 .wh-fig{display:flex;justify-content:center;padding:18px 0 14px}
-.wh-fig svg{width:132px;height:auto;overflow:visible}
-.wh-z{--sc:107,103,96;fill:rgba(var(--sc),.2);stroke:rgb(var(--sc));stroke-width:1.3;stroke-linejoin:round;cursor:pointer;transition:opacity .2s ease,filter .2s ease}
+.wh-fig svg{width:128px;height:auto;overflow:visible}
+.wh-z{--sc:107,103,96;fill:rgba(var(--sc),.2);stroke:rgb(var(--sc));stroke-width:1.6;stroke-linejoin:round;cursor:pointer;transition:opacity .2s ease,filter .2s ease}
 .wh-z.unset{fill:var(--panel-2);stroke:var(--box)}
-.wh-z.on{stroke-width:2;fill:rgba(var(--sc),.34);filter:drop-shadow(0 0 5px rgba(var(--sc),.55))}
+.wh-z.on{stroke-width:2.6;fill:rgba(var(--sc),.34);filter:drop-shadow(0 0 5px rgba(var(--sc),.55))}
 .wh-z.unset.on{stroke:var(--ink-2);filter:none}
 .wh-z.dim{opacity:.35}
 .wh-veil{position:fixed;inset:0;z-index:36}
@@ -5267,6 +5267,7 @@ html.wh-on .toast{z-index:60}
   function whSecs(){
     var D=whData();
     if(!Array.isArray(D.secs)) D.secs=WH_SEC.filter(function(s){ return s.k!=="buy"; }).map(function(s){ return {k:s.k, name:s.name, groups:s.groups.slice(), body:!!s.body}; });
+    D.secs.forEach(function(x){ if(/^\s*room\s*(and|&)\s*appliances\s*$/i.test(x.name)) x.name="House and appliances"; });
     return D.secs;
   }
   function whSec(k){ if(k==="buy") return WH_SEC[0]; var l=whSecs(); for(var i=0;i<l.length;i++) if(l[i].k===k) return l[i]; return l[0]||{k:"buy", name:"", groups:[]}; }
@@ -5371,14 +5372,17 @@ html.wh-on .toast{z-index:60}
   }
   function whSort(a,b){ var ra=WH_RANK[whNow(a).st]||0, rb=WH_RANK[whNow(b).st]||0; return ra!==rb ? ra-rb : String(a.sem).localeCompare(String(b.sem)); }
   /* the body for Outfit: every part takes the colour of its worst item */
+  /* a human figure, front view, about eight heads tall; the right side is the left one mirrored.
+     Drawn back to front: arms, torso and neck, pelvis, legs, feet, then the head and ears over them. */
+  var WH_MIR=' transform="translate(200 0) scale(-1 1)"';
   var WH_BODY=[
-    ["Head",'<circle cx="60" cy="22" r="13"/>'],
-    ["Ears",'<ellipse cx="45.5" cy="23" rx="2.6" ry="4.6"/><ellipse cx="74.5" cy="23" rx="2.6" ry="4.6"/>'],
-    ["Outer",'<path d="M36 46c-7 2-10 7-11 14l-4 40c-.5 4 5 5 6 1l7-36z"/><path d="M84 46c7 2 10 7 11 14l4 40c.5 4-5 5-6 1l-7-36z"/>'],
-    ["Torso",'<path d="M55.5 33h9v12h-9z"/><path d="M40 44h40c5 0 7 3 6 8l-4 46H38l-4-46c-1-5 1-8 6-8z"/>'],
-    ["Intimate",'<path d="M38 100h44l-2 20c-6 4-14 5-20 5s-14-1-20-5z"/>'],
-    ["Legs",'<path d="M41 124c5 3 11 4 17 4l-1 76h-12z"/><path d="M79 124c-5 3-11 4-17 4l1 76h12z"/>'],
-    ["Feet",'<path d="M45 208h12v6c0 3-2 4-5 4h-11c-3 0-3-4 0-5z"/><path d="M75 208H63v6c0 3 2 4 5 4h11c3 0 3-4 0-5z"/>']
+    ["Torso", '<path d="M91 48C91 57 90 62 87 66C80 70 72 72 64 75C65 86 64 96 63 104C64 120 64 134 66 148C68 162 72 174 74 186C75 190 75 194 75 198H125C125 194 125 190 126 186C128 174 132 162 134 148C136 134 136 120 137 104C136 96 135 86 136 75C128 72 120 70 113 66C110 62 109 57 109 48Z"/>'],
+    ["Intimate", '<path d="M75 198H125C128 208 131 220 132 232C123 241 111 248 100 254C89 248 77 241 68 232C69 220 72 208 75 198Z"/>'],
+    ["Legs", '<path d="M68 232C64 258 65 290 70 322C71 332 69 344 69 354C69 368 72 382 75 392C76 397 77 401 78 405H90C90 396 91 386 92 376C93 366 94 356 94 346C94 338 93 332 94 324C95 304 97 280 100 254C89 248 77 241 68 232Z"/>'+'<path d="M68 232C64 258 65 290 70 322C71 332 69 344 69 354C69 368 72 382 75 392C76 397 77 401 78 405H90C90 396 91 386 92 376C93 366 94 356 94 346C94 338 93 332 94 324C95 304 97 280 100 254C89 248 77 241 68 232Z"/>'.replace(/"\/>/g,'"'+WH_MIR+'/>')],
+    ["Feet", '<path d="M78 405H90C91 410 92 415 92 420C92 425 87 428 80 428C73 428 68 426 68 422C69 417 74 413 78 409Z"/>'+'<path d="M78 405H90C91 410 92 415 92 420C92 425 87 428 80 428C73 428 68 426 68 422C69 417 74 413 78 409Z"/>'.replace(/"\/>/g,'"'+WH_MIR+'/>')],
+    ["Outer", '<path d="M64 75C53 76 46 83 45 95C44 109 44 124 43 140C42 152 41 162 41 170C40 184 39 198 38 212C38 222 38 230 38 238C36 246 34 254 34 262C34 270 36 276 40 278C44 279 47 275 47 268C47 260 47 250 48 242C49 228 51 214 53 200C54 190 55 180 56 170C58 156 60 140 61 126C62 118 63 110 63 104C64 96 65 86 64 75Z"/>'+'<path d="M64 75C53 76 46 83 45 95C44 109 44 124 43 140C42 152 41 162 41 170C40 184 39 198 38 212C38 222 38 230 38 238C36 246 34 254 34 262C34 270 36 276 40 278C44 279 47 275 47 268C47 260 47 250 48 242C49 228 51 214 53 200C54 190 55 180 56 170C58 156 60 140 61 126C62 118 63 110 63 104C64 96 65 86 64 75Z"/>'.replace(/"\/>/g,'"'+WH_MIR+'/>')],
+    ["Head", '<path d="M100 5C88 5 80 15 80 29C80 40 84 50 90 55C93 57 96 58 100 58C104 58 107 57 110 55C116 50 120 40 120 29C120 15 112 5 100 5Z"/>'],
+    ["Ears", '<path d="M81 28C78 27 76 30 77 35C78 40 80 42 82 41Z"/>'+'<path d="M81 28C78 27 76 30 77 35C78 40 80 42 82 41Z"/>'.replace(/"\/>/g,'"'+WH_MIR+'/>')]
   ];
   function whBody(items){
     var svg='';
@@ -5389,7 +5393,7 @@ html.wh-on .toast{z-index:60}
       svg+='<g class="wh-z'+(d ? '' : ' unset')+(WH.zone===z[0] ? ' on' : '')+(WH.zone && WH.zone!==z[0] ? ' dim' : '')+'" data-zone="'+z[0]+'"'+(d ? ' style="--sc:'+d.rgb+'"' : '')+
         ' role="button" aria-label="'+z[0]+'">'+z[1]+'</g>';
     });
-    return '<div class="wh-card wh-fig"><svg viewBox="12 4 96 218" aria-label="Outfit">'+svg+'</svg></div>';
+    return '<div class="wh-card wh-fig"><svg viewBox="26 0 148 434" aria-label="Outfit">'+svg+'</svg></div>';
   }
   function whRender(){
     var host=document.getElementById("whBody"); if(!host) return;
