@@ -993,18 +993,58 @@ html.lkm .wh{overflow:hidden}
               <stop id="gs2" offset="64%" stop-color="#000000"></stop>
               <stop id="gs3" offset="100%" stop-color="#000000"></stop>
             </radialGradient>
+            <radialGradient id="fRing" cx="50%" cy="50%" r="50%">
+              <stop id="fr0" offset="0%" stop-color="#fff" stop-opacity=".95"></stop>
+              <stop offset="30%" stop-color="#fff" stop-opacity=".95"></stop>
+              <stop id="fr1" offset="42%" stop-color="#fff" stop-opacity=".95"></stop>
+              <stop id="fr2" offset="60%" stop-color="#fff" stop-opacity=".85"></stop>
+              <stop id="fr3" offset="80%" stop-color="#000" stop-opacity=".4"></stop>
+              <stop id="fr4" offset="100%" stop-color="#000" stop-opacity="0"></stop>
+            </radialGradient>
+            <radialGradient id="fHole" cx="50%" cy="50%" r="50%">
+              <stop offset="0%" stop-color="#000" stop-opacity="1"></stop>
+              <stop offset="74%" stop-color="#000" stop-opacity="1"></stop>
+              <stop offset="100%" stop-color="#000" stop-opacity="0"></stop>
+            </radialGradient>
+            <radialGradient id="fGlow" cx="50%" cy="50%" r="50%">
+              <stop id="fg0" offset="0%" stop-color="#fff" stop-opacity=".55"></stop>
+              <stop id="fg1" offset="18%" stop-color="#fff" stop-opacity=".4"></stop>
+              <stop id="fg2" offset="38%" stop-color="#fff" stop-opacity=".2"></stop>
+              <stop id="fg3" offset="58%" stop-color="#fff" stop-opacity=".09"></stop>
+              <stop id="fg4" offset="78%" stop-color="#fff" stop-opacity=".03"></stop>
+              <stop id="fg5" offset="100%" stop-color="#fff" stop-opacity="0"></stop>
+            </radialGradient>
+            <filter id="fZap" x="-30%" y="-30%" width="160%" height="160%">
+              <feGaussianBlur in="SourceGraphic" stdDeviation=".9" result="g"></feGaussianBlur>
+              <feMerge><feMergeNode in="g"></feMergeNode><feMergeNode in="g"></feMergeNode><feMergeNode in="SourceGraphic"></feMergeNode></feMerge>
+            </filter>
+            <filter id="fBurn" x="-55%" y="-55%" width="210%" height="210%" color-interpolation-filters="sRGB">
+              <feTurbulence type="fractalNoise" baseFrequency="0.17 0.1" numOctaves="4" seed="7" result="n"></feTurbulence>
+              <feDisplacementMap id="fDisp" in="SourceGraphic" in2="n" scale="7" xChannelSelector="R" yChannelSelector="G" result="d"></feDisplacementMap>
+              <feGaussianBlur id="fB1" in="d" stdDeviation="1.6" result="b1"></feGaussianBlur>
+              <feGaussianBlur id="fB2" in="d" stdDeviation="4.5" result="b2"></feGaussianBlur>
+              <feMerge><feMergeNode in="b2"></feMergeNode><feMergeNode in="b1"></feMergeNode><feMergeNode in="d"></feMergeNode></feMerge>
+            </filter>
             <filter id="eyeBlur" x="-80%" y="-160%" width="260%" height="420%">
               <feGaussianBlur stdDeviation="5.5"></feGaussianBlur>
             </filter>
           </defs>
           <g id="eyeMood">
             <ellipse id="eyeAura" rx="25" ry="23" filter="url(#eyeBlur)" opacity=".4"></ellipse>
-            <path id="eyeLid" d="" fill="#000"></path>
-            <g clip-path="url(#eyeClip)">
-              <g id="gaze">
-                <ellipse id="iris" cx="0" cy="0" rx="13" ry="14" fill="url(#irisGrad)"></ellipse>
-                <ellipse id="pupil" cx="0" cy="0" rx="3" ry="10" fill="#000"></ellipse>
-              </g>
+            <path id="eyeLid" d="" fill="none" display="none"></path>
+            <g id="fSun">
+              <g id="fScroll"><g id="fIris" filter="url(#fBurn)"><g id="fCounter">
+                <g id="fTongues"></g>
+                <path id="fRingC" d="" fill="url(#fRing)" fill-rule="evenodd"></path>
+                <path id="fRim1" d="" fill="none" stroke-width="3.6" stroke-linejoin="round" opacity=".9"></path>
+                <path id="fRim2" d="" fill="none" stroke="#fff" stroke-width="1.1" stroke-linejoin="round" opacity=".9"></path>
+                <g id="fLicks"></g>
+              </g></g></g>
+              <g id="fSparks"></g>
+            </g>
+            <g id="fBolts" filter="url(#fZap)"></g>
+            <g id="gaze">
+              <path id="pupil" d="" fill="url(#fHole)"></path>
             </g>
             </g>
         </g>
@@ -1279,7 +1319,7 @@ html.lkm .wh{overflow:hidden}
      Arurael's is wide with a round pupil; Xenlil's is hooded. */
   /* One eye, four tempers. The shape is shared; what differs is how each god
      uses it — how often it moves, how far, how hard, how often it meets you. */
-  var EYE_SHAPE={lid:"M-43 0 Q0 -37 43 0 Q0 37 -43 0 Z", iris:18, pr:[3.6,15]};
+  var EYE_SHAPE={lid:"", iris:27, pr:[12.4,12.4]};   /* no lid: the fire's reach, the black heart's radius */   /* no lid: the ring's radius, the dark core's radius */
   var BEHAV={
     arexia: {dwell:1.6, speed:0.80, jit:0.6, front:0.20, flick:0.06, sweep:0.16, hold:0.20, dil:0.8},
     xeron:  {dwell:0.45,speed:1.75, jit:1.7, front:0.04, flick:0.34, sweep:0.04, hold:0.04, dil:1.7},
@@ -1761,19 +1801,193 @@ html.lkm .wh{overflow:hidden}
     if(EYE.god===god) return;
     EYE.god=god;
     var e=EYE_SHAPE, hue=hex(god.hue), hot=hex(god.hot);
-    document.getElementById("eyeClipPath").setAttribute("d",e.lid);
-    var lid=document.getElementById("eyeLid");
-    lid.setAttribute("d",e.lid);
-    lid.setAttribute("stroke",hue);
-    lid.setAttribute("stroke-width","1.5");
-    lid.setAttribute("stroke-opacity",".55");
+    FI.P=FP[god.key]||FP.arexia;
+    fireIrisPaint(hue,hot);
     document.getElementById("gs1").setAttribute("stop-color",hot);
     document.getElementById("gs2").setAttribute("stop-color",shade(hue,.8));
     document.getElementById("gs3").setAttribute("stop-color",shade(hue,.3));
-    document.getElementById("eyeAura").setAttribute("fill",hue);
+    document.getElementById("eyeAura").setAttribute("fill","url(#fGlow)");   /* a soft falloff, not a blurred disc */
     EYE.pr=e.pr; EYE.iris=e.iris; EYE.b=BEHAV[god.key]||BEHAV.arexia;
   }
 
+  /* ---- the eye as a sun ----
+     No lid: a ring of fire around a dark round core, blazing like a small sun. The ring's body
+     is a radial glow (white-hot at the inner edge, the god's hot tint, then its hue fading out);
+     a corona of flames rises from it all round, bending upward as fire does; the whole is run
+     through moving noise (feTurbulence scrolling up through a displacement map, with bloom) so
+     the flames lick and curl. Sparks fly off.
+     Unpredictable: the strength wanders on a random walk, surges come at random, single flames
+     flare on their own, gusts of wind push the flames about.
+     Each god burns in its own temper (FP):
+       Xeron    Ishtar's fury: volatile, fast and jagged, sudden violent surges, gusts, a storm of sparks
+       Arurael  the scholar's lamp: calm and steady, long soft flames slowly turning, few sparks
+       Xenlil   the king: strong and ordered, a measured heartbeat pulse, little wind
+       Arexia   the cold judge: low and smouldering, slow; chills that dim it, then a rare sharp flare
+     Strength still follows the eye's mood: a sealed rite or a full day makes it flare, a lapse
+     burns it low. */
+  var FP={
+    xeron:  {vol:1.0, flick:1.55, tspd:1.45, surge:.55, surgeA:.5,  sharp:1, burst:2.2, burstA:1.0, gust:1.0, gustEvery:[.25,1.1], sparks:2.0, sv:1.5, len:1.12, rot:0,    pulse:0, chill:0,   glow:1.1, disp:1.3, scroll:15, bloom:1.1, zap:1.4, zapL:1.2},
+    arurael:{vol:.3,  flick:.7,  tspd:.75, surge:.07, surgeA:.18, sharp:0, burst:.3,  burstA:.45, gust:.25, gustEvery:[2,5],    sparks:.45, sv:.7, len:1.08, rot:.14,  pulse:0, chill:0,   glow:1.0, disp:.8,  scroll:6,  bloom:1.15, zap:.22, zapL:1.0},
+    xenlil: {vol:.22, flick:.9,  tspd:1.0, surge:.04, surgeA:.15, sharp:0, burst:.5,  burstA:.55, gust:.2,  gustEvery:[1.5,3.5], sparks:1.0, sv:1.0, len:1.1,  rot:0,    pulse:1, chill:0,   glow:1.05,disp:1.0, scroll:9,  bloom:1.0, zap:.45, zapL:1.1},
+    arexia: {vol:.45, flick:.55, tspd:.6,  surge:.06, surgeA:.6,  sharp:1, burst:.18, burstA:1.2, gust:.12, gustEvery:[3,6],    sparks:.4, sv:.45, len:.85, rot:-.05, pulse:0, chill:.12, glow:.8,  disp:.9,  scroll:4,  bloom:.8, zap:.18, zapL:.9}
+  };
+  var FI={n:56, nl:30, licks:[], lph:[], gx:0, gy:0, hx:0, hy:0, hvx:0, hvy:0, sq:0, sqTo:0, sqAt:0, inner:15, nodes:[], I:.85, P:null, ph:[], ang:[], sz:[], bu:[], sparks:[], hole:10,
+    bolts:[], flash:0, walk:0, surgeAt:-1, surgeEnd:-1, surgeA:0, chillEnd:-1, chill:0, gust:0, gustTo:0, gustAt:0, rot:0, rdir:1, sc:0, lastT:0};
+  function fiNoise(t,a,b){ return .5+.5*(.5*Math.sin(t*.37*b+a)+.3*Math.sin(t*.91*b+a*2.3)+.2*Math.sin(t*2.13*b+a*3.7)); }
+  function fireIrisPaint(hue,hot){
+    var box=document.getElementById("fTongues");
+    if(!FI.nodes.length){
+      for(var j=0;j<FI.n;j++){
+        FI.ph.push(Math.random()*6.283); FI.ang.push(j/FI.n*360+(Math.random()-.5)*7); FI.bu.push(0);
+        FI.sz.push(j%2 ? .45+Math.random()*.35 : .8+Math.random()*.45);   /* big and small flames, interleaved */
+        var two=[]; for(var l=0;l<3;l++){ var p=document.createElementNS(svgNS,"path"); box.appendChild(p); two.push(p); }
+        FI.nodes.push(two);
+      }
+      var lb=document.getElementById("fLicks");
+      for(var m=0;m<FI.nl;m++){ FI.lph.push(Math.random()*6.283); var lp=document.createElementNS(svgNS,"path"); lb.appendChild(lp); FI.licks.push(lp); }
+    }
+    FI.licks.forEach(function(lp,m){ lp.setAttribute("fill", m%3 ? hot : "#fff"); lp.setAttribute("opacity", m%3 ? ".7" : ".5"); });
+    FI.hue=hue; FI.hot=hot;
+    FI.nodes.forEach(function(two){ two[0].setAttribute("fill",hue); two[0].setAttribute("opacity",".72"); two[1].setAttribute("fill",hot); two[1].setAttribute("opacity",".8"); two[2].setAttribute("fill","#fff"); two[2].setAttribute("opacity",".45"); });
+    var aura=document.getElementById("eyeAura"); aura.setAttribute("fill","url(#fGlow)"); aura.removeAttribute("filter");
+    ["fg0","fg1","fg2","fg3","fg4","fg5"].forEach(function(id,i){ document.getElementById(id).setAttribute("stop-color", i<2 ? hot : hue); });
+    document.getElementById("fr0").setAttribute("stop-color",hot);
+    document.getElementById("fRim1").setAttribute("stroke",hot);
+    document.getElementById("fr1").setAttribute("stop-color",hot);
+    document.getElementById("fr2").setAttribute("stop-color",hue);
+    document.getElementById("fr3").setAttribute("stop-color",shade(hue,.6));
+    document.getElementById("fr4").setAttribute("stop-color",shade(hue,.3));
+    var P=FI.P||FP.arexia;
+    document.getElementById("fB1").setAttribute("stdDeviation",(1.6*P.bloom).toFixed(2));
+    document.getElementById("fB2").setAttribute("stdDeviation",(4.5*P.bloom).toFixed(2));
+  }
+  /* the black heart = the gaze: travels a little inside the fire, stretches along its movement and
+     settles as it stops, changes shape restlessly, opens and closes with mood; never a sliver.
+     The fire's inner edge (ring cut-out, white-hot rim, licks) is this same outline. */
+  function fireHole(dt,t){
+    var P=FI.P||FP.arexia, r0=FI.hole;
+    var lim=EYE.iris*.2, tx=FI.gx*.5, ty=FI.gy*.7, d=Math.sqrt(tx*tx+ty*ty);
+    if(d>lim){ tx*=lim/d; ty*=lim/d; }
+    var ox=FI.hx, oy=FI.hy; FI.hx=tx; FI.hy=ty;
+    var vx=(FI.hx-ox)/Math.max(dt,.001), vy=(FI.hy-oy)/Math.max(dt,.001);
+    FI.hvx+=(vx-FI.hvx)*Math.min(1,dt*10); FI.hvy+=(vy-FI.hvy)*Math.min(1,dt*10);
+    var sp=Math.sqrt(FI.hvx*FI.hvx+FI.hvy*FI.hvy), dir=sp>.5 ? Math.atan2(FI.hvy,FI.hvx) : (FI.hdir||0); FI.hdir=dir;
+    var st=Math.min(.3,sp*.012);
+    if(t>FI.sqAt){ FI.sqTo=(Math.random()*2-1)*.14*(.5+P.vol); FI.sqAt=t+.8+Math.random()*2.2; }
+    FI.sq+=(FI.sqTo-FI.sq)*Math.min(1,dt*2);
+    var ax=1+st+FI.sq, ay=1/(1+st*.7)-FI.sq*.6, k=Math.max(ax,ay)/Math.min(ax,ay);
+    if(k>1.35){ var c=Math.sqrt(1.35/k); if(ax>ay){ ax*=c; ay/=c; } else { ay*=c; ax/=c; } }
+    var N=28, pts=[], cs=Math.cos(dir), sn=Math.sin(dir);
+    for(var q=0;q<N;q++){ var th=q/N*6.2832, w=1+.05*Math.sin(3*th+t*1.7)+.035*Math.sin(5*th-t*2.3)+.02*Math.sin(7*th+t*3.1);
+      var lx=Math.cos(th)*r0*ax*w, ly=Math.sin(th)*r0*ay*w;
+      pts.push([FI.hx+lx*cs-ly*sn, FI.hy+lx*sn+ly*cs]); }
+    FI.hpts=pts;
+    var dd="M"+((pts[N-1][0]+pts[0][0])/2).toFixed(2)+" "+((pts[N-1][1]+pts[0][1])/2).toFixed(2);
+    for(var q2=0;q2<N;q2++){ var A=pts[q2], B=pts[(q2+1)%N]; dd+="Q"+A[0].toFixed(2)+" "+A[1].toFixed(2)+" "+((A[0]+B[0])/2).toFixed(2)+" "+((A[1]+B[1])/2).toFixed(2); }
+    FI.hd=dd+"Z";
+    document.getElementById("pupil").setAttribute("d",FI.hd);
+  }
+  function fireIrisStep(dt,t,puff){
+    if(!FI.nodes.length) return;
+    var P=FI.P||FP.arexia, R=EYE.iris, rnd=Math.random;
+    var want=Math.max(.42,Math.min(1.45,.35+.45*EYE.gl));
+    FI.I+=(want-FI.I)*Math.min(1,dt*2.2);
+    /* a random walk in strength: it never settles */
+    FI.walk+=(rnd()-.5)*dt*P.vol*3.2; FI.walk*=1-Math.min(1,dt*.7); FI.walk=Math.max(-.35,Math.min(.35,FI.walk));
+    /* surges at random moments; sharp tempers strike fast and fade slow */
+    if(t>FI.surgeEnd+.3 && rnd()<dt*P.surge){ FI.surgeAt=t; FI.surgeEnd=t+(P.sharp ? .45+rnd()*.5 : .9+rnd()*1.1); FI.surgeA=P.surgeA*(.6+rnd()*.8); }
+    var surge=0;
+    if(t<FI.surgeEnd){ var x=(t-FI.surgeAt)/(FI.surgeEnd-FI.surgeAt);
+      surge=FI.surgeA*(P.sharp ? (x<.15 ? x/.15 : Math.pow(1-(x-.15)/.85,2)) : Math.sin(Math.PI*x)); }
+    /* Arexia's chills: the fire draws in, cold, for a moment */
+    if(P.chill && t>FI.chillEnd && rnd()<dt*P.chill) FI.chillEnd=t+.7+rnd()*1.1;
+    FI.chill+=((t<FI.chillEnd ? -.32 : 0)-FI.chill)*Math.min(1,dt*3);
+    /* Xenlil's heartbeat: two measured beats, then rest */
+    var beat=0; if(P.pulse){ var q=(t%1.8)/1.8; beat=.16*Math.exp(-q*14)+.1*(q>.16 ? Math.exp(-(q-.16)*14) : 0); }
+    var breath=.04*Math.sin(t*.9)+.025*Math.sin(t*2.3+1.1);
+    var I=Math.max(.25,FI.I*(1+surge+FI.walk+FI.chill+beat+breath));
+    /* gusts of wind */
+    if(t>FI.gustAt){ FI.gustTo=(rnd()*2-1)*P.gust; FI.gustAt=t+P.gustEvery[0]+rnd()*(P.gustEvery[1]-P.gustEvery[0]); }
+    FI.gust+=(FI.gustTo-FI.gust)*Math.min(1,dt*(P.sharp ? 5 : 2.5));
+    /* Arurael's slow turning, now and then the other way */
+    if(P.rot){ if(rnd()<dt*.04) FI.rdir*=-1; FI.rot+=P.rot*FI.rdir*dt*(1+.5*Math.sin(t*.31)); }
+    /* single flames that flare on their own */
+    if(rnd()<dt*P.burst*1.7){ var bj=Math.floor(rnd()*FI.n), ba=P.burstA*1.3*(.5+rnd());
+      FI.bu[bj]=Math.max(FI.bu[bj],ba); FI.bu[(bj+1)%FI.n]=Math.max(FI.bu[(bj+1)%FI.n],ba*.45); FI.bu[(bj+FI.n-1)%FI.n]=Math.max(FI.bu[(bj+FI.n-1)%FI.n],ba*.45); }
+    /* the ring */
+    var inner=R*.56; FI.inner=inner;
+    var Ro=R*1.45*(.92+.12*I), hd=FI.hd||"";
+    var rc=document.getElementById("fRingC");                  /* a disc of fire with the black heart cut out of it */
+    rc.setAttribute("d","M"+Ro.toFixed(2)+" 0A"+Ro.toFixed(2)+" "+Ro.toFixed(2)+" 0 1 0 "+(-Ro).toFixed(2)+" 0A"+Ro.toFixed(2)+" "+Ro.toFixed(2)+" 0 1 0 "+Ro.toFixed(2)+" 0Z"+hd);
+    rc.setAttribute("opacity",Math.min(1,.6+.3*I).toFixed(3));
+    var r1=document.getElementById("fRim1"), r2=document.getElementById("fRim2");   /* white-hot along the heart's edge */
+    r1.setAttribute("d",hd); r1.setAttribute("stroke-width",(2.6+1.8*I).toFixed(2));
+    r2.setAttribute("d",hd); r2.setAttribute("stroke-width",(.7+.6*I).toFixed(2));
+    /* the corona */
+    var base=inner*1.25, rotD=FI.rot*57.2958, tt=t*P.tspd;
+    for(var j=0;j<FI.n;j++){
+      FI.bu[j]*=Math.exp(-dt*(P.sharp ? 3.2 : 1.8));
+      var ph=FI.ph[j], n=Math.pow(fiNoise(tt,ph,1.1+j*.03),1.3), ang=FI.ang[j]+rotD, th=ang*Math.PI/180, sz=FI.sz[j];
+      var flick=.8+(.19*Math.sin(tt*(4.1+j*.37)+ph)+.11*Math.sin(tt*(9.7+j*.23)+ph*2)+.07*Math.sin(tt*(17.3+j*.11)+ph*3))*P.flick+.16*(rnd()-.5)*P.flick;   /* wild: three rates and a ragged jitter */
+      var up=.72+.28*Math.cos(th);                              /* fire rises: longer on top, shorter beneath */
+      var h=R*(.32+1.15*n)*sz*up*I*flick*P.len*1.1*(1+FI.bu[j]), w=R*(.18+.18*n)*(.7+.3*sz)*(1+FI.bu[j]*.25);
+      var lean=-Math.sin(th)*h*.32+Math.sin(tt*1.3+ph)*R*.08*sz+(fiNoise(tt*2.2,ph+5,2)-.5)*h*.42+FI.gust*h*.6*Math.cos(th);
+      var tr="rotate("+ang.toFixed(1)+") translate(0,"+(-base*(.94+.1*(1-sz))).toFixed(2)+")", two=FI.nodes[j];
+      two[0].setAttribute("d",tongue(h,w,lean,tt,ph)); two[0].setAttribute("transform",tr);
+      two[1].setAttribute("d",tongue(h*.62,w*.6,lean*.7,tt*1.1,ph+1.4)); two[1].setAttribute("transform",tr);
+      two[2].setAttribute("d",tongue(h*.3,w*.32,lean*.4,tt*1.2,ph+2.8)); two[2].setAttribute("transform",tr);
+    }
+    /* fine licks of flame rising off the black heart's edge, quick and small */
+    var hp=FI.hpts||[], HN=hp.length;
+    for(var m=0;m<FI.nl && HN;m++){
+      var pt=hp[Math.floor(m/FI.nl*HN)%HN], lph=FI.lph[m];
+      var la=Math.atan2(pt[0]-FI.hx, -(pt[1]-FI.hy)), laD=la*57.2958;
+      var lh=R*(.14+.22*fiNoise(tt*1.7,lph,1.6))*(.6+.5*I)*(.85+.3*(rnd()-.5)*P.flick), lw=R*.1;
+      FI.licks[m].setAttribute("d",tongue(lh,lw,-Math.sin(la)*lh*.3,tt*1.6,lph));
+      FI.licks[m].setAttribute("transform","translate("+pt[0].toFixed(2)+","+pt[1].toFixed(2)+") rotate("+laD.toFixed(1)+")");
+    }
+    /* the noise scrolls up through the fire at the god's pace */
+    FI.sc-=dt*P.scroll*(.7+.6*I);
+    document.getElementById("fScroll").setAttribute("transform","translate("+(FI.gust*3).toFixed(2)+","+FI.sc.toFixed(2)+")");
+    document.getElementById("fCounter").setAttribute("transform","translate("+(-FI.gust*3).toFixed(2)+","+(-FI.sc).toFixed(2)+")");
+    document.getElementById("fDisp").setAttribute("scale",((6+5.5*I)*P.disp).toFixed(2));
+    /* lightning: now and then a jagged bolt cracks out of the white-hot edge of the heart */
+    if(HN && rnd()<dt*P.zap*(.45+.55*I)){
+      var sp0=hp[Math.floor(rnd()*HN)], ang0=Math.atan2(sp0[1]-FI.hy, sp0[0]-FI.hx)+(rnd()-.5)*.6;
+      var L=R*(.7+.9*rnd())*P.zapL*(.8+.3*I), segs=7+Math.floor(rnd()*4);
+      var walkBolt=function(x,y,a,len,n){                       /* zig-zag about a straight line, with a slow drift */
+        var pts=[[x,y]], ca=Math.cos(a), sa=Math.sin(a), drift=0;
+        for(var g=1;g<=n;g++){ drift+=(rnd()-.5)*len*.09; var off=g<n ? drift+(rnd()-.5)*len*.2 : drift, dd2=len*g/n;
+          pts.push([x+ca*dd2-sa*off, y+sa*dd2+ca*off]); }
+        return pts; };
+      var main=walkBolt(sp0[0],sp0[1],ang0,L,segs), arms=[];
+      var nb=rnd()<.7 ? 1+Math.floor(rnd()*2) : 0;
+      for(var bb=0;bb<nb;bb++){ var at=main[2+Math.floor(rnd()*(main.length-3))];
+        arms.push(walkBolt(at[0],at[1],ang0+(rnd()<.5?-1:1)*(.5+rnd()*.6),L*(.3+rnd()*.3),3+Math.floor(rnd()*3))); }
+      FI.bolts.push({main:main, arms:arms, age:0, life:.16+rnd()*.22, re:rnd()<.45});   /* some strike twice */
+      FI.flash=Math.min(1,FI.flash+.6);
+    }
+    FI.flash*=Math.exp(-dt*9);
+    var bh="", poly=function(pp){ var o="M"+pp[0][0].toFixed(2)+" "+pp[0][1].toFixed(2); for(var g=1;g<pp.length;g++) o+="L"+pp[g][0].toFixed(2)+" "+pp[g][1].toFixed(2); return o; };
+    for(var bi=FI.bolts.length-1;bi>=0;bi--){ var bo=FI.bolts[bi]; bo.age+=dt;
+      if(bo.age>=bo.life){ FI.bolts.splice(bi,1); continue; }
+      var x2=bo.age/bo.life, al=(1-x2)*(bo.re && x2>.35 && x2<.5 ? .25 : 1)*(.75+.25*rnd());
+      var dM=poly(bo.main), dA=bo.arms.map(poly).join("");
+      bh+='<path d="'+dM+dA+'" fill="none" stroke="'+FI.hot+'" stroke-width="2" stroke-linejoin="miter" stroke-linecap="round" opacity="'+(al*.7).toFixed(2)+'"/>'+
+          '<path d="'+dM+'" fill="none" stroke="#fff" stroke-width=".9" stroke-linejoin="miter" stroke-linecap="round" opacity="'+al.toFixed(2)+'"/>'+
+          (dA ? '<path d="'+dA+'" fill="none" stroke="#fff" stroke-width=".6" stroke-linecap="round" opacity="'+(al*.85).toFixed(2)+'"/>' : '');
+    }
+    document.getElementById("fBolts").innerHTML=bh;
+    /* sparks */
+    if(rnd()<dt*(3+5*I)*P.sparks){ var a=rnd()*6.2832, r0=inner*1.4, v=(6+rnd()*10)*P.sv;
+      FI.sparks.push({x:Math.cos(a)*r0, y:Math.sin(a)*r0, vx:Math.cos(a)*v+FI.gust*6, vy:Math.sin(a)*v-8*P.sv, age:0, life:(.6+rnd()*.9)/Math.sqrt(P.sv), r:.35+rnd()*.6}); }
+    var html="";
+    for(var k=FI.sparks.length-1;k>=0;k--){ var sp=FI.sparks[k]; sp.age+=dt;
+      if(sp.age>=sp.life){ FI.sparks.splice(k,1); continue; }
+      sp.vy-=10*P.sv*dt; sp.vx+=FI.gust*dt*8; sp.x+=sp.vx*dt; sp.y+=sp.vy*dt; var f=1-sp.age/sp.life;
+      html+='<circle cx="'+sp.x.toFixed(2)+'" cy="'+sp.y.toFixed(2)+'" r="'+(sp.r*f+.15).toFixed(2)+'" fill="'+(f>.5?FI.hot:FI.hue)+'" opacity="'+(f*.9).toFixed(2)+'"/>'; }
+    document.getElementById("fSparks").innerHTML=html;
+  }
   function eyeStep(dt,t,puff){
     var m=mood(), b=EYE.b||BEHAV.arexia;
     if(b.rangeM===undefined) b.rangeM=b.dil>1.3?1.2:(b.dil<0.75?0.85:1);
@@ -1812,26 +2026,22 @@ html.lkm .wh{overflow:hidden}
     EYE.x+=(EYE.tx-EYE.x)*k; EYE.y+=(EYE.ty-EYE.y)*k;
     var jx=(Math.sin(t*2.7)*.45+Math.sin(t*6.1)*.25+Math.sin(t*11.3)*.12)*b.jit;
     var jy=(Math.sin(t*3.9+1)*.3+Math.sin(t*8.7)*.12)*b.jit;
-    document.getElementById("gaze").setAttribute("transform",
-      "translate("+(EYE.x+jx).toFixed(2)+","+(EYE.y+jy).toFixed(2)+")");
-    document.getElementById("eyeMood").setAttribute("transform",
-      "scale("+(1+(EYE.ir-1)*.18).toFixed(3)+","+EYE.sq.toFixed(3)+")");
+    /* the fire never moves; the dark core inside it does the looking (see fireHole) */
+    FI.gx=EYE.x+jx; FI.gy=EYE.y+jy;
+    document.getElementById("eyeMood").removeAttribute("transform");
 
     if(EYE.pr){
       var dil=1+(.12*Math.sin(t*1.9)+.07*Math.sin(t*4.3+2)+.04*(Math.random()-.5))*b.dil;
-      var pu=document.getElementById("pupil");
-      pu.setAttribute("ry",(EYE.pr[1]*dil).toFixed(2));
-      pu.setAttribute("rx",(EYE.pr[0]*(2-dil)*EYE.pup).toFixed(2));
-      var ir=document.getElementById("iris");
-      ir.setAttribute("rx",(EYE.iris*EYE.ir).toFixed(2));
-      ir.setAttribute("ry",(EYE.iris*1.1*EYE.ir).toFixed(2));
+      FI.hole=EYE.pr[0]*dil*(.8+.2*EYE.pup);
+      fireHole(dt,t);
+      fireIrisStep(dt,t,puff);
     }
     var aura=document.getElementById("eyeAura");
     aura.setAttribute("opacity",Math.min(.85,(.3+.3*puff)*EYE.gl).toFixed(3));
-    aura.setAttribute("rx",((24+4*puff)*EYE.ir).toFixed(1));
-    aura.setAttribute("ry",((22+3*puff)*EYE.ir).toFixed(1));
-    aura.setAttribute("cx",(EYE.x*.6).toFixed(2));
-    aura.setAttribute("cy",(EYE.y*.6).toFixed(2));
+    aura.setAttribute("opacity",Math.min(1,(.55+.3*puff)*(.55+.45*FI.I)*((FI.P&&FI.P.glow)||1)+FI.flash*.45).toFixed(3));
+    aura.setAttribute("rx",((52+3*puff)*(.82+.18*FI.I)*(1+FI.walk*.3)).toFixed(1));
+    aura.setAttribute("ry",((52+3*puff)*(.82+.18*FI.I)*(1+FI.walk*.3)).toFixed(1));
+    aura.setAttribute("cx","0"); aura.setAttribute("cy","0");
   }
 
   function placeFlame(god,i){
