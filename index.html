@@ -797,6 +797,8 @@ html.wh-on .toast{z-index:60}
 .we-num input{font-family:var(--mono)}
 /* sleep: two times, one night */
 .slp{display:grid;grid-template-columns:1fr 1fr minmax(76px,auto);gap:8px;align-items:stretch;padding-bottom:10px;margin-bottom:2px;border-bottom:1px solid var(--line-2)}
+.slp-b.on{border-color:color-mix(in srgb,var(--hue) 70%,var(--line));color:var(--ink)}
+.slp-b.on span{color:var(--ink-2)}
 .slp-b{display:flex;flex-direction:column;align-items:flex-start;justify-content:center;gap:3px;min-width:0;padding:8px 11px;border:1px solid var(--line);border-radius:var(--r-s);
   background:transparent;color:var(--ink-3);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .slp-b span{font-size:11.5px;color:var(--ink-3)}
@@ -806,9 +808,34 @@ html.wh-on .toast{z-index:60}
 .slp-r{--sq:107,103,96;display:flex;flex-direction:column;align-items:flex-end;justify-content:center;gap:3px;min-width:0}
 .slp-r b{font-family:var(--mono);font-size:17px;font-weight:500;color:rgb(var(--sq));line-height:1.1;white-space:nowrap}
 .slp-r span{font-family:var(--mono);font-size:11px;color:var(--ink-3);white-space:nowrap}
-.slp-r i{font-style:normal;font-size:11px;color:var(--ink-3)}
-.slp-r i[hidden]{display:none}
-#slpIn{position:absolute;width:1px;height:1px;opacity:0;pointer-events:none;border:0;padding:0}
+.slp-list{grid-column:1/-1;display:flex;flex-direction:column}
+.slp-list:empty{display:none}
+.slp-s{display:flex;align-items:center;gap:6px;min-height:34px;border-top:1px solid var(--line-2)}
+.slp-s:first-child{border-top:0}
+.slp-s button[data-s]{font:inherit;font-family:var(--mono);font-size:13.5px;color:var(--ink);background:transparent;border:0;padding:6px 4px;border-radius:var(--r-s);cursor:pointer}
+.slp-s button[data-s]:hover{background:var(--panel-2)}
+.slp-s i{font-style:normal;color:var(--ink-3);font-size:12px}
+.slp-s b{margin-left:auto;font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--ink-2)}
+.slp-x{width:28px;height:28px;border:0;background:transparent;color:var(--ink-3);font-size:16px;line-height:1;border-radius:var(--r-s);cursor:pointer;padding:0}
+.slp-x:hover{color:var(--xeron)}
+#slpEd{z-index:45}
+.se-clock{display:flex;align-items:center;gap:10px;margin:22px 0 6px}
+.se-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:6px}
+.se-col button{width:100%;height:44px;border:1px solid var(--line);border-radius:var(--r-s);background:transparent;color:var(--ink-2);display:grid;place-items:center;cursor:pointer;padding:0;-webkit-tap-highlight-color:transparent}
+.se-col button:hover{border-color:var(--ink-3);color:var(--ink)}
+.se-col button svg{width:18px;height:18px}
+.se-col input{width:100%;height:76px;box-sizing:border-box;border:1px solid var(--line);border-radius:var(--r);background:var(--well);color:var(--ink);font-family:var(--mono);font-size:40px;font-weight:500;text-align:center;outline:none;padding:0}
+.se-col input:focus{border-color:var(--hue,var(--ink-3))}
+.se-sep{flex:0 0 auto;font-family:var(--mono);font-size:36px;color:var(--ink-3);line-height:1;margin-top:-4px}
+.se-info{text-align:center;font-family:var(--mono);font-size:12.5px;color:var(--ink-3);margin-top:10px}
+.se-info[hidden]{display:none}
+/* an open sheet, page or menu owns the screen: the page under it doesn't scroll */
+html{scrollbar-gutter:stable}
+html.lk, html.lk body{overflow:hidden}
+html.lkm .wh{overflow:hidden}
+.modal,.rite-end{overscroll-behavior:contain}
+.modal{touch-action:none}           /* a sheet that scrolls (.tall) is its own scroller and keeps its pan */
+.modal .sheet.tall{overscroll-behavior:contain}
 </style>
 </head>
 <body>
@@ -894,6 +921,14 @@ html.wh-on .toast{z-index:60}
   </div>
 </div>
 
+<div class="modal" id="slpEd" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="seT" style="--hue:var(--c-care)">
+    <div class="ge-top"><span class="we-ey" id="seT">To bed</span><button type="button" class="ge-x" id="seX" aria-label="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div class="se-clock"><div class="se-col"><button type="button" data-d="h+" aria-label="Hour up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><input id="seH" type="text" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Hour"><button type="button" data-d="h-" aria-label="Hour down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><span class="se-sep">:</span><div class="se-col"><button type="button" data-d="m+" aria-label="Minutes up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><input id="seM" type="text" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Minutes"><button type="button" data-d="m-" aria-label="Minutes down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+    <p class="se-info" id="seInfo"></p>
+    <div class="ge-btns" id="seBtns"></div>
+  </div>
+</div>
 <div class="wrap">
   <header>
     <div class="brand">
@@ -1069,8 +1104,8 @@ html.wh-on .toast{z-index:60}
         <div class="slp" id="slp">
           <button type="button" class="slp-b" id="slpBed"><span>To bed</span><b id="slpBedT">—</b></button>
           <button type="button" class="slp-b" id="slpWake"><span>Awake</span><b id="slpWakeT">—</b></button>
-          <div class="slp-r"><i id="slpCap" hidden>Last night</i><b id="slpHrs">—</b><span id="slpAvg"></span></div>
-          <input type="time" id="slpIn" tabindex="-1" aria-hidden="true">
+          <div class="slp-r"><b id="slpHrs">—</b><span id="slpAvg"></span></div>
+          <div class="slp-list" id="slpList"></div>
         </div>
       </div>
       <div class="card" id="hcCard" style="--hue:var(--c-health)">
@@ -2640,23 +2675,23 @@ html.wh-on .toast{z-index:60}
       "{s0} days of discipline are still in you. Use them tomorrow."]},
 
     {id:"fall_night", tone:"advice", when:function(f,x){ return f.D===1 && x.nightFall; }, lines:[
-      "The breach came in the small hours, long past 23:30. That's his ground; don't be awake on it.",
-      "He found you after midnight. The late hours are where he hunts. Be asleep when he comes.",
-      "A fall in the dead hours. Not weakness of will; wrong place, wrong hour. Bed on time.",
-      "Past midnight, awake, and he took the gate. The fix isn't more will; it's an earlier night.",
-      "The small hours gave him the plateau. Give him nothing tonight: lights out at 23:30.",
-      "You stayed up past the golden hour, and he was waiting there. Close that door first.",
+      "The breach came in the small hours. That's his ground; hold it bound.",
+      "He found you after midnight. The late hours are where he hunts. Be ready for him.",
+      "A fall in the dead hours. Not weakness of will; a tired hour. Bind the night windows.",
+      "Past midnight, and he took the gate. The fix isn't more will; it's a rested body.",
+      "The small hours gave him the plateau. Next time, meet them bound.",
+      "You were worn thin in his hours, and he was waiting there. Close that door first.",
       "Breaches love the hours after midnight. Starve him of them.",
-      "He didn't beat you in the day. He beat you awake at night. Sleep is a wall."]},
+      "He didn't beat you in the day. He beat you tired at night. Enough sleep is a wall."]},
 
     {id:"fall_tired", tone:"advice", when:function(f,x){ return f.D===1 && x.tired; }, lines:[
       "You fought on a short night, and the Abyss saw it. Sleep is a wall too; man it with Xenlil.",
       "About {hrs} hours of sleep, then a breach. I've seen this a thousand times. Fix the night first.",
       "A tired defender is an open gate. Give Xenlil the night, and I'll hold the rest.",
-      "A short night and a fall. I won't call that coincidence. Bed at 23:30, no arguments.",
+      "A short night and a fall. I won't call that coincidence. Eight hours tonight, no arguments.",
       "Exhaustion is Aeshma's best ally. Take it from him: rest.",
       "The flame flickers when you're worn down. Feed it with sleep.",
-      "I'd rather lose an hour of the night than another sister. Go to bed.",
+      "I'd rather you sleep the full night than lose another sister.",
       "Tired eyes miss the breach. Rest, then stand watch."]},
 
     {id:"fall_idle", tone:"criticism", when:function(f,x){ return f.D===1 && x.idle; }, lines:[
@@ -2722,17 +2757,17 @@ html.wh-on .toast{z-index:60}
     {id:"night_watch", tone:"quiet", bare:true, when:function(f,x){ return f.ctx.phase==="night" && f.D===0 && f.T===0; }, lines:[
       "Night watch. These are his hours; the gate stays shut.",
       "{time}. Desire is loudest in the dark. Stay on the wall.",
-      "Past midnight. Sleep is the best wall I know.",
-      "The dead hours. Bind {rune} and go to sleep.",
-      "Nobody wins anything at this hour. Rest.",
+      "Past midnight. Awake or asleep, the wall holds only if you hold it.",
+      "The dead hours. Bind {rune}; he walks now.",
+      "Nobody wins anything at this hour. Keep it quiet.",
       "Night. The daughters keep watch; you keep still.",
-      "Aeshma walks at night. Don't meet him awake.",
-      "It's late, and late is where breaches happen. Bed."]},
+      "Aeshma walks at night. Meet him bound.",
+      "It's late, and late is where breaches happen. Stay bound."]},
 
     {id:"last_window", tone:"order", when:function(f,x){ return x.q===7 && !f.bound[7] && f.min>=21*60; }, lines:[
       "Last window of the day: {rune}. Close the day bound.",
       "One window left. Make it count.",
-      "{rune}, the last one tonight. Bind him and sleep.",
+      "{rune}, the last one tonight. Bind him and close the day.",
       "The final binding before midnight. Don't skip it.",
       "Last chance today. Start {rune} before {startBy}.",
       "End the day with him in chains.",
@@ -2830,14 +2865,14 @@ html.wh-on .toast{z-index:60}
       "Recovery is a victory too. Today, you won it."]},
 
     {id:"clean_tired", tone:"advice", when:function(f,x){ return x.tired && f.min>=12*60; }, lines:[
-      "Clean, on about {hrs} hours of sleep. He loves a tired evening; sleep before he comes.",
+      "Clean, on about {hrs} hours of sleep. He loves a tired evening; pay the night back in full.",
       "You held on a short night. Don't make me watch you try that twice.",
       "Give Xenlil the night. One rested sister is worth ten tired ones.",
-      "Clean, but running low. A short night makes a thin wall by evening. Rest early.",
+      "Clean, but running low. A short night makes a thin wall by evening. Sleep it back tonight.",
       "You held on {hrs} hours. Impressive. Now sleep a full night.",
       "A tired guard still held. Now let her rest.",
       "Sleep is the wall Aeshma can't climb. Build it tonight.",
-      "Clean today on a short night. Tired evenings end badly; go to bed on time."]},
+      "Clean today on a short night. Tired evenings end badly; give the night its eight hours."]},
 
     {id:"clean_busy", tone:"praise", when:function(f,x){ return x.busy && f.min>=15*60; }, lines:[
       "Full hands, clean wall. Desire turned into work, exactly right.",
@@ -3033,7 +3068,7 @@ html.wh-on .toast{z-index:60}
       run: full ? f.run0+1 : 0,                               /* full days in a row, today included */
       study: f.E>=2 && f.S>=1 && f.L>=1,                      /* every block sealed */
       tired: !!f.sl && f.sl.tired,                            /* Xenlil: a short night, from the record */
-      lateStart: !!f.sl && (f.sl.kind==="slept_in" || f.sl.kind==="shifted"),  /* the day began after the golden hour */
+      lateStart: !!f.sl && f.sl.kind==="long",                 /* more than nine hours slept: the day is shorter */
       fell: f.D>0                                             /* Xeron: a fall today */
     };
   }
@@ -3050,14 +3085,14 @@ html.wh-on .toast{z-index:60}
       "Prepare the question tonight; answer it from {start}."]},
 
     {id:"night_study", tone:"advice", bare:true, when:function(f){ return f.ctx.phase==="night" && !!f.running; }, lines:[
-      "Studying at {time}? Admirable, and unwise. Finish, then sleep.",
-      "A block past midnight. Make it the last one.",
-      "Curiosity at night is still curiosity. Keep it short.",
-      "I see the lamp lit at {time}. Finish, then rest.",
-      "Late work counts for tomorrow's record. Sleep soon after.",
+      "Studying at {time}? Admirable. The night still owes you eight hours.",
+      "A block past midnight. It counts the same.",
+      "Curiosity at night is still curiosity.",
+      "I see the lamp lit at {time}. Finish well.",
+      "Late work counts for the record. The sleep after it counts too.",
       "The night shift. Focus, then close the books.",
-      "Water runs clearer by day. Wrap this up.",
-      "One block, then bed."]},
+      "Water runs clear at any hour. Keep it steady.",
+      "One block at a time."]},
 
     {id:"running", tone:"focus", when:function(f){ return !!f.running; }, lines:[
       "{div} is under way. Stay with it until the water settles.",
@@ -3070,13 +3105,13 @@ html.wh-on .toast{z-index:60}
       "{div} is the only question right now."]},
 
     {id:"night", tone:"quiet", bare:true, when:function(f){ return f.ctx.phase==="night"; }, lines:[
-      "It's {time}. Even knowledge needs sleep to settle.",
-      "Past midnight. The mind files what it learned only while you sleep.",
-      "Night. Close the books; the water needs to settle.",
-      "The Ahtuxasai rest at this hour. So should you.",
-      "Late questions keep. Sleep, and ask them in daylight.",
-      "Night. Nothing learned now will stay; rest.",
-      "The Eye sees you awake. Sleep is part of the work.",
+      "It's {time}. Knowledge settles in sleep, whenever it comes.",
+      "Past midnight. The mind files what it learned while you sleep; give it the full hours.",
+      "Night. The water settles in its own time.",
+      "The Ahtuxasai keep the night. Late or early, the record counts blocks.",
+      "Late questions keep for daylight.",
+      "Night. What is learned is filed in sleep; give it eight hours.",
+      "The Eye sees you awake. Sleep is part of the work; its length, not its hour.",
       "Dark hours. Let the day's knowledge sink in."]},
 
     {id:"run_15", tone:"inspiration", when:function(f,x){ return x.run>=15 && x.run%15===0; }, lines:[
@@ -3150,9 +3185,9 @@ html.wh-on .toast{z-index:60}
       "Tired today, and the work waited. Tomorrow, rested, we try again."]},
 
     {id:"late_start", tone:"understanding", when:function(f,x){ return x.lateStart && !x.full && x.score<40 && f.min>=10*60 && f.min<16*60 && !f.running; }, lines:[
-      "The day began late; the hours are fewer, not gone. Still owed: {left}. Start now.",
-      "A late start is a scheduling fact, not a verdict. Put the first block in the next hour.",
-      "You slept past the golden hour. Rested, at least. Spend that on {left}.",
+      "A long night; the hours are fewer, not gone. Still owed: {left}. Start now.",
+      "Oversleeping is a scheduling fact, not a verdict. Put the first block in the next hour.",
+      "You slept past what the body needs. Rested, at least. Spend that on {left}.",
       "Fewer hours today. Then choose the hardest thing first: {left}.",
       "The morning went to sleep. The afternoon doesn't have to go anywhere.",
       "A late morning changes the plan, not the duty. Begin.",
@@ -3396,7 +3431,7 @@ html.wh-on .toast{z-index:60}
        slept, woke   minutes from today's midnight (slept is negative before midnight), or null
        hours         estimated sleep, or null when the record can't tell */
   function sleepRead(m){
-    var Nn=slpFor(dayKey()); if(Nn && Nn.hrs!=null) return sleepReadN(m,Nn);
+    if(dayKey()>=SLEEP_SINCE) return sleepReadN(m,slpFor(dayKey()));   /* sleep times kept: hours only, never the clock */
     var today=dayKey(), yr=past(keyAdd(today,-1)), td=state.day||{}, h=td.habits||{};
     var bedH=HABITS.filter(function(x){ return x.k==="bed"; })[0], wakeH=HABITS.filter(function(x){ return x.k==="wake"; })[0];
     var bedAt=bedH.at-1440, wakeBy=habCloses(wakeH), yLog=(yr && yr.log)||[], tLog=td.log||[];
@@ -3617,7 +3652,7 @@ html.wh-on .toast{z-index:60}
       "{time}. The first rite of the day belongs to me. Observe it.",
       "Night. {rune} waits until 03:00.",
       "The first rite is the coldest. Observe it.",
-      "In the dark, {rune}. Then sleep.",
+      "In the dark, {rune}. Observe it.",
       "The day begins in the Underworld. Seal {rune}.",
       "{rune} is open. The night is listening."]},
 
@@ -3824,7 +3859,6 @@ html.wh-on .toast{z-index:60}
 
   function xenlilRead(f){
     var m=f.min, lapses=[], soft=[];                         /* what has slipped past its hour */
-    if(m>9*60 && !f.wake) soft.push("wake");                 /* the golden hours: rhythm, not slackness */
     if(f.gymDue && !f.gym && m>=20*60) lapses.push("gym");
     if(!f.core && m>=21*60) lapses.push("core");
     if(f.water<12 && m>=20*60) lapses.push("water");
@@ -3834,7 +3868,7 @@ html.wh-on .toast{z-index:60}
     if(f.d3Due && !f.d3 && m>=20*60) lapses.push("d3");
     if(f.maintName && !f.maint && m>=20*60) lapses.push("maint");
     if(!f.skin && m>=22*60) lapses.push("skin");
-    if(!f.bed && m>23*60+30) soft.push("bed");
+    if(f.sleepQ!=null && f.sleepQ<0.75 && m>=12*60) soft.push("sleep");   /* the night's hours, far from eight */
     var supp=[]; if(!f.mv) supp.push("Multivitamin & Omega 3"); if(!f.cre) supp.push("Creatine & whey"); if(!f.fiber) supp.push("Fiber"); if(f.d3Due && !f.d3) supp.push("D3");
     var score=xlScore(f), kingly=score>=90;
     return {
@@ -3867,15 +3901,15 @@ html.wh-on .toast{z-index:60}
       "Core running. Finish it without a single shortcut.",
       "Stay in it. Strength is discipline, repeated."]},
 
-    {id:"night", tone:"order", bare:true, when:function(f){ return f.ctx.phase==="night"; }, lines:[
-      "Past midnight. The law says sleep; obey it.",
-      "{time}. The Fedaykin are asleep. Join them.",
+    {id:"night", tone:"quiet", bare:true, when:function(f){ return f.ctx.phase==="night"; }, lines:[
+      "Past midnight. The law counts hours of sleep, not the clock.",
+      "{time}. Whenever the night starts, give it eight hours.",
       "Night. Tomorrow's order is decided by tonight's sleep.",
-      "The realm sleeps. Its king insists you do too.",
-      "Nothing good is built at {time}. Bed.",
-      "Night is for rest. The day will need you whole.",
-      "Sleep now, and rise at eight.",
-      "The wind has stilled. Lie down."]},
+      "The realm is quiet at {time}. The law asks only for eight hours, whenever they begin.",
+      "{time}. When you lie down, log it; the hours are what I judge.",
+      "Night. The day will need you whole: eight hours, at whatever hour.",
+      "Late or early, eight hours is the whole of the law.",
+      "The wind has stilled over Ugarit."]},
 
     {id:"run_18", tone:"inspiration", when:function(f,x){ return x.run>=18 && x.run%18===0; }, lines:[
       "{r} kingly days. Eighteen stars in Taurus, and every one is yours.",
@@ -3914,7 +3948,7 @@ html.wh-on .toast{z-index:60}
       "Ninety and above. That's a ruler's day.",
       "Order held. Finish tomorrow the same way.",
       "A good day under the law. Tighten the last details.",
-      "The realm is in order. Sleep on time to keep it.",
+      "The realm is in order. Sleep the full eight to keep it.",
       "Kingly work. Nearly everything kept."]},
 
     {id:"gym_missed_busy", tone:"understanding", when:function(f,x){ return x.gymMissed && x.busy; }, lines:[
@@ -3957,15 +3991,12 @@ html.wh-on .toast{z-index:60}
       "That's the Golden Path: one fall must not spread. Hold the line in my realm.",
       "Desire won one battle today. Win yours. Train."]},
 
-    {id:"bed_window", tone:"order", when:function(f){ return !f.bed && f.min>=22*60+30 && f.min<=23*60+30; }, lines:[
-      "The hour to bed is open. Close the day before 23:30.",
-      "22:30. The law of sleep begins now.",
-      "Go to bed. Tomorrow's order starts tonight.",
-      "Bed by 23:30. No negotiation.",
-      "The wind has dropped. So should you.",
-      "Sleep is a law, not a suggestion. The hour is open.",
-      "End the day now, and tomorrow begins strong.",
-      "The Fedaykin sleep on command. So do you."]},
+    {id:"bed_window", tone:"advice", when:function(f){ var n=slpFor(dayKey()); return f.min>=21*60 && !slpOpen() && !!n && n.hrs!=null && n.hrs<7; }, lines:[
+      "Last night gave {lh}. Tonight, whenever it starts, make it eight.",
+      "{lh} last night. The debt is paid in hours; tonight, the full eight.",
+      "A short night behind you ({lh}). The next one is the correction.",
+      "Tomorrow's order is built tonight: eight hours, at your hour.",
+      "Sleep is counted in hours. Last night's count was {lh}."]},
 
     {id:"slack", tone:"criticism", when:function(f,x){ return x.n>=3; }, lines:[
       "{n} things slipped today. Slackness spreads; uproot it now.",
@@ -3977,85 +4008,38 @@ html.wh-on .toast{z-index:60}
       "Order slipped {n} times. Not a collapse, but close.",
       "{n} things undone. Courage now: finish what's left."]},
 
-    {id:"dawn", tone:"quiet", bare:true, when:function(f){ return f.min>=5*60 && f.min<8*60 && !f.wake; }, lines:[
-      "Dawn. The waking hour opens at eight.",
+    {id:"dawn", tone:"quiet", bare:true, when:function(f){ var n=slpFor(dayKey()); return f.min>=5*60 && f.min<8*60 && !(n && n.e && n.e.wake); }, lines:[
+      "Dawn. If the night isn't eight hours yet, it can be.",
       "Early. Rest a little longer, or rise and begin.",
       "First light. Prepare the day before it starts.",
-      "Dawn over Ugarit. Eight o'clock is the law.",
+      "Dawn over Ugarit. The night counts in hours; count yours.",
       "Early hours. Water first, when you rise.",
-      "The day is coming. Be ready at eight.",
-      "Before eight. The realm is quiet.",
+      "Before the day. The realm is quiet.",
       "Dawn. Plan the day; then execute it."]},
 
-    {id:"wake_window", tone:"order", when:function(f){ return f.min>=8*60 && f.min<=9*60 && !f.wake; }, lines:[
-      "The waking hour is open until 09:00. Rise and mark it.",
-      "Eight o'clock. Up.",
-      "Awake? Then prove it: tick it before nine.",
-      "The morning law: rise by nine.",
+    {id:"wake_window", tone:"order", when:function(f){ var o=slpOpen(); return !!o && f.min>=5*60 && f.min<12*60 && Date.now()-o.bed>=(8+SLP_GIVE)*3600000; }, lines:[
+      "Eight hours are in. Rise, and log it.",
+      "{inb} in bed. The night is paid; up.",
+      "The law's eight hours are done. Up, water, move.",
+      "Enough sleep. More is only lost day. Rise.",
       "Rise. The Fedaykin are already in formation.",
-      "The waking window is open. Don't let it close on you.",
-      "Up, water, move.",
-      "Get up. The day doesn't wait."]},
+      "Today: {gym}. The night has done its part."]},
 
     {id:"short_night", tone:"advice", when:function(f,x){ return x.sl.tired && f.min>=5*60 && f.min<14*60; }, lines:[
-      "About {hrs} hours of sleep, by the record. That's the one sleep number that matters. Tonight, a full night.",
-      "Down after {slept}, up by {woke}: a short night. Water early, and bed by 23:30 without bargaining.",
+      "{lh} of sleep. The one sleep number that matters is eight. Tonight, a full night.",
+      "A short night: {lh}. Water early, and eight hours tonight without bargaining.",
       "A short night. Not a sin, a debt. Pay it tonight.",
-      "{hrs} hours. The body will collect. Keep today simple and sleep on time.",
-      "Short sleep. Don't add heavy decisions to it; add water and an early night.",
+      "{lh}. The body will collect. Keep today simple and sleep the full eight.",
+      "Short sleep. Don't add heavy decisions to it; add water and a full night.",
       "The night was cut short. Today, order the essentials; tonight, repay the night.",
-      "Less than six hours. I don't punish it; I correct it. Bed at 23:30.",
+      "Under seven hours. I don't punish it; I correct it. Eight tonight.",
       "A thin night. Train if it's a gym day, but sleep is tonight's first law."]},
 
-    {id:"wake_unmarked", tone:"advice", when:function(f,x){ return x.sl.wakeMarkMissed && f.min>9*60 && f.min<13*60; }, lines:[
-      "The record has you up at {woke}. The hour was kept; only the mark was missed. Mark it in time tomorrow.",
-      "Up by {woke}, and Awake unmarked. The law counts marks. Tick it inside the hour.",
-      "You rose on time and forgot to say so. A small slip; the realm still logs it as one.",
-      "{woke}, by the record. Good rising. Bad bookkeeping. Fix the second.",
-      "On time, unmarked. Next time, the first tick of the day is Awake.",
-      "You kept the hour and lost the mark. Keep both tomorrow.",
-      "The waking was right; the record is wrong. Mark it before nine.",
-      "Up early enough. Let the record say so tomorrow."]},
-
-    {id:"night_shifted", tone:"advice", when:function(f,x){ return x.sl.kind==="shifted" && f.min>9*60 && f.min<13*60; }, lines:[
-      "Late to bed, late to rise: one cause, not two. Hold 23:30 tonight and 08:00 keeps itself.",
-      "The whole night moved later{lateby}. You slept; just not in the golden hours. Pull it back tonight.",
-      "Not a lost night, a shifted one. Shift it back: lights out by 23:30.",
-      "You missed both golden hours, but you slept. Fix the evening; the morning follows.",
-      "The night ran late, so the morning did. That's rhythm, not slackness. Reset it tonight.",
-      "Sleep came after the golden hour, and waking with it. Tonight, meet 23:30.",
-      "A late night makes a late morning. Win the evening and the dawn is yours.",
-      "The rhythm drifted. One early night puts it back."]},
-
-    {id:"woke_late", tone:"advice", when:function(f,x){ return !f.wake && f.min>9*60 && f.min<12*60; }, lines:[
-      "The golden hour passed unmarked. Rested, at least. Now spend it.",
-      "Up after the waking hour. The day isn't late; only its start was. Begin.",
-      "You missed the hour, not the day. Don't let the rest follow.",
-      "A late start. You slept; good. Sleep earlier tonight and rise on time tomorrow.",
-      "The waking hour went by. A rhythm slip, not a failure. Correct it tonight.",
-      "Rise at eight. The law is simple; tomorrow, keep it.",
-      "Late up. Let's see what you do with the hours left.",
-      "The morning law slipped. Win the afternoon."]},
-
-    {id:"bed_unmarked", tone:"advice", when:function(f,x){ return x.sl.bedMarkMissed && f.min>=5*60 && f.min<12*60; }, lines:[
-      "Nothing in the record after {slept} last night. If you were down by 23:30, the law was kept; only the mark was missed.",
-      "Quiet after {slept} last night, and To bed unmarked. Mark it before you sleep.",
-      "You likely slept on time. The record can't say so. Tick To bed tonight.",
-      "An early night, unmarked. Good sleep, poor bookkeeping.",
-      "The realm was still after {slept}. Mark the bed you keep.",
-      "To bed was probably kept and certainly unmarked. Fix the mark.",
-      "Last night looks orderly. Let the record say so tonight.",
-      "Sleep on time, then say so. Both are the law."]},
-
-    {id:"late_night", tone:"advice", when:function(f,x){ return x.sl.kind==="late" && f.wake && f.min>=8*60 && f.min<12*60; }, lines:[
-      "Late to bed{lateby}, and still up on time. The night was short of gold, not of sleep. Bring it back to 23:30.",
-      "You missed the golden hour last night and kept this morning's. Half the law. Tonight, the other half.",
-      "A late night, an on-time morning. Respect. Don't make it a habit.",
-      "Bed slipped past 23:30; you rose anyway. Tonight, close the day on time.",
-      "The night started late. Not a disaster. Start it on time tonight.",
-      "Up by the law after a late night. Good. The evening is where tonight's fight is.",
-      "Late down, on time up. Keep the morning; fix the evening.",
-      "You slept past the golden hour's start, not through the morning. One correction left: 23:30."]},
+    {id:"woke_late", tone:"advice", when:function(f,x){ var n=slpFor(dayKey()); return !f.locked && (!n || n.hrs==null) && !slpOpen() && f.min>=9*60 && f.min<12*60; }, lines:[
+      "Last night isn't in the record. Log it; hours can't be judged unseen.",
+      "No night logged. Set the times; the law counts hours.",
+      "The record has no sleep for last night. Fix the record.",
+      "Sleep unlogged. Eight hours or four, the realm can't tell."]},
 
     {id:"water_low", tone:"advice", when:function(f){ return f.min>=18*60 && f.water<7; }, lines:[
       "Water at {w} by evening. The body is dry; drink now.",
@@ -4107,14 +4091,14 @@ html.wh-on .toast{z-index:60}
       "{gym} awaits. Ride out.",
       "Today: {gym}. Make it count."]},
 
-    {id:"woke_well", tone:"praise", when:function(f,x){ return f.wake && f.min>=8*60 && f.min<10*60 && x.n===0; }, lines:[
-      "Up on time. The day starts in order.",
-      "Awake by the law. Good.",
-      "You rose on time. Now drink.",
-      "A disciplined start. Keep it.",
-      "On time. That's the first victory.",
-      "Risen. The realm is in motion.",
-      "Morning kept. Next: water.",
+    {id:"woke_well", tone:"praise", when:function(f,x){ var n=slpFor(dayKey()); return !!n && n.hrs!=null && Math.abs(n.hrs-8)<=1 && f.min>=6*60 && f.min<11*60 && x.n===0; }, lines:[
+      "A full night behind you. The day starts in order.",
+      "{lh} slept. By the law. Good.",
+      "Well slept. Now drink.",
+      "A rested start. Keep it.",
+      "Enough sleep. That's the first victory.",
+      "Rested. The realm is in motion.",
+      "The night was kept. Next: water.",
       "The day begins correctly."]},
 
     {id:"gym_done", tone:"praise", when:function(f,x){ return f.gymDue && f.gym && f.min>=12*60 && f.min<18*60 && x.n===0; }, lines:[
@@ -4371,7 +4355,7 @@ html.wh-on .toast{z-index:60}
     },
     time:{
       div_late:["Your blocks usually come late at night. Start earlier today.","Most of your study happens after {ph}. Try the evening instead.",
-        "Late blocks are a habit of yours. Break it now.","You tend to study around {ph}. It's {time}; begin now and sleep earlier.","The data says you study late. The mind says study now.","Start a block before the night claims it."],
+        "Late blocks are a habit of yours. Break it now.","You tend to study around {ph}. It's {time}; begin now and keep the night for sleep.","The data says you study late. The mind says study now.","Start a block before the night claims it."],
       div_morning:["Your best blocks come before noon. Begin now.","Mornings are when you study best. Use this one.",
         "The record says you learn early. Start.","Before noon is your window. Open the book.","Your strongest hours are now. Don't spend them elsewhere.","You learn best in the morning. Prove it again."]
     },
@@ -4427,8 +4411,8 @@ html.wh-on .toast{z-index:60}
         "Seven days of too little water. Start the correction.","The week's water is short. Fourteen today.","Average {wa} this week. The body notices.","Water has been weak all week. Not today."]
     },
     time:{
-      bed_late:["You usually go to bed at the very edge of the window. Go now.","Bed has been a last-minute habit. Not tonight.",
-        "You tend to sleep around {ph}. Earlier tonight.","The data says late to bed. The law says now.","Don't wait for the last minute again. Bed.","Late beds make late mornings. Go."],
+      bed_late:["Your nights have averaged {ph} this week. Eight is the law. Tonight, pay it.","A week of short nights: {ph} on average. The debt grows; start paying tonight.",
+        "{ph} a night, on average. Not enough. Tonight, eight.","The week's sleep is short. The fix starts tonight.","Short nights have become a habit. Not tonight.","Seven days, too little sleep. Eight hours tonight."],
       water_late:["You drink late in the day. Start now.","Most of your water comes after 14:00. Front-load it.",
         "Morning water is the habit you lack. Drink.","You usually catch up on water late. Don't wait today.","Water early, not in a rush at night.","The day's water starts now, not this evening."]
     },
@@ -4498,8 +4482,9 @@ html.wh-on .toast{z-index:60}
     water_noon:{law:"Seven glasses before noon", weak:"water"},
     water_full:{law:"All fourteen glasses", weak:"water"},
     core_early:{law:"Core before 20:00", weak:"core"},
-    wake:{law:"Awake by 09:00", weak:"wake"},
+    wake:{law:"Awake by 09:00", weak:"wake"},          /* old records only */
     bed:{law:"To bed by 23:30", weak:"bed"},
+    sleep:{law:"Eight hours of sleep tonight", weak:"sleep"},
     gym:{law:"Today's session, no excuses", weak:"gym"},
     supps:{law:"Every supplement today", weak:"supps"},
     skin:{law:"Skin & Hair routine today", weak:"skin"}
@@ -4509,10 +4494,10 @@ html.wh-on .toast{z-index:60}
           "{law}: done yesterday. Today's law is new.","Yesterday's decree stands fulfilled.","You kept yesterday's decree."],
     broken:["Yesterday's decree was broken: {law}. Today's is new; keep it.","The law of yesterday failed: {law}.","Decree broken: {law}. Not twice.",
             "{law}, yesterday. Broken. Remember it.","Yesterday's decree did not hold.","You broke yesterday's decree. Today, keep this one."],
-    slipped:["Yesterday's decree, {law}, slipped. You slept; just not in the golden hour. Today's law is new.",
-             "{law}: missed by the clock, not by the body. Hold the hour next time.","The golden hour got away yesterday ({law}). Rhythm, not ruin. Today, a new law.",
-             "Yesterday's decree slipped: {law}. One early night fixes it.","{law} wasn't kept. A late rhythm, not a broken will. Correct it.",
-             "The decree of the hour slipped yesterday. Keep today's."]
+    slipped:["Yesterday's decree, {law}, slipped: {dh}. Tonight, eight.",
+             "{law}: the night gave {dh}. Correct it tonight.","The decree of the night slipped ({dh}). Eight hours: not less, not more.",
+             "Yesterday's decree slipped: {law}. One full night fixes it.","{dh} instead of eight. Not ruin; a correction tonight.",
+             "The night's decree slipped. Keep today's."]
   };
 
   /* the Landsraad: each realm's voice on the cluster as a whole */
@@ -4621,10 +4606,10 @@ html.wh-on .toast{z-index:60}
     v2Insert(XENLIL_SAYS,"night",[
       v2Sit("core_paused","order",function(f){ return !!f.corePaused; }, L.own.core_paused)]);
     v2Insert(XENLIL_SAYS,"bed_window",[
-      v2Sit("bed_late","order",function(f){ var P=f.G&&f.G.pat; return !!P && P.bedLate && !f.bed && f.min>=22*60+30 && f.min<=23*60+30; }, L.time.bed_late)]);
+      v2Sit("bed_late","order",function(f){ var P=f.G&&f.G.pat; return !!P && P.sleepShort && !slpOpen() && f.min>=21*60+30; }, L.time.bed_late)]);
     v2Insert(XENLIL_SAYS,"woke_late",[
       v2Sit("decree_kept","praise",function(f){ return !!f.decreeY && f.decreeY.v==="kept" && f.min>=5*60 && f.min<12*60; }, L.decree.kept),
-      v2Sit("decree_slipped","advice",function(f){ return !!f.decreeY && f.decreeY.v==="broken" && (f.decreeY.k==="wake" || f.decreeY.k==="bed") && f.min>=5*60 && f.min<12*60; }, L.decree.slipped),
+      v2Sit("decree_slipped","advice",function(f){ return !!f.decreeY && f.decreeY.v==="broken" && f.decreeY.k==="sleep" && f.min>=5*60 && f.min<12*60; }, L.decree.slipped),
       v2Sit("decree_broken","criticism",function(f){ return !!f.decreeY && f.decreeY.v==="broken" && f.min>=5*60 && f.min<12*60; }, L.decree.broken)]);
     v2Insert(XENLIL_SAYS,"supps_due",[
       v2Sit("d3_day","order",function(f){ return f.d3Due && !f.d3 && f.min>=8*60; }, L.own.d3_day)]);
@@ -4966,7 +4951,7 @@ html.wh-on .toast{z-index:60}
       var r=past(k); if(!r || isBlank(r)) continue;
       var y=past(keyAdd(k,-1)), h=v4Night(k), first=null;
       (r.arLog||[]).forEach(function(e){ if(e.m!=null && (first===null || e.m<first)) first=e.m; });
-      D.push({k:k, wd:wday(k), fell:deps(r.xr)>0, hrs:h, bedMiss: !!(y && !isBlank(y) && !(y.habits && y.habits.bed)),
+      D.push({k:k, wd:wday(k), fell:deps(r.xr)>0, hrs:h, long: h!=null && h>9, eight: h!=null && Math.abs(h-8)<=1,
         yFell: !!(y && deps(y.xr)>0), W:workN(r.work), ar:DAY.arurael(k), xl:DAY.xenlil(k), ax:DAY.arexia(k), xr:DAY.xeron(k),
         rm:v4RiteMiss(r), early: first!==null && first<12*60, started: first!==null});
     }
@@ -5000,16 +4985,16 @@ html.wh-on .toast{z-index:60}
         var m4=mean(function(d){ return d.wd===w4; }, val, D.filter(function(d){ return off.indexOf(d.wd)<0; }));
         if(byWd[w4].length>=3 && m4.nb>=6 && m4.ma!=null && m4.mb-m4.ma>=25 && (!best || m4.mb-m4.ma>best.mb-best.ma)){ m4.wd=w4; best=m4; } }
       return best; };
-    var known=D.filter(function(d){ return d.hrs!=null; }), short=function(d){ return d.hrs<6; };
+    var known=D.filter(function(d){ return d.hrs!=null; }), short=function(d){ return d.hrs<7; }, longN=function(d){ return d.long; };
     var P={
-      xeron:{short:rate(short,function(d){ return d.fell; },known), bed:rate(function(d){ return d.bedMiss; },function(d){ return d.fell; }),
+      xeron:{short:rate(short,function(d){ return d.fell; },known), bed:rate(longN,function(d){ return d.fell; },known),
              idle:rate(function(d){ return d.ar<40; },function(d){ return d.fell; }), after:rate(function(d){ return d.yFell; },function(d){ return d.fell; }),
              wd:wdRate(function(d){ return d.fell; })},
-      arexia:{short:rate(short,function(d){ return d.rm>=2; },known), bed:rate(function(d){ return d.bedMiss; },function(d){ return d.rm>=2; }),
+      arexia:{short:rate(short,function(d){ return d.rm>=2; },known), bed:rate(longN,function(d){ return d.rm>=2; },known),
               after:rate(function(d){ return d.yFell; },function(d){ return d.rm>=2; }), wd:wdRate(function(d){ return d.rm>=2; })},
       arurael:{early:mean(function(d){ return d.early; },function(d){ return d.ar; },D.filter(function(d){ return d.started && off.indexOf(d.wd)<0; })),
                short:mean(short,function(d){ return d.ar; },known), wd:wdMean(function(d){ return d.ar; })},
-      xenlil:{bed:mean(function(d){ return !d.bedMiss; },function(d){ return d.xl; }), short:mean(short,function(d){ return d.xl; },known),
+      xenlil:{bed:mean(function(d){ return d.eight; },function(d){ return d.xl; },known), short:mean(short,function(d){ return d.xl; },known),
               wd:wdMean(function(d){ return d.xl; })}
     };
     V4P={key:key, val:{n:D.length, off:off, base:base, P:P}};
@@ -5019,13 +5004,13 @@ html.wh-on .toast{z-index:60}
   /* what today matches, for one god */
   function v4Read(god){
     var S=v4Study(), t=dayKey(), d=new Date(), m=d.getHours()*60+d.getMinutes(), wd=wday(t), y=past(keyAdd(t,-1)), out={wd:wd, off:S.off.indexOf(wd)>=0, offDays:S.off};
-    var sl=sleepRead(m), tired=!!sl.tired, bedMiss=!!(y && !isBlank(y) && !(y.habits && y.habits.bed)), yFell=!!(y && deps(y.xr)>0);
+    var sl=sleepRead(m), tired=!!sl.tired, lastN=slpFor(t), bedMiss=!!(lastN && lastN.hrs!=null && lastN.hrs>9),   /* "bed" now means a night past nine hours */ yFell=!!(y && deps(y.xr)>0);
     var P=S.P[god], pick=null, consider=function(k,on){ var p=P[k]; if(!p || !on) return; if(k!=="wd" && !p.ok) return; if(!pick || p.s>pick.p.s) pick={k:k, p:p}; };
     if(god==="xeron"){ consider("short",tired); consider("bed",bedMiss); consider("idle",DAY.arurael(t)<40 && m>=15*60); consider("after",yFell); if(P.wd) consider("wd",P.wd.wd===wd); }
     if(god==="arexia"){ consider("short",tired); consider("bed",bedMiss); consider("after",yFell); if(P.wd) consider("wd",P.wd.wd===wd); }
     if(god==="arurael"){ var none=!(state.day.arLog||[]).length && TASKS.every(function(tk){ return !taskCount(state.day,tk.k); });
       consider("early", none && m>=8*60 && m<12*60 && !out.off); consider("short",tired && m>=10*60); if(P.wd) consider("wd",P.wd.wd===wd && m>=9*60); }
-    if(god==="xenlil"){ consider("bed", m>=21*60+30 && m<=23*60+30 && !(state.day.habits && state.day.habits.bed)); consider("short",tired); if(P.wd) consider("wd",P.wd.wd===wd && m>=9*60); }
+    if(god==="xenlil"){ consider("bed", m>=21*60+30 && !slpOpen()); consider("short",tired); if(P.wd) consider("wd",P.wd.wd===wd && m>=9*60); }
     out.pat=pick;
     /* the same weekday, usually */
     var b=S.base[god][wd], now=DAY[god](t);
@@ -5119,8 +5104,8 @@ html.wh-on .toast{z-index:60}
   /* ---- the words ---- */
   var V4L={
     xeron:{
-      p_short:["Your falls come {pr} after nights under six hours. Last night was one of them.","Short night. In the record, short nights end in falls {pa} of the time; other nights, {pb}. Guard today.","The record is clear: tired, you fall {pr}. You're tired. Bind early."],
-      p_bed:["When To bed slips, the next day falls {pr}. It slipped last night. Hold the wall.","Last night's bed came late. Days like this fall {pa} of the time; the others {pb}.","A late bed opens a gate the next day. It's open now. Watch it."],
+      p_short:["Your falls come {pr} after nights under seven hours. Last night was one of them.","Short night. In the record, short nights end in falls {pa} of the time; other nights, {pb}. Guard today.","The record is clear: tired, you fall {pr}. You're tired. Bind early."],
+      p_bed:["After nights over nine hours, the next day falls {pr}. Last night was one. Hold the wall.","A long night. Days like this fall {pa} of the time; the others {pb}.","Too much sleep dulls the guard. It's dull now. Watch it."],
       p_idle:["Empty afternoons fall {pr}. This one is empty. Fill it, now.","Idle days fall {pa} of the time. Busy ones, {pb}. Give the hours work.","He loves an idle day. You're giving him one."],
       p_after:["A fall yesterday. In the record, one fall pulls another {pa} of the time. Break the chain.","Falls come in pairs for you, {pr}. Yesterday was the first. Not today.","The day after a fall is his favourite. It's today."],
       p_wd:["{pwd} are when you fall most: {pa} of them. Today is one.","The record marks {pwd}. You fall on them {pr}. Not this one.","{pwd} again. Your worst day of the week. Double the watch."],
@@ -5154,7 +5139,7 @@ html.wh-on .toast{z-index:60}
       tag_goal:["{etag}. That one serves “{tgoal}”.","{etag}: a block for “{tgoal}”. Good.","Noted, and counted toward “{tgoal}”."]
     },
     xenlil:{
-      p_bed:["Nights in bed by 23:30 lead to {pa} days; the others to {pb}. Choose.","The record judges your nights: {pa} after an early bed, {pb} after a late one. Bed.","Tomorrow's law is decided now. Early bed: {pa}. Late: {pb}."],
+      p_bed:["Nights near eight hours lead to {pa} days; the others to {pb}. Choose.","The record judges your nights: {pa} after eight hours, {pb} after anything else. Sleep.","Tomorrow's law is decided now. Eight hours: {pa}. Otherwise: {pb}."],
       p_short:["Short nights make {pa} days in my realm; full nights {pb}. Sleep is the first law.","On short nights the realm averages {pa}. Order today; sleep tonight."],
       p_wd:["{pwd} are the slackest days in my realm: {pa} against {pb}. Not this one.","The record marks {pwd}: {pa}. Raise it today."],
       b_up:["A {wdn} at {bnow}. Your {wds} usually hold {busual}. That's rule.","Better than your usual {wdn}: {bnow} against {busual}.","{bnow} on a {wdn}. The realm rarely sees it."],
@@ -5171,7 +5156,7 @@ html.wh-on .toast{z-index:60}
     },
     arexia:{
       p_short:["After short nights you abandon rites {pr}. Last night was short. Observe.","Short nights cost you rites: {pa} of such days. Today is such a day.","Tired, you abandon. The record says {pr}. I am watching."],
-      p_bed:["After a late bed, rites fall {pr}. Last night's bed was late.","Late beds cost rites: {pa} of the days after. Today is one.","The bed slipped. The rites follow it. Not today."],
+      p_bed:["After nights over nine hours, rites fall {pr}. Last night was one.","Long sleep costs rites: {pa} of the days after. Today is one.","You slept long. The rites follow the lost hours. Not today."],
       p_after:["A fall yesterday. Rites are abandoned after falls {pr}.","After a fall, the rites thin: {pa} of the time. Observe them today."],
       p_wd:["{pwd}. You abandon more rites on {pwd} than any other day.","{pwd}: {pa} of them with rites abandoned. Today is one.","{pwd} again. I remember the last ones."],
       b_up:["A {wdn} at {bnow}. Your {wds} are usually {busual}. Noted.","{bnow}. Above your usual {wdn}.","{wds} are usually {busual}. Not this one."],
@@ -5695,152 +5680,268 @@ html.wh-on .toast{z-index:60}
       if(/^(unfinished|filled_by_extra)$/.test(sc.id)){ var w=sc.when; sc.when=function(f,x){ return (!x.offDay || !!x.left) && w(f,x); }; }
     });
   })();
-  /* ---------- Sleep: two times a night, read as one night ----------
-     To bed and Awake. A tap on an empty one stamps it now; a tap on a set one lets you change the
-     time. The night belongs to the morning it ends on: in bed 22:00, awake 08:00 is ten hours in
-     bed, and one hour is given to falling asleep, so nine hours of sleep. Sleep is healthy as it
-     nears eight hours: Xenlil's Rest & sleep part takes 1 - |hours - 8| / 4 (8 h full, 7 or 9 h
-     three quarters, 6 or 10 h half, 4 or 12 h nothing), from SLEEP_SINCE on; days before keep the
-     old To bed / Awake ticks. The golden hours still exist for the voices and the decree: a bed by
-     23:30 and a rise by 09:00 tick To bed and Awake behind the scenes.
+  /* ---------- Sleep: sessions of bed and rise, read as a day of sleep ----------
+     To bed and Awake. To bed opens a session at the moment (or, with one open, lets you change
+     its time); Awake closes the open one (or logs a rise whose bed time you add after). A day may
+     hold several sessions — 02:00 → 08:00, then 22:00 → 23:00 — each listed under the buttons,
+     each time changeable, each removable. A session belongs to the day it ends on; one hour of
+     each is given to falling asleep (in bed 22:00, up 08:00 = 9 h of sleep). The day's sleep is
+     the sum, healthy as it nears eight hours: Xenlil's Rest & sleep part takes 1 - |hours - 8| / 4
+     (8 h full, 7 or 9 h three quarters, 6 or 10 h half, 4 or 12 h nothing), from SLEEP_SINCE on;
+     days before keep the old ticks. The day's longest session is its night: a bed by 23:30 and a
+     rise by 09:00 still tick To bed and Awake behind the scenes, for the voices and the decree.
      state.sleep = [{bed: ms|null, wake: ms|null}] — it travels with the record; Reset erases it. */
   var SLEEP_SINCE="2026-11-13", SLP_GIVE=1;                  /* the hour allowed for falling asleep */
   function slpList(){ if(!Array.isArray(state.sleep)) state.sleep=[]; return state.sleep; }
   function slpDay(ms){ return dayKey(new Date(ms)); }
   function slpClock(ms){ var d=new Date(ms); return d.getHours()*60+d.getMinutes(); }
+  function slpLen(e){ return e.bed && e.wake ? Math.max(0,(e.wake-e.bed)/3600000) : null; }
+  function slpOf(e){ var b=slpLen(e); return b==null ? null : Math.max(0, b-SLP_GIVE); }
   function slpFor(k){
-    var l=slpList(), n=null;
-    for(var i=l.length-1;i>=0;i--){ var e=l[i]; if(e.wake && slpDay(e.wake)===k){ n=e; break; } }
-    if(!n) return null;
-    var inBed = n.bed ? (n.wake-n.bed)/3600000 : null;
-    return {e:n, bed:n.bed, wake:n.wake, inBed:inBed, hrs: inBed!=null ? Math.max(0, inBed-SLP_GIVE) : null};
+    var ss=slpList().filter(function(e){ return e.wake && slpDay(e.wake)===k; }).sort(function(a,b){ return a.wake-b.wake; });
+    if(!ss.length) return null;
+    var tot=0, bedded=0, inBed=0, main=null;
+    ss.forEach(function(e){ var l=slpLen(e); if(l==null) return; bedded++; inBed+=l; tot+=slpOf(e); if(!main || l>slpLen(main)) main=e; });
+    if(!main) main=ss[ss.length-1];
+    return {sessions:ss, e:main, bed:main.bed, wake:main.wake, inBed: bedded ? inBed : null, hrs: bedded ? tot : null};
   }
   function slpQOf(h){ return h==null ? null : Math.max(0, 1-Math.abs(h-8)/4); }
   function slpQ(k){ var n=slpFor(k); return n ? slpQOf(n.hrs) : null; }
   function slpOpen(){ var l=slpList(), e=l[l.length-1]; return e && e.bed && !e.wake && Date.now()-e.bed<20*3600000 ? e : null; }
-  /* the night the two buttons speak of */
-  function slpCur(){
-    var o=slpOpen(); if(o) return o;
-    var l=slpList(), e=l[l.length-1], m=slpClock(Date.now());
-    if(e && e.wake && slpDay(e.wake)===dayKey() && (m<15*60 || !e.bed)) return e;
-    return null;
-  }
   function slpH(h){ var mm=Math.round(h*60), H=Math.floor(mm/60), M=mm%60; return M ? H+"h "+String(M).padStart(2,"0")+"m" : H+"h"; }
   function slpAvg(){
     var t=dayKey(), s=0, n=0;
     for(var i=0;i<7;i++){ var x=slpFor(keyAdd(t,-i)); if(x && x.hrs!=null){ s+=x.hrs; n++; } }
     return n>=2 ? s/n : null;
   }
-  /* the golden hours behind the scenes: To bed by 23:30 on the evening, Awake by 09:00 on the morning */
-  function slpFlags(e){
-    if(e.bed){ var c=slpClock(e.bed), ev = c>=12*60 ? slpDay(e.bed) : keyAdd(slpDay(e.bed),-1), r=rec(ev);
-      if(r){ if(!r.habits) r.habits={}; r.habits.bed = c>=12*60 && c<=23*60+30; } }
-    if(e.wake){ var c2=slpClock(e.wake), r2=rec(slpDay(e.wake));
-      if(r2){ if(!r2.habits) r2.habits={}; r2.habits.wake = c2>=4*60 && c2<=9*60; } }
+  /* the golden hours behind the scenes, from the day's longest session: To bed by 23:30 on its evening, Awake by 09:00 on its morning */
+  function slpFlagsDay(W){
+    var N=slpFor(W), r=rec(W); if(!r) return;
+    if(!r.habits) r.habits={};
+    if(!N){ r.habits.wake=false; return; }
+    var cw=slpClock(N.wake); r.habits.wake = cw>=4*60 && cw<=9*60;
+    if(N.bed){ var cb=slpClock(N.bed), ev = cb>=12*60 ? slpDay(N.bed) : keyAdd(slpDay(N.bed),-1), rb=rec(ev);
+      if(rb){ if(!rb.habits) rb.habits={}; rb.habits.bed = cb>=12*60 && cb<=23*60+30; } }
+  }
+  function slpFlags(e){ if(e && e.wake) slpFlagsDay(slpDay(e.wake)); }
+  /* a clock time, placed: a bed before its rise (or before now), a rise after its bed (or before now) */
+  function slpResolve(e,field,clock){
+    if(field==="bed"){
+      var ref=e.wake||Date.now(), d=new Date(ref); d.setHours(0,0,0,0);
+      var t=d.getTime()+clock*60000; if(t>=ref) t-=86400000; return t;
+    }
+    var base=e.bed||Date.now(), d2=new Date(base); d2.setHours(0,0,0,0);
+    var t2=d2.getTime()+clock*60000;
+    if(e.bed){ if(t2<=e.bed) t2+=86400000; } else if(t2>Date.now()) t2-=86400000;
+    return t2;
   }
   function slpAt(e,field,clock){
-    var l=slpList();
-    if(clock==null) e[field]=null;
-    else if(field==="bed"){
-      var ref=e.wake||Date.now(), d=new Date(ref); d.setHours(0,0,0,0);
-      var t=d.getTime()+clock*60000; if(t>=ref) t-=86400000; e.bed=t;
-    } else {
-      var base=e.bed||Date.now(), d2=new Date(base); d2.setHours(0,0,0,0);
-      var t2=d2.getTime()+clock*60000;
-      if(e.bed){ if(t2<=e.bed) t2+=86400000; } else if(t2>Date.now()) t2-=86400000;
-      e.wake=t2;
-    }
+    var l=slpList(), before=e.wake ? slpDay(e.wake) : null;
+    e[field] = clock==null ? null : slpResolve(e,field,clock);
     if(!e.bed && !e.wake){ var i=l.indexOf(e); if(i>=0) l.splice(i,1); }
-    slpFlags(e); actNow(); save(); renderXen();
+    if(before) slpFlagsDay(before); slpFlags(e); actNow(); save(); renderXen();
   }
   function slpTap(field){
     if(shut()) return;
-    var cur=slpCur(), l=slpList(), now=Date.now();
+    var open=slpOpen(), l=slpList(), now=Date.now();
     if(field==="bed"){
-      if(!cur){ var e={bed:now, wake:null}; l.push(e); if(l.length>400) l.splice(0,l.length-400); slpFlags(e);
-        voiceEvent("xenlil","slp_bed",{bt:hm(slpClock(now))}); save(); fb("on"); renderXen(); return; }
-      slpPick(cur,"bed"); return;
+      if(open){ slpPick(open,"bed"); return; }
+      var e={bed:now, wake:null}; l.push(e); if(l.length>600) l.splice(0,l.length-600);
+      voiceEvent("xenlil","slp_bed",{bt:hm(slpClock(now)), rise:hm(slpClock(now+(8+SLP_GIVE)*3600000))}); save(); fb("on"); renderXen(); return;
     }
-    if(cur && cur.bed && !cur.wake){ cur.wake=now; slpFlags(cur); var n=slpFor(dayKey());
-      voiceEvent("xenlil","slp_wake",{hrs: n && n.hrs!=null ? n.hrs : null}); save(); fb("on"); renderXen(); return; }
-    if(!cur){ var e2={bed:null, wake:now}; l.push(e2); slpFlags(e2); voiceEvent("xenlil","slp_wake",{hrs:null}); save(); fb("on"); renderXen(); return; }
-    slpPick(cur,"wake");
+    var s;
+    if(open){ open.wake=now; s=open; } else { s={bed:null, wake:now}; l.push(s); }
+    slpFlags(s); var n=slpFor(dayKey()), len=slpLen(s);
+    voiceEvent("xenlil","slp_wake",{hrs: n && n.hrs!=null ? n.hrs : null, nap: len!=null && len<3, nh: len!=null ? slpH(len) : ""});
+    save(); fb("on"); renderXen();
   }
   var SLP_ED=null;
+  /* the time sheet: hours and minutes, in the app's own sheet */
   function slpPick(e,field){
-    var inp=document.getElementById("slpIn"); SLP_ED={e:e, field:field};
-    var v=e[field]; inp.value = v ? hm(slpClock(v)) : "";
-    try{ if(inp.showPicker){ inp.showPicker(); return; } }catch(err){}
-    inp.focus(); inp.click();
+    var v=e[field], c = v ? slpClock(v) : slpClock(Date.now());
+    SLP_ED={e:e, field:field, h:Math.floor(c/60), m:c%60, had:!!v};
+    setText("seT", field==="bed" ? "To bed" : "Awake");
+    slpEdPaint(true);
+    var md=document.getElementById("slpEd"); md.hidden=false; void md.offsetWidth; md.classList.add("in");
+  }
+  /* only what the time gives: the sleep it makes with the other end of the session (no date: times are always today's) */
+  function slpEdInfo(){
+    var E=SLP_ED; if(!E) return;
+    var t=slpResolve(E.e,E.field,E.h*60+E.m), other = E.field==="bed" ? E.e.wake : E.e.bed, info="";
+    if(other){ var len=Math.abs((E.field==="bed" ? other-t : t-other))/3600000; info="Sleep "+slpH(Math.max(0,len-SLP_GIVE)); }
+    var el=document.getElementById("seInfo"); el.textContent=info; el.hidden=!info;
+  }
+  function slpEdPaint(withButtons){
+    var E=SLP_ED; if(!E) return;
+    document.getElementById("seH").value=String(E.h).padStart(2,"0");
+    document.getElementById("seM").value=String(E.m).padStart(2,"0");
+    slpEdInfo();
+    if(!withButtons) return;          /* the buttons stay put, so a tap that blurs a field still lands */
+    var b='';
+    if(E.had) b+='<button type="button" class="ic" data-se="clear" aria-label="Clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
+    b+='<button type="button" data-se="now">Now</button><button type="button" class="pri" data-se="save">Save</button>';
+    document.getElementById("seBtns").innerHTML=b;
+  }
+  function slpEdClose(){
+    var md=document.getElementById("slpEd"); if(md.hidden) return;
+    document.activeElement && document.activeElement.blur && document.activeElement.blur();
+    md.classList.remove("in"); md.classList.add("out");
+    setTimeout(function(){ md.hidden=true; md.classList.remove("out"); },270);
+    SLP_ED=null;
   }
   function slpRender(){
     var box=document.getElementById("slp"); if(!box) return;
-    var cur=slpCur(), last=slpFor(dayKey()), shown=cur && cur.wake && cur.bed ? slpFor(slpDay(cur.wake)) : null;
-    var bb=document.getElementById("slpBed"), wb=document.getElementById("slpWake");
-    setText("slpBedT", cur && cur.bed ? hm(slpClock(cur.bed)) : "—"); bb.classList.toggle("set", !!(cur && cur.bed));
-    setText("slpWakeT", cur && cur.wake ? hm(slpClock(cur.wake)) : "—"); wb.classList.toggle("set", !!(cur && cur.wake));
-    var n=shown || (!cur ? last : null), hEl=document.getElementById("slpHrs"), q=n ? slpQOf(n.hrs) : null;
-    hEl.textContent = n && n.hrs!=null ? slpH(n.hrs) : "—";
+    var open=slpOpen(), N=slpFor(dayKey()), l=slpList();
+    setText("slpBedT", open ? hm(slpClock(open.bed)) : "—"); document.getElementById("slpBed").classList.toggle("set", !!open);
+    setText("slpWakeT", "—"); document.getElementById("slpWake").classList.toggle("on", !!open);
+    var hEl=document.getElementById("slpHrs"), q=N ? slpQOf(N.hrs) : null;
+    hEl.textContent = N && N.hrs!=null ? slpH(N.hrs) : "—";
     hEl.style.setProperty("--sq", q==null ? "107,103,96" : q>=0.75 ? "48,209,88" : q>=0.5 ? "255,179,64" : "255,69,58");
     var a=slpAvg(); setText("slpAvg", a!=null ? "avg "+slpH(a) : "");
-    document.getElementById("slpCap").hidden = !(n && !cur);
+    var rows=(N ? N.sessions.slice() : []); if(open) rows.push(open);
+    document.getElementById("slpList").innerHTML=rows.map(function(e){
+      var i=l.indexOf(e), h=slpOf(e);
+      return '<div class="slp-s"><button type="button" data-s="'+i+'" data-f="bed">'+(e.bed ? hm(slpClock(e.bed)) : "—")+'</button><i>→</i>'+
+        '<button type="button" data-s="'+i+'" data-f="wake">'+(e.wake ? hm(slpClock(e.wake)) : "…")+'</button>'+
+        '<b>'+(h!=null ? slpH(h) : "")+'</b><button type="button" class="slp-x" data-del="'+i+'" aria-label="Delete">×</button></div>';
+    }).join('');
+  }
+  /* ---- overlays own the screen ----
+     While a sheet (any .modal), the ceremony, the Warehouse page or the More menu is open, the page
+     beneath doesn't scroll and can't be tabbed into or tapped. Watches the overlays' `hidden`, so every
+     sheet, now and later, gets it without its own code. lk = the page is held; lkm = a sheet is up,
+     so the Warehouse page under it is held too and everything outside the open sheets is inert. */
+  var LOCK_INERT=[];
+  function lockSync(){
+    var root=document.documentElement;
+    var sheets=[].slice.call(document.querySelectorAll(".modal:not([hidden]),#riteEnd:not([hidden])"));
+    var page=!document.getElementById("wh").hidden || !document.getElementById("menu").hidden || !document.getElementById("whPop").hidden;
+    root.classList.toggle("lk", !!sheets.length || page);
+    root.classList.toggle("lkm", !!sheets.length || !document.getElementById("whPop").hidden);
+    LOCK_INERT.forEach(function(el){ el.inert=false; el.removeAttribute("aria-hidden"); }); LOCK_INERT=[];
+    if(!sheets.length) return;
+    [].forEach.call(document.body.children,function(el){
+      if(/^(SCRIPT|STYLE|TEMPLATE)$/.test(el.tagName) || el.inert) return;
+      if(sheets.some(function(m){ return el===m || el.contains(m); })) return;
+      if(el.id==="toast" || el.classList.contains("toast")) return;
+      el.inert=true; el.setAttribute("aria-hidden","true"); LOCK_INERT.push(el);
+    });
+  }
+  /* the nearest thing that can still scroll up/down under the finger, inside what's on top */
+  function lockScroller(n, top){
+    for(; n && n!==document.body && n!==document.documentElement; n=n.parentElement){
+      if(n.scrollHeight>n.clientHeight+1 && /auto|scroll/.test(getComputedStyle(n).overflowY)) return n;
+      if(n===top) return null;
+    }
+    return null;
+  }
+  function buildLock(){
+    var mo=new MutationObserver(lockSync), els=[].slice.call(document.querySelectorAll(".modal"));
+    ["wh","menu","whPop","riteEnd"].forEach(function(id){ var e=document.getElementById(id); if(e) els.push(e); });
+    els.forEach(function(e){ mo.observe(e,{attributes:true, attributeFilter:["hidden"]}); });
+    /* touch: iOS ignores overflow:hidden on the body, so a drag that has nothing of its own to scroll is stopped */
+    var y0=0;
+    document.addEventListener("touchstart",function(e){ if(e.touches.length===1) y0=e.touches[0].clientY; },{passive:true, capture:true});
+    document.addEventListener("touchmove",function(e){
+      var root=document.documentElement; if(!root.classList.contains("lk") || !e.cancelable) return;
+      var t=e.target; if(t.closest && t.closest("input,textarea,select")) return;
+      var top = t.closest && (t.closest(".modal:not([hidden]),#riteEnd:not([hidden])") || (!root.classList.contains("lkm") && t.closest("#wh:not([hidden]),#menu:not([hidden])")));
+      if(!top){ e.preventDefault(); return; }
+      var sc=lockScroller(t, top); if(!sc){ e.preventDefault(); return; }
+      var dy=e.touches[0].clientY-y0;                                /* at an end, don't hand the drag on to the page */
+      if((dy>0 && sc.scrollTop<=0) || (dy<0 && sc.scrollTop+sc.clientHeight>=sc.scrollHeight-1)) e.preventDefault();
+    },{passive:false, capture:true});
+    /* wheel / keys on a desktop: the page under a sheet stays put */
+    document.addEventListener("wheel",function(e){
+      var root=document.documentElement; if(!root.classList.contains("lkm")) return;
+      var top=e.target.closest && e.target.closest(".modal:not([hidden]),#riteEnd:not([hidden])");
+      if(!top || !lockScroller(e.target, top)) e.preventDefault();
+    },{passive:false, capture:true});
+    lockSync();
   }
   function buildSleep(){
     document.getElementById("slpBed").addEventListener("click",function(){ fb("tap"); slpTap("bed"); });
     document.getElementById("slpWake").addEventListener("click",function(){ fb("tap"); slpTap("wake"); });
-    document.getElementById("slpIn").addEventListener("change",function(){
-      if(!SLP_ED) return; var v=this.value, c=null;
-      if(/^\d{1,2}:\d{2}/.test(v)){ var p=v.split(":"); c=(+p[0])*60+(+p[1]); }
-      var ed=SLP_ED; SLP_ED=null; slpAt(ed.e, ed.field, c);
+    document.getElementById("slpList").addEventListener("click",function(ev){
+      var l=slpList(), b=ev.target.closest("[data-s]");
+      if(b){ var e=l[+b.dataset.s]; if(e){ fb("tap"); slpPick(e,b.dataset.f); } return; }
+      var x=ev.target.closest("[data-del]"); if(!x) return; var e2=l[+x.dataset.del]; if(!e2) return;
+      fb("tap");
+      ask("Delete?", (e2.bed ? hm(slpClock(e2.bed)) : "—")+" → "+(e2.wake ? hm(slpClock(e2.wake)) : "…"), "Delete", function(){
+        var d=e2.wake ? slpDay(e2.wake) : null, i=l.indexOf(e2); if(i>=0) l.splice(i,1); if(d) slpFlagsDay(d); actNow(); save(); renderXen(); });
     });
+    var md=document.getElementById("slpEd");
+    md.addEventListener("click",function(ev){
+      if(ev.target===md){ slpEdClose(); return; }
+      var E=SLP_ED; if(!E) return;
+      var st=ev.target.closest("[data-d]");
+      if(st){ fb("tap"); var d=st.dataset.d;
+        if(d==="h+") E.h=(E.h+1)%24; else if(d==="h-") E.h=(E.h+23)%24;
+        else if(d==="m+"){ E.m=(Math.floor(E.m/5)+1)*5; if(E.m>=60){ E.m=0; E.h=(E.h+1)%24; } }
+        else if(d==="m-"){ E.m = E.m%5 ? Math.floor(E.m/5)*5 : E.m-5; if(E.m<0){ E.m=55; E.h=(E.h+23)%24; } }
+        slpEdPaint(); return; }
+      var b=ev.target.closest("[data-se]"); if(!b) return;
+      if(b.dataset.se==="now"){ fb("tap"); var c=slpClock(Date.now()); E.h=Math.floor(c/60); E.m=c%60; slpEdPaint(); return; }
+      var e=E.e, f=E.field, clock = b.dataset.se==="save" ? E.h*60+E.m : null;
+      slpEdClose(); fb("on"); slpAt(e,f,clock);
+    });
+    ["seH","seM"].forEach(function(id){
+      var inp=document.getElementById(id);
+      inp.addEventListener("focus",function(){ this.select(); });
+      inp.addEventListener("input",function(){
+        var E=SLP_ED; if(!E) return; var v=parseInt(this.value.replace(/\D/g,""),10); if(isNaN(v)) return;
+        if(id==="seH") E.h=Math.min(23,v); else E.m=Math.min(59,v);
+        slpEdInfo();
+      });
+      inp.addEventListener("blur",function(){ slpEdPaint(); });
+    });
+    document.getElementById("seX").addEventListener("click",slpEdClose);
+    var ob=window.ritualBack; window.ritualBack=function(){ if(!document.getElementById("modal").hidden) return ob ? ob() : false; if(!md.hidden){ slpEdClose(); return true; } return ob ? ob() : false; };
+    document.addEventListener("keydown",function(ev){ if(ev.key==="Escape" && document.getElementById("modal").hidden) slpEdClose(); });
   }
   /* the night as the voices read it */
   function sleepReadN(m,N){
-    var h=(state.day && state.day.habits)||{}, y=past(keyAdd(dayKey(),-1));
-    var slept=N.bed!=null ? slpClock(N.bed)-(slpDay(N.bed)===dayKey() ? 0 : 1440) : null, woke=slpClock(N.wake);
-    var bedLast = y && y.habits ? !!y.habits.bed : (N.bed!=null ? slept<=-30 : null), awake=!!h.wake;
-    var hours=N.hrs, bedAt=-30, wakeBy=9*60;
-    var bOk = slept!=null && slept<=bedAt, wLate = woke>wakeBy, kind;
-    if(hours!=null && hours<6) kind="short";
-    else if(bOk && !wLate) kind="golden";
-    else if(slept!=null && !bOk) kind = wLate ? "shifted" : "late";
-    else if(wLate) kind="slept_in";
-    else kind="unknown";
+    /* the night by its hours only: when you went down or rose doesn't matter, how long you slept does.
+       short < 7 h (the only "tired"), long > 9 h, 7-9 h enough ("golden"), unknown = no hours logged */
+    var hours = N && N.hrs!=null ? N.hrs : null, kind;
+    if(hours==null) kind="unknown"; else if(hours<7) kind="short"; else if(hours>9) kind="long"; else kind="golden";
     return {
-      bedLast:bedLast, awake:awake, kind:kind, tired: kind==="short",
-      offRhythm: kind==="late" || kind==="slept_in" || kind==="shifted",
-      bedMarkMissed:false, wakeMarkMissed:false, slept:slept, woke:woke, hours:hours,
-      lateBy: slept!=null && slept>bedAt ? slept-bedAt : 0,
-      sleptAt: slept!=null ? hm(slept) : "", wokeAt: hm(woke),
-      hrs: hours!=null ? vWord(Math.max(0,Math.round(hours))) : ""
+      bedLast:null, awake:null, kind:kind, tired: kind==="short", long: kind==="long",
+      offRhythm:false, bedMarkMissed:false, wakeMarkMissed:false, slept:null, woke:null, hours:hours,
+      lateBy:0, sleptAt:"", wokeAt:"",
+      hrs: hours!=null ? vWord(Math.max(0,Math.round(hours))) : "", sh: hours!=null ? slpH(hours) : ""
     };
   }
   /* Xenlil on the night */
   var V_SLP={
-    bed:["{bt}. To bed. The body takes it from here.","Bed at {bt}. Eight hours, then rise.","Logged: {bt}. Sleep is the first law.","{bt}. Lights out."],
+    bed:["To bed. Eight hours of sleep ends near {rise}.","Logged. The body takes it from here; eight hours, then rise.","Down. Sleep is counted in hours; count eight.","Lights out. Eight hours of sleep lands near {rise}."],
     good:["{sh} of sleep. That's the law.","{sh}. A rested body. Rise and rule.","Up after {sh}. Well slept."],
     short:["{sh} of sleep. Short. Tonight, earlier.","Only {sh}. The body will collect.","{sh}. Not enough; plan the night now."],
     long:["{sh} of sleep. Too long; the day is shorter for it.","{sh}. More than the body needs.","Up after {sh}. Eight is the law, not ten."],
-    nobed:["Awake. When did you go to bed?","Up. Set last night's bed time."]
+    nobed:["Awake. When did you go to bed?","Up. Set the bed time."],
+    nap:["{nh} in bed. A rest, not a night.","A pause: {nh}. Noted.","{nh}. The day goes on."]
   };
   (function(){
     var oR=XENLIL_SPEC.react, oT=XENLIL_SPEC.tokens;
     XENLIL_SPEC.react=function(f,x,ev){
       if(ev.kind==="slp_bed") return V_SLP.bed;
-      if(ev.kind==="slp_wake"){ var h=ev.detail && ev.detail.hrs; if(h==null) return V_SLP.nobed; return Math.abs(h-8)<=1 ? V_SLP.good : h<8 ? V_SLP.short : V_SLP.long; }
+      if(ev.kind==="slp_wake"){ var h=ev.detail && ev.detail.hrs; if(ev.detail && ev.detail.nap) return V_SLP.nap; if(h==null) return V_SLP.nobed; return Math.abs(h-8)<=1 ? V_SLP.good : h<8 ? V_SLP.short : V_SLP.long; }
       return oR(f,x,ev);
     };
     XENLIL_SPEC.tokens=function(f,x,ev){
       var t=oT(f,x,ev), d=(ev && ev.detail)||{};
       if(d.bt) t.bt=d.bt;
+      t.rise = d.rise || hm(slpClock(Date.now()+(8+SLP_GIVE)*3600000));    /* when eight hours would end, from now */
+      var op=slpOpen(); if(op) t.inb=slpH((Date.now()-op.bed)/3600000);
       if(d.hrs!=null) t.sh=slpH(d.hrs);
+      if(d.nh) t.nh=d.nh;
       var n=slpFor(f.date||dayKey()); if(n && n.hrs!=null){ t.lh=slpH(n.hrs); }
       return t;
     };
     v2Insert(XENLIL_SAYS,"woke_late",[
       v2Sit("sleep_eight","praise",function(f){ var n=slpFor(dayKey()); return !f.locked && !!n && n.hrs!=null && Math.abs(n.hrs-8)<=0.5 && f.min>=5*60 && f.min<12*60; },
         ["{lh} of sleep. Exactly what the law asks.","Eight hours, near enough: {lh}. The body is ready.","{lh}. A night kept properly.","A full night: {lh}. Now earn the day."]),
-      v2Sit("sleep_long","advice",function(f){ var n=slpFor(dayKey()); return !f.locked && !!n && n.hrs!=null && n.hrs>9.5 && f.min>=5*60 && f.min<13*60; },
+      v2Sit("sleep_long","advice",function(f){ var n=slpFor(dayKey()); return !f.locked && !!n && n.hrs!=null && n.hrs>9 && f.min>=5*60 && f.min<13*60; },
         ["{lh} of sleep. Too much; the day starts behind.","{lh}. Long nights dull the body too. Eight.","More sleep isn't more order: {lh}. Tonight, eight."])
     ]);
   })();
@@ -5981,7 +6082,8 @@ html.wh-on .toast{z-index:60}
     if(L.dep.length>=3){ P.depHour=v2Median(L.dep); P.depPh=hm(P.depHour); }
     if(L.bind.length>=5) P.bindLate=late(L.bind,150)>=.5;
     if(L.dv.length>=5){ var md=v2Median(L.dv); P.divLate=md>=21*60; P.divEarly=md<=12*60; P.divPh=hm(md); }
-    if(L.bed.length>=4){ var mb=v2Median(L.bed); P.bedLate=mb>=23*60+15; P.bedPh=hm(mb); }
+    var sa=[]; for(var si=0;si<7;si++){ var sn=slpFor(keyAdd(today,-si)); if(sn && sn.hrs!=null) sa.push(sn.hrs); }   /* the last seven nights, by hours */
+    if(sa.length>=4){ var sav=sa.reduce(function(a2,b2){ return a2+b2; },0)/sa.length; P.sleepAvg=sav; P.sleepShort=sav<7; P.sleepPh=slpH(sav); }
     if(L.w.length>=20) P.waterLate=L.w.filter(function(v){ return v<14*60; }).length/L.w.length<.3;
     if(L.rite.length>=8) P.riteLate=late(L.rite,150)>=.5;
     return G;
@@ -5989,11 +6091,11 @@ html.wh-on .toast{z-index:60}
 
   /* Xenlil's decree: chosen each morning from the weakest of the last seven days, judged by its hour */
   function v2DecreeChoose(today){
-    var keys=["water","core_early","wake","bed","supps","skin"]; if(isGymDay(today)) keys.push("gym");
+    var keys=["water","core_early","sleep","supps","skin"]; if(isGymDay(today)) keys.push("gym");
     var rate={}, n={}; keys.forEach(function(k){ rate[k]=0; n[k]=0; });
     for(var i=1;i<=7;i++){ var k=keyAdd(today,-i), r=past(k); if(!r || isBlank(r)) continue; var h=r.habits||{};
       var add=function(key,ok){ if(rate[key]===undefined) return; n[key]++; if(ok) rate[key]++; };
-      add("water",(r.water||0)>=14); add("core_early",!!r.core); add("wake",!!h.wake); add("bed",!!h.bed);
+      add("water",(r.water||0)>=14); add("core_early",!!r.core); var sn=keyAdd(k,1)>=SLEEP_SINCE ? slpFor(keyAdd(k,1)) : null; if(sn && sn.hrs!=null) add("sleep",Math.abs(sn.hrs-8)<=1);
       add("supps",v3SuppsOk(r,k)); add("skin",!!h.skin); if(isGymDay(k)) add("gym",!!r.gym); }
     var hsh=vHash(today+"|decree"), bestK=null, bestV=2;
     keys.forEach(function(k,i){ var v=n[k] ? rate[k]/n[k] : .5; v+=((hsh>>>i)%7)/1000; if(v<bestV){ bestV=v; bestK=k; } });
@@ -6009,6 +6111,7 @@ html.wh-on .toast{z-index:60}
       case "core_early": return (r.core && (logged("core",1200) || !log.some(function(e){ return e[1]==="core"; }))) ? "kept" : (m>=1200 ? "broken" : "pending");
       case "wake": return h.wake ? "kept" : (m>540 ? "broken" : "pending");
       case "bed": return h.bed ? "kept" : (m>1410 ? "broken" : "pending");
+      case "sleep": var ns=slpFor(keyAdd(r.date,1)); return ns && ns.hrs!=null ? (Math.abs(ns.hrs-8)<=1 ? "kept" : "broken") : "pending";
       case "gym": return r.gym ? "kept" : (m>=1200 ? "broken" : "pending");
       case "supps": return v3SuppsOk(r,r.date) ? "kept" : (m>=1320 ? "broken" : "pending");
       case "skin": return h.skin ? "kept" : (m>=1320 ? "broken" : "pending");
@@ -6024,9 +6127,10 @@ html.wh-on .toast{z-index:60}
     if(G.top){ t.top=V2_NAMES[G.top]; t.bottom=V2_NAMES[G.bottom]; t.topscore=pct(G.realm[G.top].clNow); }
     if(god==="xeron"){ t.ph=P.depPh||""; t.tc=vWord(G.tCycle||0); }
     if(god==="arurael"){ t.ph=P.divPh||""; if(G.skip){ t.item=G.skip.item; t.skip=vWord(G.skip.days); } }
-    if(god==="xenlil"){ t.ph=P.bedPh||""; var gw=G.gymWeek||{}; t.gwd=vWord(gw.done||0); t.gwn=vWord(gw.dueBefore||0);
+    if(god==="xenlil"){ t.ph=P.sleepPh||""; var gw=G.gymWeek||{}; t.gwd=vWord(gw.done||0); t.gwn=vWord(gw.dueBefore||0);
       t.cs=vWord(G.coreStreak||0); if(G.hcExp){ t.hc=G.hcExp.name; t.hcd=vWord(G.hcExp.days); } if(G.water7!=null) t.wa=(Math.round(G.water7*10)/10)+"/14";
-      if(f.decreeY) t.law=V2_DECREE[f.decreeY.k].law; }
+      if(f.decreeY) t.law=V2_DECREE[f.decreeY.k].law;
+      if(f.decreeY && f.decreeY.k==="sleep"){ var dn=slpFor(dayKey()); if(dn && dn.hrs!=null) t.dh=slpH(dn.hrs); } }
     if(god==="arexia" && G.weakRite) t.wrune=RUNE[G.weakRite.q];
     if(f.sl){ if(!t.hrs) t.hrs=f.sl.hrs||"a few"; }
     if(god==="arexia"){ var x=arexiaRead(f); t.zn = x.z===1 ? "one rite" : vWord(x.z)+" rites"; t.zrune=x.zrune; }
@@ -6078,7 +6182,7 @@ html.wh-on .toast{z-index:60}
     var yk=keyAdd(today,-1), yr=past(yk);
     if(yr && yr.decree && V2_DECREE[yr.decree]) f.decreeY={k:yr.decree, v:v2Judge(yr.decree, yr, 1440, true)};
     if(!f.locked){
-      if(!state.day.decree || !V2_DECREE[state.day.decree]) state.day.decree=v2DecreeChoose(today);
+      if(!state.day.decree || !V2_DECREE[state.day.decree] || state.day.decree==="wake" || state.day.decree==="bed") state.day.decree=v2DecreeChoose(today);   /* no clock decrees on sleep any more */
       var v=v2Judge(state.day.decree, state.day, f.min, false);
       el.hidden=false;
       el.innerHTML='Decree · <b>'+V2_DECREE[state.day.decree].law+'</b>'+(v==="kept" ? ' <span class="ok">· kept</span>' : v==="broken" ? ' <span class="no">· broken</span>' : '');
@@ -6476,8 +6580,6 @@ html.wh-on .toast{z-index:60}
             body:fmt(w[0])+"–"+fmt(w[1])});
         });
       });
-      var hb=isToday ? (state.day.habits||{}) : {};
-      if(!hb.bed) out.push({id:"bed"+k, at:at(day,22,30), ch:"remind", color:"#EC4899", title:"To bed", body:""});
     }
     if(!NT && typeof ART!=="undefined" && ART && ART.blk){
       var m=arMission(ART.blk), i=+ART.blk.slice(m.k.length);
@@ -7940,7 +8042,7 @@ html.wh-on .toast{z-index:60}
   state=load();
   if(state.clStart) CL_START=state.clStart;
   rollover();
-  buildDial(); buildCards(); buildPips(); buildHabits(); buildHealth(); buildCore(); buildXr(); buildAe(); buildAr(); buildCl(); buildSync(); buildMenu(); buildGoals(); buildWarehouse(); buildSleep();
+  buildDial(); buildCards(); buildPips(); buildHabits(); buildHealth(); buildCore(); buildXr(); buildAe(); buildAr(); buildCl(); buildSync(); buildMenu(); buildGoals(); buildWarehouse(); buildSleep(); buildLock();
   render(); renderXen(); renderXr(); renderAr(); arTick();
   if(NT){ coreSync(); setInterval(function(){ if(!CORE.run) coreSync(); }, 500); }
   planNotes();
