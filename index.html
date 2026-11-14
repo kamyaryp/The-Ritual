@@ -135,7 +135,7 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .rite[data-state="open"] .box:not([aria-checked="true"]){border-color:var(--hue)}
 .rite[data-done="1"] .rnum{text-decoration:line-through}
 .rite[data-state="lapsed"]:not([data-done="1"]) .rnum,.rite[data-state="lapsed"]:not([data-done="1"]) .win{opacity:.5}
-.rite{cursor:pointer;border-radius:var(--r-s);padding:1px 2px;margin:0 -2px}
+.rite{cursor:pointer;border-radius:var(--r-s);padding:1px 0;margin:0}
 .rite:hover{background:var(--panel-2)}
 .rite[data-state="lapsed"],.rite[data-state="awaiting"]{cursor:not-allowed}
 .gymrow[data-state="awaiting"] .rname,.rite[id^="h-"][data-state="awaiting"] .rname,.rite[id^="h-"][data-state="lapsed"]:not([data-done="1"]) .rname{color:var(--ink-3)}
@@ -175,7 +175,7 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .cl-report .rp-c{display:grid;grid-template-columns:1fr auto;align-items:baseline;column-gap:6px;row-gap:5px}
 .cl-report .rp-c em{font-style:normal;font-family:var(--mono);font-size:11.5px;color:var(--ink-3);font-variant-numeric:tabular-nums}
 .cl-report .rp-c b{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink);font-variant-numeric:tabular-nums}
-.cl-report .rp-c.none{font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
+.cl-report .rp-c.none{display:block;text-align:right;font-family:var(--mono);font-size:11.5px;color:var(--ink-3)}
 .cl-report .rp-bar{grid-column:1/-1;height:3px;border-radius:2px;background:var(--well);overflow:hidden}
 .cl-report .rp-bar i{display:block;height:100%;background:var(--hue)}
 .cl-line{fill:none;stroke-linecap:round;stroke-linejoin:round}
@@ -359,7 +359,7 @@ svg.dial{width:100%;max-width:450px;height:auto}
 .at-time{font-family:var(--mono);font-size:13px;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
 .at-time b{font-weight:500;color:var(--ink)}
 .at-rows{display:flex;flex-direction:column;gap:4px}
-.at-row{display:grid;grid-template-columns:64px 1fr 30px;align-items:center;gap:10px;padding:7px 8px;margin:0 -8px;border-radius:var(--r-s);cursor:pointer;-webkit-tap-highlight-color:transparent}
+.at-row{display:grid;grid-template-columns:64px 1fr 30px;align-items:center;gap:10px;padding:7px 8px;margin:0;border-radius:var(--r-s);cursor:pointer;-webkit-tap-highlight-color:transparent}
 .at-row:hover{background:var(--panel-2)}
 .at-row.sel{background:var(--panel-2);box-shadow:inset 0 0 0 1px var(--line)}
 .at-row.locked{cursor:not-allowed}
@@ -473,7 +473,7 @@ svg.chart{display:block;width:100%;min-width:420px;height:auto;aspect-ratio:700/
   .stats{gap:14px;font-size:11.5px}
   footer{justify-content:stretch}
   footer button.act{flex:1 1 auto;padding:9px 10px}
-  .rite{padding:4px 2px}
+  .rite{padding:4px 0}
   .box{width:20px;height:20px}
 }
 .gridline{stroke:var(--line-2)}
@@ -636,7 +636,7 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 .gl-god-h{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--hue);margin-bottom:2px}
 .gl-god-h svg{width:16px;height:14px;fill:none;stroke:var(--hue);stroke-width:1.8;stroke-linecap:round;stroke-linejoin:round}
 .gl-slots{display:flex;flex-direction:column}
-.gl-slot{display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:44px;padding:6px 8px;margin:0 -8px;width:calc(100% + 16px);
+.gl-slot{display:grid;grid-template-columns:46px minmax(0,1fr) auto;align-items:center;gap:10px;min-height:44px;padding:6px 0;margin:0;width:100%;
   border:0;border-radius:var(--r-s);background:transparent;color:var(--ink);font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .gl-slot:hover{background:var(--panel-2)}
 .goals-card .gl-slot:hover,.gl-god .gl-slot:hover{background:rgba(255,255,255,.04)}
@@ -848,6 +848,10 @@ html.lkm .wh{overflow:hidden}
 .at-off.on .box{background:var(--arurael);border-color:var(--arurael)}
 .at-off.on .box svg{opacity:1}
 .at-row.off .at-segs{opacity:.55}
+
+.ar-today .at-top{align-items:stretch}
+.ar-today .at-side{justify-content:space-between;padding-bottom:var(--off-lift,6px)}
+@media (max-width:420px){ .ar-today .at-side{--off-lift:5px;gap:4px} }
 </style>
 </head>
 <body>
@@ -8154,7 +8158,8 @@ html.lkm .wh{overflow:hidden}
       if(!v) return '<div class="rp-c none">—</div>';
       if(v.note!==undefined) return '<div class="rp-c"><em>'+v.note+'</em></div>';
       var p=v.b ? Math.min(1,v.a/v.b) : null;
-      return '<div class="rp-c"><em>'+v.a+' / '+v.b+'</em><b>'+(p===null?"—":Math.round(p*100)+"%")+'</b>'+
+      var n1=function(x){ return Math.round(x*10)/10; };
+      return '<div class="rp-c"><em>'+n1(v.a)+' / '+n1(v.b)+'</em><b>'+(p===null?"—":Math.round(p*100)+"%")+'</b>'+
              (p===null?'':'<div class="rp-bar"><i style="width:'+(p*100).toFixed(1)+'%"></i></div>')+'</div>';
     };
     /* rows: label + a function from a cycle's days to its value */
