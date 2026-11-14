@@ -5179,7 +5179,7 @@ html.lkm .wh{overflow:hidden}
       (r.arLog||[]).forEach(function(e){ if(e.m!=null && (first===null || e.m<first)) first=e.m; });
       D.push({k:k, wd:wday(k), fell:deps(r.xr)>0, hrs:h, long: h!=null && h>9, eight: h!=null && Math.abs(h-8)<=1,
         yFell: !!(y && deps(y.xr)>0), W:workN(r.work), ar:DAY.arurael(k), xl:DAY.xenlil(k), ax:DAY.arexia(k), xr:DAY.xeron(k),
-        rm:v4RiteMiss(r), early: first!==null && first<12*60, started: first!==null});
+        rm:v4RiteMiss(r), early: first!==null && first<12*60, started: first!==null, off: arOff(k)});
     }
     /* your days off: weekdays whose work blocks run far below the rest */
     var off=[], byWd=[[],[],[],[],[],[],[]];
@@ -5208,7 +5208,7 @@ html.lkm .wh{overflow:hidden}
       return best; };
     var wdMean=function(val){ var best=null;
       for(var w4=0;w4<7;w4++){ if(off.indexOf(w4)>=0) continue;      /* days off are a kind of their own, not a weakness */
-        var m4=mean(function(d){ return d.wd===w4; }, val, D.filter(function(d){ return off.indexOf(d.wd)<0; }));
+        var m4=mean(function(d){ return d.wd===w4; }, val, D.filter(function(d){ return !d.off; }));   /* days off (the box) are a kind of their own */
         if(byWd[w4].length>=3 && m4.nb>=6 && m4.ma!=null && m4.mb-m4.ma>=25 && (!best || m4.mb-m4.ma>best.mb-best.ma)){ m4.wd=w4; best=m4; } }
       return best; };
     var known=D.filter(function(d){ return d.hrs!=null; }), short=function(d){ return d.hrs<7; }, longN=function(d){ return d.long; };
@@ -5218,7 +5218,7 @@ html.lkm .wh{overflow:hidden}
              wd:wdRate(function(d){ return d.fell; })},
       arexia:{short:rate(short,function(d){ return d.rm>=2; },known), bed:rate(longN,function(d){ return d.rm>=2; },known),
               after:rate(function(d){ return d.yFell; },function(d){ return d.rm>=2; }), wd:wdRate(function(d){ return d.rm>=2; })},
-      arurael:{early:mean(function(d){ return d.early; },function(d){ return d.ar; },D.filter(function(d){ return d.started && off.indexOf(d.wd)<0; })),
+      arurael:{early:mean(function(d){ return d.early; },function(d){ return d.ar; },D.filter(function(d){ return d.started && !d.off; })),
                short:mean(short,function(d){ return d.ar; },known), wd:wdMean(function(d){ return d.ar; })},
       xenlil:{bed:mean(function(d){ return d.eight; },function(d){ return d.xl; },known), short:mean(short,function(d){ return d.xl; },known),
               wd:wdMean(function(d){ return d.xl; })}
@@ -6085,6 +6085,85 @@ html.lkm .wh{overflow:hidden}
     },{passive:false, capture:true});
     lockSync();
   }
+  /* ---- voices, after the Day off and the clean-day bonus ----
+     Ishtar knows that a finished clean day buys back half a fall in the cycle (up to half the
+     cycle's penalty); Arurael knows the Day off box: a weekend given to work, a weekday taken off,
+     and the cycle's work debt that work on a free day can pay. */
+  function vCycle(){
+    var t=dayKey(), c=clIndex(t); if(c<0) return null;
+    var d=clDays(c), i=d.indexOf(t), cy=i<CY_LEN ? d.slice(0,CY_LEN) : d.slice(CY_LEN);
+    return {days:cy, seen:clElapsed(cy), before:cy.filter(function(k){ return k<t; })};
+  }
+  function xrBonusNow(){
+    var C=vCycle(); if(!C) return null;
+    var t=tXeron(C.seen), c=xrCycle(t), td=tXeron([dayKey()]), clean=!td.D && !td.T;
+    var held=xrCycle({D:t.D, T:t.T, cleanDone:t.cleanDone+(clean?1:0)}).score;
+    var y=keyAdd(dayKey(),-1), yIn=C.before.indexOf(y)>=0, yt=yIn ? tXeron([y]) : null, yClean=!!yt && !yt.D && !yt.T;
+    var bwon = yClean ? c.bonus-xrCycle({D:t.D, T:t.T, cleanDone:Math.max(0,t.cleanDone-1)}).bonus : 0;
+    return {pen:c.pen, score:c.score, held:held, clean:clean, cap: c.pen>0 && t.cleanDone*XR_CLEAN>=c.pen/2-1e-9, bwon:bwon};
+  }
+  function arCycleWork(){
+    var C=vCycle(); if(!C) return null;
+    var owed=8*C.before.filter(function(k){ return !arOff(k); }).length;
+    var b=tArurael(C.before), a=tArurael(C.seen);
+    return {before: owed-(b.W+b.X), now: owed-(a.W+a.X)};
+  }
+  (function(){
+    /* ---------- Ishtar ---------- */
+    var oXT=XERON_SPEC.tokens;
+    XERON_SPEC.tokens=function(f,x,ev){
+      var t=oXT(f,x,ev), B=xrBonusNow();
+      if(B){ t.cyc=Math.round(B.score)+"%"; t.cycw=Math.round(B.held)+"%"; t.bwon=String(Math.round(B.bwon*10)/10); }
+      return t;
+    };
+    var XH=function(f,id,m){ return vHash((f.date||dayKey())+"|xeron|"+id)%m===0; };
+    v2Insert(XERON_SAYS,"resilience",[
+      v2Sit("xr_bonus_won","praise",function(f){ var B=!f.locked && f.min>=5*60 && f.min<12*60 && f.D===0 ? xrBonusNow() : null; return !!B && B.bwon>0; },[
+        "Yesterday held. It bought back {bwon} points; the cycle stands at {cyc}.",
+        "A clean day, and half a fall repaid. The cycle reads {cyc} now.",
+        "The wall stood all day yesterday, and the cycle remembers it: +{bwon}.",
+        "Yesterday was clean. The sisters took back half a fall's ground. {cyc}."])]);
+    v2Insert(XERON_SAYS,"unbroken",[
+      v2Sit("xr_bonus_hold","encouragement",function(f){ var B=!f.locked && f.min>=17*60 && f.D===0 && f.T===0 ? xrBonusNow() : null; return !!B && B.pen>0 && !B.cap && B.held>B.score; },[
+        "Clean so far. Hold to midnight and the cycle wins back half a fall: {cyc} becomes {cycw}.",
+        "This day can repair what the plateau took. Half a fall, bought back at midnight. Don't sell it now.",
+        "{cyc} on the cycle tonight. Finish clean and it rises to {cycw}.",
+        "I can't raise the fallen, but a clean day pays half a fall back. Guard the last hours."])]);
+    v2Insert(XERON_SAYS,"clean",[
+      v2Sit("xr_bonus_cap","warning",function(f){ var B=!f.locked && f.min>=12*60 && f.D===0 && f.T===0 && XH(f,"cap",2) ? xrBonusNow() : null; return !!B && B.cap; },[
+        "Clean days have bought back all they can this cycle: half of what fell. The rest only a clean cycle repays.",
+        "Nothing more to buy back in this cycle. Win the next one whole.",
+        "The debt is half paid, and that is the limit. The rest stays on the record."])]);
+
+    /* ---------- Arurael ---------- */
+    var oAT=ARURAEL_SPEC.tokens;
+    ARURAEL_SPEC.tokens=function(f,x,ev){
+      var t=oAT(f,x,ev), W=arCycleWork();
+      t.awd=V4_WD[wday(dayKey())];
+      if(W) t.wdebt=arWord(Math.max(0,Math.ceil(W.now)));
+      return t;
+    };
+    var weekendDay=function(){ return AR_OFF.indexOf(wday(dayKey()))>=0; };
+    v2Insert(ARURAEL_SAYS,"full_off",[
+      v2Sit("ar_debt_filled","praise",function(f){ if(f.locked || !arOff(dayKey())) return false; var W=arCycleWork(); return !!W && W.before>0 && W.now<=0; },[
+        "Today's work closed the cycle's gap. Every working day is paid.",
+        "The missing blocks are filled. A day off spent well.",
+        "The cycle's work is whole again, paid on a free day."]),
+      v2Sit("ar_debt_off","advice",function(f){ if(f.locked || !arOff(dayKey()) || f.min<10*60 || f.min>=21*60) return false; var W=arCycleWork(); return !!W && W.now>=1; },[
+        "No work owed today, but this cycle is {wdebt} blocks short. Work done today fills the gap.",
+        "A day off. The cycle still owes {wdebt} work blocks; a quiet day is a good day to pay them.",
+        "{wdebt} blocks short this cycle. Rest if you must; the record waits, it doesn't forget."])]);
+    v2Insert(ARURAEL_SAYS,"strong",[
+      v2Sit("ar_weekend_work","inspiration",function(f){ return !f.locked && weekendDay() && !arOff(dayKey()) && f.min>=7*60 && f.min<14*60; },[
+        "A {awd} given to work. The Ahtuxasai count it as a working day.",
+        "{awd}, and you chose the desk. Then the work is owed, and it will be weighed.",
+        "No rest today, by your own choice. Eight blocks are owed; so are the studies."]),
+      v2Sit("ar_holiday","advice",function(f){ return !f.locked && !weekendDay() && arOff(dayKey()) && f.min>=7*60 && f.min<14*60; },[
+        "A {awd} off. No work owed today; the studies still are.",
+        "A free {awd}. Let the work rest. Learning doesn't take holidays.",
+        "Day off, marked. The water still wants its daily drop: Share, Execution & Science, English."])
+]);
+  })();
   function buildSleep(){
     document.getElementById("slpBed").addEventListener("click",function(){ fb("tap"); slpTap("bed"); });
     document.getElementById("slpWake").addEventListener("click",function(){ fb("tap"); slpTap("wake"); });
