@@ -7316,9 +7316,19 @@ html.lkm .wh{overflow:hidden}
     days.forEach(function(k){ var r=rec(k)||{}, a=r.ar||{};
       t.W+=Math.min(8,workN(r.work)); t.X+=Math.min(8,workN(r.extra)); t.S+=Math.min(1,cnt(a.sci)); t.E+=Math.min(2,cnt(a.exe)); t.L+=Math.min(1,cnt(a.eng)); });
     return t; }
-  function tXeron(days){ var t={D:0,T:0,clean:0,bound:0,n:days.length};
-    days.forEach(function(k){ var r=rec(k)||{}, d=deps(r.xr), th=thrs(r.xr); t.D+=d; t.T+=th; if(!d&&!th) t.clean++; t.bound+=aeCount(r.ae); });
+  function tXeron(days){ var t={D:0,T:0,clean:0,cleanDone:0,bound:0,n:days.length}, today=dayKey();
+    days.forEach(function(k){ var r=rec(k)||{}, d=deps(r.xr), th=thrs(r.xr); t.D+=d; t.T+=th;
+      if(!d&&!th){ t.clean++; if(k<today) t.cleanDone++; }          /* a clean day counts for the bonus once it is over */
+      t.bound+=aeCount(r.ae); });
     return t; }
+  /* Xeron's cycle: penalty 25 a depletion, 6.25 a threshold; each finished clean day wins back 12.5
+     (half a depletion), at most half the cycle's penalty, inside the floor at 0 - so a clean cycle is
+     still the only 100, and 10 depletions stay below 4 however many clean days follow */
+  var XR_CLEAN=12.5;
+  function xrCycle(t){
+    var pen=25*t.D+6.25*t.T, bonus=Math.min(XR_CLEAN*t.cleanDone, pen/2);
+    return {pen:pen, bonus:bonus, score:Math.max(0, Math.min(100, 100-pen+bonus))};
+  }
   var XEN_W=[["g",30,"Gym"],["c",20,"Core"],["r",20,"Rest & sleep"],["w",10,"Water"],["s",10,"Supplements"],["h",5,"Checkups"],["m",3,"Maintenance"],["k",2,"Skin & Hair routine"]];
   function tXenlil(days){
     var due={},got={}; XEN_W.forEach(function(x){ due[x[0]]=0; got[x[0]]=0; });
@@ -7363,7 +7373,8 @@ html.lkm .wh{overflow:hidden}
     {k:"arexia", name:"Arexia",  hue:"var(--arexia)"}
   ];
   /* every god is scored over the whole cycle as one unit - no daily averaging:
-     Xeron       max(0, 100 - 25·D - 6.25·T), D and T counted across the cycle
+     Xeron       max(0, 100 - 25·D - 6.25·T + min(12.5·C, (25·D + 6.25·T)/2)), D and T counted across
+                 the cycle, C its finished clean days (no depletion, no threshold)
      Arurael     min(100, 100·(10·(W+X)/8n + 6·S/n + 4·E/2n + 3·L/n)/23) over the cycle's n days;
                  X, the extra work, is not owed - each extra slot is worth a work slot, but only
                  up to the full score, so it makes up for what the duty missed and no more
@@ -7376,7 +7387,7 @@ html.lkm .wh{overflow:hidden}
     return w ? 100*sum/w : null;
   }
   var CYCLE_SCORE={
-    xeron:  function(d){ var t=tXeron(d); return Math.max(0, 100-25*t.D-6.25*t.T); },
+    xeron:  function(d){ return xrCycle(tXeron(d)).score; },
     arurael:function(d){ return arScore(tArurael(d)); },
     arexia: function(d){ var t=tArexia(d); return 100*t.kept/t.of; },
     xenlil: xenPooled
@@ -8130,6 +8141,7 @@ html.lkm .wh{overflow:hidden}
     card(CL_GODS[0], [
       ["Depletions", function(d){ return {note:tXeron(d).D}; }],
       ["Thresholds", function(d){ return {note:tXeron(d).T}; }],
+      ["Clean days", function(d){ var t=tXeron(d), b=xrCycle(t).bonus; return {note: t.cleanDone+(b ? " · +"+(Math.round(b*10)/10) : "")}; }],
       ["The Binding of Aeshma", function(d){ return {a:tXeron(d).bound, b:8*d.length}; }]]);
     card(CL_GODS[1], [
       ["Work", function(d){ return {a:tArurael(d).W, b:8*d.length}; }],
