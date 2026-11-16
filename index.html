@@ -975,6 +975,7 @@ html.lkm .wh{overflow:hidden}
     <button type="button" class="mn-it sub" id="drvPush" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 12.5V4M4.5 7.5 8 4l3.5 3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Use this device's record everywhere</span></button>
     <button type="button" class="mn-it sub" id="drvPull" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5V12M4.5 8.5 8 12l3.5-3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Replace this device with Drive's record</span></button>
     <button type="button" class="mn-it sub" id="drvOff" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5H3.5v9H6M10 5l3 3-3 3M13 8H6.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Disconnect</span></button>
+    <button type="button" class="mn-it sub" id="drvRecover" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2.8V5.6h2.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 5.5V8l1.8 1.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="mn-t">Recover records lost in a sync</span></button>
     <div class="mn-sep"></div>
     <p class="mn-h">Backup file</p>
     <button type="button" class="mn-it" id="syncBtn" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 6.2A5 5 0 0 0 3.6 4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3.3 1.9v2.8h2.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 9.8a5 5 0 0 0 9.4 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12.7 14.1v-2.8H9.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t"><span id="syncLabel">Sync</span><span class="mn-s" id="syncNote"></span></span></button>
@@ -1522,6 +1523,7 @@ html.lkm .wh{overflow:hidden}
   var RESTORING=false;                               /* a backup is being loaded: the old state must not write over it */
   function save(){
     if(RESTORING) return;
+    if(typeof stampSave==="function") stampSave();
     try{ localStorage.setItem(KEY, JSON.stringify(state)); localStorage.setItem("dial.stamp", String(Date.now())); saveWarned=false;
          if(typeof vaultSoon==="function") vaultSoon();
          }
@@ -7568,7 +7570,7 @@ html.lkm .wh{overflow:hidden}
           aeClear(); coreReset();
           if(typeof vaultKeep==="function") vaultKeep("golden-path-before-reset.json");   /* the old record stays in the backup folder */
           actNow();                                                                          /* a reset is a record: it wins everywhere */
-          state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start, wh:state.wh};       /* the warehouse isn't a record: it stays */
+          state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start, wh:state.wh, resetAt:Date.now()};       /* the warehouse isn't a record: it stays */
           VMEM={}; try{ localStorage.removeItem("dial.vmem"); }catch(e){}
           CL_START=start; CLSEL=null; save(); hideTip();
           render(); renderXen(); renderXr(); renderAr(); renderCl();
@@ -7985,13 +7987,14 @@ html.lkm .wh{overflow:hidden}
       fb("tap");
       ask("Use this device's record everywhere?", "Google Drive takes this device's record as it is now ("+vDaysText(vDays(state))+", Cluster 1 from "+
         clDate(CL_START,{month:"short",day:"numeric"})+"). Your other devices replace theirs with it when they next sync.", "Use this one",
-        function(){ GD.force=null; actNow(); clearTimeout(GD.t); GD.t=0; gdSync(true); });
+        function(){ state.resetAt=Date.now(); save(); GD.force="push"; actNow(); clearTimeout(GD.t); GD.t=0; gdSync(true); });
     });
     document.getElementById("drvPull").addEventListener("click",function(){
       fb("tap");
       ask("Replace this device with Drive's record?", "This device's record is replaced by the one in Google Drive, whatever its age. A copy of this device's record is kept on the device.", "Replace",
         function(){ GD.force="pull"; gdSync(true); });
     });
+    document.getElementById("drvRecover").addEventListener("click",function(){ fb("tap"); mgRecover(); });
     document.getElementById("drvOff").addEventListener("click",function(){
       fb("tap");
       ask("Disconnect Google Drive?", "This device stops syncing. Your record stays here, and the copy in your Drive stays there for your other devices.", "Disconnect",
@@ -8002,7 +8005,8 @@ html.lkm .wh{overflow:hidden}
         });
     });
     try{ localStorage.removeItem("dial.sync"); }catch(e){}           /* the old per-day merge's bookkeeping */
-    if(lsGet("dial.gd.note")){ try{ localStorage.removeItem("dial.gd.note"); }catch(e){} setTimeout(function(){ toast("Loaded the newest record from Google Drive."); }, 600); }
+    var NOTE=lsGet("dial.gd.note");
+    if(NOTE){ try{ localStorage.removeItem("dial.gd.note"); }catch(e){} setTimeout(function(){ toast(NOTE==="merge" ? "Merged with Google Drive: records from your other device were added." : NOTE==="recover" ? "Recovered records are back in place." : "Loaded the newest record from Google Drive."); }, 600); }
     gdLoadToken(); renderDrive();
     if(gdLinked()){
       if(!gdNative()) gdGis();
@@ -8029,6 +8033,145 @@ html.lkm .wh{overflow:hidden}
   var GD_CLIENT="63396757473-qbt9ubfll5dec1cb49j25othnjvbfr69.apps.googleusercontent.com";
   var GD_SCOPE="https://www.googleapis.com/auth/drive.appdata", GD_FILE="the-ritual.json", GD_API="https://www.googleapis.com";
   var GD={token:null, exp:0, fileId:null, busy:false, again:false, state:"off", t:0, seq:0, cb:{}, authCb:null, client:null, gis:0, gisCb:[]};
+  /* ---------- Sync by merging, not by replacing ----------
+     Every save stamps what changed since the last save, field by field: in each day record
+     (r._t["checks.arexia"], r._t["water"], ...) and at the top of the record (state._t["sleep"],
+     ["goals"], ["wh"], ...). A day record that is only being created is not stamped (its
+     defaults never beat a real value), nor are the hidden bed/wake flags (worked out from sleep).
+     Two records meet field by field: the newer stamp wins; with no stamp on either side (older
+     data) the fuller value wins (true over false, the larger count, a list item for item); the
+     day's log and its block list are joined. Nothing recorded on one device can be erased by
+     another that simply hadn't seen it yet. A reset, or "Use this device's record everywhere",
+     sets state.resetAt: whatever the other side holds from before it is dropped. */
+  var STAMP=null, MG_UNION={log:1, arLog:1}, MG_NOSTAMP={"habits.bed":1, "habits.wake":1};
+  function mgObj(v){ return !!v && typeof v==="object" && !Array.isArray(v); }
+  function sStr(o){                                     /* stable JSON: keys sorted */
+    if(o===null || typeof o!=="object") return JSON.stringify(o===undefined ? null : o);
+    if(Array.isArray(o)) return "["+o.map(sStr).join(",")+"]";
+    return "{"+Object.keys(o).sort().filter(function(k){ return o[k]!==undefined; }).map(function(k){ return JSON.stringify(k)+":"+sStr(o[k]); }).join(",")+"}";
+  }
+  function mgRecs(st){ return (st.history||[]).concat(st.day ? [st.day] : []); }
+  function mgFlat(r){                                   /* {path: json}, one level into objects */
+    var f={}; Object.keys(r).forEach(function(k){ if(k==="_t" || k==="date") return;
+      if(mgObj(r[k])) Object.keys(r[k]).forEach(function(s){ f[k+"."+s]=JSON.stringify(r[k][s]); });
+      else f[k]=JSON.stringify(r[k]); });
+    return f;
+  }
+  function stampSnap(st){
+    var s={rec:{}, top:{}};
+    mgRecs(st).forEach(function(r){ if(r && r.date) s.rec[r.date]=mgFlat(r); });
+    Object.keys(st).forEach(function(k){ if(k!=="day" && k!=="history" && k!=="_t") s.top[k]=JSON.stringify(st[k]); });
+    return s;
+  }
+  function stampSave(){
+    if(!state) return;
+    if(!STAMP){ STAMP=stampSnap(state); return; }
+    var now=Date.now(), next=stampSnap(state);
+    mgRecs(state).forEach(function(r){
+      if(!r || !r.date) return;
+      var a=STAMP.rec[r.date], b=next.rec[r.date]; if(!a) return;          /* a new record: its defaults stay unstamped */
+      Object.keys(a).concat(Object.keys(b)).forEach(function(p){
+        if(a[p]===b[p] || MG_NOSTAMP[p]) return;
+        if(!r._t) r._t={}; r._t[p]=now;
+      });
+    });
+    Object.keys(STAMP.top).concat(Object.keys(next.top)).forEach(function(k){
+      if(k==="resetAt" || STAMP.top[k]===next.top[k]) return;
+      if(!state._t) state._t={}; state._t[k]=now;
+    });
+    STAMP=stampSnap(state);
+  }
+  function mgFuller(x,y,aNewer){                        /* no stamps on either side: the fuller value */
+    if(x===undefined) return y; if(y===undefined) return x;
+    if(typeof x==="boolean" && typeof y==="boolean") return x||y;
+    if(typeof x==="number" && typeof y==="number") return Math.max(x,y);
+    if(Array.isArray(x) && Array.isArray(y)){ var n=Math.max(x.length,y.length), o=[]; for(var i=0;i<n;i++) o.push(mgFuller(x[i],y[i],aNewer)); return o; }
+    if(mgObj(x) && mgObj(y)){ var o2={}; Object.keys(x).concat(Object.keys(y)).forEach(function(k){ o2[k]=mgFuller(x[k],y[k],aNewer); }); return o2; }
+    return aNewer ? x : y;
+  }
+  function mgUnion(x,y,key){                            /* the log and the block list: everything from both, in time order */
+    var seen={}, out=[];
+    (Array.isArray(x)?x:[]).concat(Array.isArray(y)?y:[]).forEach(function(e){ var s=sStr(e); if(!seen[s]){ seen[s]=1; out.push(e); } });
+    var at=function(e){ return Array.isArray(e) ? +e[0]||0 : (e && e.m!=null ? +e.m : 0); };
+    return out.map(function(e,i){ return [e,i]; }).sort(function(p,q){ return at(p[0])-at(q[0]) || p[1]-q[1]; }).map(function(p){ return p[0]; });
+  }
+  function mgRec(a,b,aNewer){
+    var ta=a._t||{}, tb=b._t||{}, out={}, ot={};
+    var pick=function(x,y,tx,ty){ return tx>ty ? [x,tx] : ty>tx ? [y,ty] : [mgFuller(x,y,aNewer),tx]; };
+    var keys={}; Object.keys(a).concat(Object.keys(b)).forEach(function(k){ if(k!=="_t") keys[k]=1; });
+    Object.keys(keys).forEach(function(k){
+      var va=a[k], vb=b[k];
+      if(k==="date"){ out.date=va||vb; return; }
+      if(MG_UNION[k]){ out[k]=mgUnion(va,vb,k); return; }
+      if((mgObj(va) || va===undefined) && (mgObj(vb) || vb===undefined)){
+        var A=va||{}, B=vb||{}, o={}, sub={};
+        Object.keys(A).concat(Object.keys(B)).forEach(function(s){ sub[s]=1; });
+        Object.keys(sub).forEach(function(s){ var p=k+"."+s, r=pick(A[s],B[s],ta[p]||ta[k]||0,tb[p]||tb[k]||0);
+          if(r[0]!==undefined) o[s]=r[0]; if(r[1]) ot[p]=r[1]; });
+        out[k]=o; return;
+      }
+      var r=pick(va,vb,ta[k]||0,tb[k]||0); if(r[0]!==undefined) out[k]=r[0]; if(r[1]) ot[k]=r[1];
+    });
+    if(Object.keys(ot).length) out._t=ot;
+    return out;
+  }
+  function mgMaxT(r){ var m=0, t=r._t||{}; Object.keys(t).forEach(function(k){ if(t[k]>m) m=t[k]; }); return m; }
+  function mgPrune(st,R){                               /* the side from before a reset: only what was recorded after it */
+    var o=JSON.parse(JSON.stringify(st)), t=o._t||{};
+    o.history=(o.history||[]).filter(function(r){ return mgMaxT(r)>=R; });
+    if(o.day && mgMaxT(o.day)<R) o.day=null;
+    Object.keys(o).forEach(function(k){ if(k!=="day" && k!=="history" && k!=="_t" && !((t[k]||0)>=R)) delete o[k]; });
+    return o;
+  }
+  function stateMerge(A,B,actA,actB){
+    var aNewer=actA>=actB, RA=+A.resetAt||0, RB=+B.resetAt||0;
+    if(RA<RB) A=mgPrune(A,RB); else if(RB<RA) B=mgPrune(B,RA);
+    var map={};
+    mgRecs(A).forEach(function(r){ if(r && r.date) (map[r.date]=map[r.date]||{}).a=r; });
+    mgRecs(B).forEach(function(r){ if(r && r.date) (map[r.date]=map[r.date]||{}).b=r; });
+    var dd=[A.day && A.day.date, B.day && B.day.date].filter(Boolean).sort().pop();
+    var out={}, ta=A._t||{}, tb=B._t||{}, ot={};
+    Object.keys(A).concat(Object.keys(B)).forEach(function(k){
+      if(k==="day" || k==="history" || k==="_t" || k==="resetAt" || k in out) return;
+      var x=A[k], y=B[k], tx=ta[k]||0, ty=tb[k]||0;
+      out[k] = x===undefined ? y : y===undefined ? x : tx>ty ? x : ty>tx ? y : (aNewer ? x : y);
+      var t=Math.max(tx,ty); if(t) ot[k]=t;
+    });
+    var recs=Object.keys(map).sort().map(function(d){ var m=map[d]; return m.a && m.b ? mgRec(m.a,m.b,aNewer) : JSON.parse(JSON.stringify(m.a||m.b)); });
+    out.day=recs.filter(function(r){ return r.date===dd; })[0] || freshDay(dd);
+    out.history=recs.filter(function(r){ return r.date<dd; });
+    if(Math.max(RA,RB)) out.resetAt=Math.max(RA,RB);
+    if(Object.keys(ot).length) out._t=ot;
+    return out;
+  }
+  /* write a merged record here (the page starts again from it); the old one is kept as dial.before */
+  function mgWriteLocal(M, vmem, act){
+    if(vHas(state)) lsSet("dial.before", JSON.stringify(vaultPack()));
+    RESTORING=true; clearTimeout(vaultT); vaultT=0; clearTimeout(GD.t); GD.t=0;
+    lsSet(KEY, JSON.stringify(M)); if(typeof vmem==="string") lsSet("dial.vmem", vmem);
+    lsSet("dial.act", String(act));
+  }
+
+  /* records lost to an old sync: what this device held before it last took another's record
+     (dial.before) is merged back in; nothing here is removed */
+  function mgBefore(){ try{ var o=JSON.parse(lsGet("dial.before")||"null"); var st=o && o.data && JSON.parse(o.data[KEY]); return st && st.day ? {state:st, act:+o.savedAt||0} : null; }catch(e){ return null; } }
+  function mgRecoverable(){
+    var b=mgBefore(); if(!b || !state) return null;
+    var M=stateMerge(state, b.state, actTime(), b.act);
+    if(sStr(M)===sStr(state)) return null;
+    var cur={}; mgRecs(state).forEach(function(r){ cur[r.date]=sStr(r); });
+    var n=mgRecs(M).filter(function(r){ return cur[r.date]!==sStr(r); }).length;
+    return {M:M, days:n};
+  }
+  function mgRecover(){
+    var R=mgRecoverable(); if(!R){ toast("Nothing to recover."); return; }
+    ask("Recover lost records?", "What this device held before its last sync is merged back in: "+vDaysText(R.days)+" gain records. Nothing here is removed.", "Recover", function(){
+      var old=lsGet("dial.before");
+      mgWriteLocal(R.M, null, Date.now());
+      lsSet("dial.before.used", old||""); try{ localStorage.removeItem("dial.before"); }catch(e){}
+      lsSet("dial.gd.note","recover"); location.reload();
+    });
+  }
   function gdPayload(){
     var o=vaultPack(); o.app="the-ritual"; o.v=2; o.act=actTime(); o.savedAt=Date.now();
     return JSON.stringify(o);
@@ -8175,11 +8318,15 @@ html.lkm .wh{overflow:hidden}
         return gdPull().then(function(R){
             var r=gdParse(R), mine=actTime();
             if(GD.force==="pull"){ GD.force=null; if(r){ gdApply(r); return "pulled"; } return "none"; }
+            if(GD.force==="push"){ GD.force=null; return gdPush().then(function(){ return "pushed"; }); }   /* this record, as it is, everywhere */
             GD.force=null;
-            if(r && r.act>mine){ gdApply(r); return "pulled"; }             /* a newer record elsewhere */
-            if(r && r.act===mine) return "same";
-            if(!r && !mine && !vHas(state)) return "same";                  /* nothing anywhere yet */
-            return gdPush().then(function(){ return "pushed"; });          /* ours is the newest */
+            if(!r){ if(!mine && !vHas(state)) return "same"; return gdPush().then(function(){ return "pushed"; }); }
+            /* both records meet field by field; whichever side lacks something gets it */
+            var M=stateMerge(state, r.state, mine, r.act), mS=sStr(M), toLocal=mS!==sStr(state), toDrive=mS!==sStr(r.state);
+            if(!toLocal && !toDrive) return "same";
+            if(toLocal) mgWriteLocal(M, r.act>mine ? r.data["dial.vmem"] : null, Math.max(mine, r.act));
+            var done=function(){ if(!toLocal) return "pushed"; lsSet("dial.gd.at", String(Date.now())); lsSet("dial.gd.note","merge"); location.reload(); return "pulled"; };
+            return toDrive ? gdPush().then(done) : done();
           })
           .catch(function(e){
             if(e && e.code===401 && retry && gdNative()){       /* the phone's sign-in ran out: ask it again, quietly, once */
@@ -8223,6 +8370,7 @@ html.lkm .wh{overflow:hidden}
     document.getElementById("drvBtn").dataset.state=st;
     document.getElementById("drvOff").hidden=!linked;
     document.getElementById("drvPush").hidden=!linked; document.getElementById("drvPull").hidden=!linked;
+    document.getElementById("drvRecover").hidden=!mgRecoverable();
     moreDot();
   }
 
@@ -8374,6 +8522,7 @@ html.lkm .wh{overflow:hidden}
   }
 
   state=load();
+  STAMP=stampSnap(state);
   if(state.clStart) CL_START=state.clStart;
   rollover();
   buildDial(); buildCards(); buildPips(); buildHabits(); buildHealth(); buildCore(); buildXr(); buildAe(); buildAr(); buildCl(); buildSync(); buildMenu(); buildGoals(); buildWarehouse(); buildSleep(); buildLock();
