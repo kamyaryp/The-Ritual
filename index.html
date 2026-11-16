@@ -975,7 +975,7 @@ html.lkm .wh{overflow:hidden}
     <button type="button" class="mn-it sub" id="drvPush" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 12.5V4M4.5 7.5 8 4l3.5 3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Use this device's record everywhere</span></button>
     <button type="button" class="mn-it sub" id="drvPull" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5V12M4.5 8.5 8 12l3.5-3.5M3 13.5h10" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Replace this device with Drive's record</span></button>
     <button type="button" class="mn-it sub" id="drvOff" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M6 3.5H3.5v9H6M10 5l3 3-3 3M13 8H6.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Disconnect</span></button>
-    <button type="button" class="mn-it sub" id="drvRecover" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2.8V5.6h2.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 5.5V8l1.8 1.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="mn-t">Recover records lost in a sync</span></button>
+    <button type="button" class="mn-it sub" id="drvRecover" role="menuitem" hidden><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8a5 5 0 1 0 1.5-3.6M3 2.8V5.6h2.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M8 5.5V8l1.8 1.2" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg><span class="mn-t">Recover lost records</span></button>
     <div class="mn-sep"></div>
     <p class="mn-h">Backup file</p>
     <button type="button" class="mn-it" id="syncBtn" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M13 6.2A5 5 0 0 0 3.6 4.4" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M3.3 1.9v2.8h2.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 9.8a5 5 0 0 0 9.4 1.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M12.7 14.1v-2.8H9.9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t"><span id="syncLabel">Sync</span><span class="mn-s" id="syncNote"></span></span></button>
@@ -1524,6 +1524,7 @@ html.lkm .wh{overflow:hidden}
   function save(){
     if(RESTORING) return;
     if(typeof stampSave==="function") stampSave();
+    if(typeof jvSoon==="function") jvSoon();
     try{ localStorage.setItem(KEY, JSON.stringify(state)); localStorage.setItem("dial.stamp", String(Date.now())); saveWarned=false;
          if(typeof vaultSoon==="function") vaultSoon();
          }
@@ -7570,7 +7571,7 @@ html.lkm .wh{overflow:hidden}
           aeClear(); coreReset();
           if(typeof vaultKeep==="function") vaultKeep("golden-path-before-reset.json");   /* the old record stays in the backup folder */
           actNow();                                                                          /* a reset is a record: it wins everywhere */
-          state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start, wh:state.wh, resetAt:Date.now()};       /* the warehouse isn't a record: it stays */
+          state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start, wh:state.wh, resetAt:hlcNow()};       /* the warehouse isn't a record: it stays */
           VMEM={}; try{ localStorage.removeItem("dial.vmem"); }catch(e){}
           CL_START=start; CLSEL=null; save(); hideTip();
           render(); renderXen(); renderXr(); renderAr(); renderCl();
@@ -7632,7 +7633,7 @@ html.lkm .wh{overflow:hidden}
   function vaultWriteNow(manual){
     var H=vHost(); if(!H) return false;
     var o=vaultPack(), ok=H.vaultWrite(VAULT_FILE, JSON.stringify(o));
-    if(ok){ lsSet("dial.vault.last", String(o.savedAt)); lsSet("dial.vault.at", String(Date.now())); VAULT_NEWER=false; }
+    if(ok){ lsSet("dial.vault.last", String(o.savedAt)); lsSet("dial.vault.at", String(Date.now())); VAULT_NEWER=false; jvVault(); }
     if(manual) toast(ok ? "Saved to "+H.vaultFolder()+"." : "Couldn't write the file. Choose the folder again.");
     renderSync();
     return ok;
@@ -7960,7 +7961,7 @@ html.lkm .wh{overflow:hidden}
   /* ---------- the More menu ---------- */
   function moreDot(){
     var d=document.getElementById("moreDot"); if(!d) return;
-    d.hidden=!(VAULT_NEWER || (typeof GD!=="undefined" && GD && gdLinked() && /^(expired|error|fail)$/.test(GD.state)));
+    d.hidden=!(VAULT_NEWER || (typeof GD!=="undefined" && GD && gdLinked() && /^(expired|error|fail)$/.test(GD.state)) || (typeof jnStale==="function" && jnStale()));
   }
   function menuOpen(){
     var mn=document.getElementById("menu"), b=document.getElementById("moreBtn");
@@ -7987,7 +7988,7 @@ html.lkm .wh{overflow:hidden}
       fb("tap");
       ask("Use this device's record everywhere?", "Google Drive takes this device's record as it is now ("+vDaysText(vDays(state))+", Cluster 1 from "+
         clDate(CL_START,{month:"short",day:"numeric"})+"). Your other devices replace theirs with it when they next sync.", "Use this one",
-        function(){ state.resetAt=Date.now(); save(); GD.force="push"; actNow(); clearTimeout(GD.t); GD.t=0; gdSync(true); });
+        function(){ state.resetAt=hlcNow(); save(); GD.force="push"; actNow(); clearTimeout(GD.t); GD.t=0; gdSync(true); });
     });
     document.getElementById("drvPull").addEventListener("click",function(){
       fb("tap");
@@ -8051,8 +8052,59 @@ html.lkm .wh{overflow:hidden}
     return "{"+Object.keys(o).sort().filter(function(k){ return o[k]!==undefined; }).map(function(k){ return JSON.stringify(k)+":"+sStr(o[k]); }).join(",")+"}";
   }
   function mgRecs(st){ return (st.history||[]).concat(st.day ? [st.day] : []); }
+  /* ---- the change journal ----
+     Each device has an id (dial.dev). Stamps come from a clock that never runs backwards and
+     never falls behind a stamp it has seen (dial.hlc), so a phone with a wrong time can't
+     reorder edits it has already met. Counts in a day record (water, falls, thresholds…) are
+     kept per device as changes (r._c[path] = {b: base, d: {dev: [change, stamp]}}): two devices
+     that both add while offline add up. Lists with ids — sleep sessions, goals, warehouse items
+     — meet item by item (state._i[list][id] = when it last changed, state._x[list][id] = when
+     it was deleted). */
+  var JN_COLL=["sleep","goals","wh.items"], JN_HI=0;
+  function jnDev(){ var d=lsGet("dial.dev"); if(!d){ d=Math.random().toString(36).slice(2,8)||"d"; lsSet("dial.dev",d); } return d; }
+  function hlcNow(){ var hi=Math.max(JN_HI||0, +(lsGet("dial.hlc")||0)), t=Math.max(Date.now(), hi+1); JN_HI=t; lsSet("dial.hlc",String(t)); return t; }
+  function hlcSeen(t){ t=+t||0; if(t>Date.now()+30*86400000) return; if(t>Math.max(JN_HI||0, +(lsGet("dial.hlc")||0))){ JN_HI=t; lsSet("dial.hlc",String(t)); } }
+  function jnMax(st){                                   /* the latest stamp anywhere in a record */
+    var m=0, see=function(t){ t=+t||0; if(t>m) m=t; };
+    var map=function(o){ if(o) Object.keys(o).forEach(function(k){ see(o[k]); }); };
+    mgRecs(st).forEach(function(r){ if(!r) return; map(r._t); if(r._c) Object.keys(r._c).forEach(function(p){ var d=r._c[p].d||{}; Object.keys(d).forEach(function(v){ see(d[v][1]); }); }); });
+    map(st._t); [st._i, st._x].forEach(function(L){ if(L) Object.keys(L).forEach(function(c){ map(L[c]); }); });
+    return m;
+  }
+  function jnGet(st,c){ if(c==="wh.items") return st.wh && Array.isArray(st.wh.items) ? st.wh.items : null; return Array.isArray(st[c]) ? st[c] : null; }
+  function jnKey(c,e){ return e && e.id!=null ? String(e.id) : "~"+sStr(e); }
+  function jnIds(st){ (st.sleep||[]).forEach(function(e){ if(e && e.id==null && (e.bed || e.wake)) e.id="s"+(e.bed||e.wake); }); }
+  function jnMap(st,c){ var m={}; (jnGet(st,c)||[]).forEach(function(e){ m[jnKey(c,e)]=sStr(e); }); return m; }
+  function jnCount(e){ var v=+e.b||0, d=e.d||{}; Object.keys(d).forEach(function(k){ v+=+d[k][0]||0; }); return v; }
+  function jnCMerge(x,y){                               /* two journals of one count: each device's latest */
+    if(!x) return JSON.parse(JSON.stringify(y)); if(!y) return JSON.parse(JSON.stringify(x));
+    var o={b:Math.max(+x.b||0, +y.b||0), d:{}}, dx=x.d||{}, dy=y.d||{};
+    Object.keys(dx).concat(Object.keys(dy)).forEach(function(k){ var a=dx[k], b=dy[k];
+      o.d[k] = !a ? b.slice() : !b ? a.slice() : (+b[1]>+a[1] ? b.slice() : a.slice()); });
+    return o;
+  }
+  function jnPath(r,p,v){ var i=p.indexOf("."); if(i<0){ if(v===undefined) return r[p]; r[p]=v; return v; }
+    var k=p.slice(0,i), s=p.slice(i+1); if(v===undefined) return r[k] ? r[k][s] : undefined; if(!r[k] || typeof r[k]!=="object") r[k]={}; r[k][s]=v; return v; }
+  function jnColl(A,B,c,aNewer){                        /* one list from both, item by item */
+    var la=jnGet(A,c), lb=jnGet(B,c);
+    var ia=(A._i||{})[c]||{}, ib=(B._i||{})[c]||{}, xa=(A._x||{})[c]||{}, xb=(B._x||{})[c]||{};
+    var by={}, order=[], put=function(l,side){ (l||[]).forEach(function(e){ var k=jnKey(c,e); if(!by[k]){ by[k]={}; order.push(k); } by[k][side]=e; }); };
+    put(la,"a"); put(lb,"b");
+    var I={}, X={}, out=[], old=Date.now()-120*86400000;
+    Object.keys(ia).concat(Object.keys(ib)).forEach(function(k){ I[k]=Math.max(+ia[k]||0, +ib[k]||0); });
+    Object.keys(xa).concat(Object.keys(xb)).forEach(function(k){ var t=Math.max(+xa[k]||0, +xb[k]||0); if(t>old) X[k]=t; });
+    order.forEach(function(k){
+      var e=by[k], ta=+ia[k]||0, tb=+ib[k]||0, del=X[k]||0;
+      if(del && del>=Math.max(ta,tb)) return;
+      var v = e.a && e.b ? (ta>tb ? e.a : tb>ta ? e.b : (aNewer ? e.a : e.b)) : (e.a||e.b);
+      out.push(JSON.parse(JSON.stringify(v)));
+    });
+    Object.keys(X).forEach(function(k){ if(I[k] && I[k]<=X[k]) delete I[k]; });
+    if(c==="sleep") out.sort(function(p,q){ return ((+p.bed||+p.wake||0)-(+q.bed||+q.wake||0)); });
+    return {list:out, i:I, x:X, any: !!(la || lb)};
+  }
   function mgFlat(r){                                   /* {path: json}, one level into objects */
-    var f={}; Object.keys(r).forEach(function(k){ if(k==="_t" || k==="date") return;
+    var f={}; Object.keys(r).forEach(function(k){ if(k==="_t" || k==="_c" || k==="date") return;
       if(mgObj(r[k])) Object.keys(r[k]).forEach(function(s){ f[k+"."+s]=JSON.stringify(r[k][s]); });
       else f[k]=JSON.stringify(r[k]); });
     return f;
@@ -8060,25 +8112,42 @@ html.lkm .wh{overflow:hidden}
   function stampSnap(st){
     var s={rec:{}, top:{}};
     mgRecs(st).forEach(function(r){ if(r && r.date) s.rec[r.date]=mgFlat(r); });
-    Object.keys(st).forEach(function(k){ if(k!=="day" && k!=="history" && k!=="_t") s.top[k]=JSON.stringify(st[k]); });
+    Object.keys(st).forEach(function(k){ if(k!=="day" && k!=="history" && k!=="_t" && k!=="_i" && k!=="_x") s.top[k]=JSON.stringify(st[k]); });
+    s.coll={}; JN_COLL.forEach(function(c){ s.coll[c]=jnMap(st,c); });
     return s;
   }
   function stampSave(){
     if(!state) return;
+    jnIds(state);
     if(!STAMP){ STAMP=stampSnap(state); return; }
-    var now=Date.now(), next=stampSnap(state);
+    var now=0, next=stampSnap(state), dev=jnDev(), T=function(){ return now || (now=hlcNow()); };
     mgRecs(state).forEach(function(r){
       if(!r || !r.date) return;
       var a=STAMP.rec[r.date], b=next.rec[r.date]; if(!a) return;          /* a new record: its defaults stay unstamped */
+      var seen={};
       Object.keys(a).concat(Object.keys(b)).forEach(function(p){
-        if(a[p]===b[p] || MG_NOSTAMP[p]) return;
-        if(!r._t) r._t={}; r._t[p]=now;
+        if(seen[p] || a[p]===b[p] || MG_NOSTAMP[p] || p==="_c") return; seen[p]=1;
+        if(!r._t) r._t={}; r._t[p]=T();
+        var x=a[p]!==undefined ? JSON.parse(a[p]) : null, y=b[p]!==undefined ? JSON.parse(b[p]) : null;
+        if(typeof x==="number" && typeof y==="number"){                     /* a count: this device's change joins the journal */
+          var C=r._c||(r._c={}), e=C[p]||(C[p]={b:x, d:{}}), me=e.d[dev]||[0,0];
+          e.d[dev]=[me[0]+(y-x), T()];
+        }
       });
     });
     Object.keys(STAMP.top).concat(Object.keys(next.top)).forEach(function(k){
       if(k==="resetAt" || STAMP.top[k]===next.top[k]) return;
-      if(!state._t) state._t={}; state._t[k]=now;
+      if(!state._t) state._t={}; state._t[k]=T();
     });
+    JN_COLL.forEach(function(c){
+      var a=STAMP.coll[c]||{}, b=next.coll[c]||{};
+      Object.keys(a).concat(Object.keys(b)).forEach(function(k){
+        if(a[k]===b[k]) return;
+        var L=b[k]!==undefined ? "_i" : "_x", M=state[L]||(state[L]={}), S=M[c]||(M[c]={});
+        S[k]=T();
+      });
+    });
+    if(now && !lsGet("dial.gd.dirty")) lsSet("dial.gd.dirty", String(Date.now()));
     STAMP=stampSnap(state);
   }
   function mgFuller(x,y,aNewer){                        /* no stamps on either side: the fuller value */
@@ -8098,7 +8167,7 @@ html.lkm .wh{overflow:hidden}
   function mgRec(a,b,aNewer){
     var ta=a._t||{}, tb=b._t||{}, out={}, ot={};
     var pick=function(x,y,tx,ty){ return tx>ty ? [x,tx] : ty>tx ? [y,ty] : [mgFuller(x,y,aNewer),tx]; };
-    var keys={}; Object.keys(a).concat(Object.keys(b)).forEach(function(k){ if(k!=="_t") keys[k]=1; });
+    var keys={}; Object.keys(a).concat(Object.keys(b)).forEach(function(k){ if(k!=="_t" && k!=="_c") keys[k]=1; });
     Object.keys(keys).forEach(function(k){
       var va=a[k], vb=b[k];
       if(k==="date"){ out.date=va||vb; return; }
@@ -8113,6 +8182,20 @@ html.lkm .wh{overflow:hidden}
       var r=pick(va,vb,ta[k]||0,tb[k]||0); if(r[0]!==undefined) out[k]=r[0]; if(r[1]) ot[k]=r[1];
     });
     if(Object.keys(ot).length) out._t=ot;
+    /* counts with a journal: base + every device's changes */
+    var ca=a._c||{}, cb=b._c||{}, oc={};
+    Object.keys(ca).concat(Object.keys(cb)).forEach(function(p){
+      if(oc[p]) return;
+      var x=ca[p], y=cb[p], e;
+      if(x && y) e=jnCMerge(x,y);
+      else {                                              /* only one side keeps a journal for it */
+        var J=x||y, other=x ? b : a, ov=jnPath(other,p), ot2=((x ? tb : ta)[p])||0, jt=((x ? ta : tb)[p])||0;
+        e=jnCMerge(J,null);
+        if(typeof ov==="number" && ov!==jnCount(J) && ov!==+J.b && ot2>jt) e.b=ov-(jnCount(J)-(+J.b||0));
+      }
+      oc[p]=e; jnPath(out,p,jnCount(e));
+    });
+    if(Object.keys(oc).length) out._c=oc;
     return out;
   }
   function mgMaxT(r){ var m=0, t=r._t||{}; Object.keys(t).forEach(function(k){ if(t[k]>m) m=t[k]; }); return m; }
@@ -8132,7 +8215,7 @@ html.lkm .wh{overflow:hidden}
     var dd=[A.day && A.day.date, B.day && B.day.date].filter(Boolean).sort().pop();
     var out={}, ta=A._t||{}, tb=B._t||{}, ot={};
     Object.keys(A).concat(Object.keys(B)).forEach(function(k){
-      if(k==="day" || k==="history" || k==="_t" || k==="resetAt" || k in out) return;
+      if(k==="day" || k==="history" || k==="_t" || k==="_i" || k==="_x" || k==="resetAt" || k in out) return;
       var x=A[k], y=B[k], tx=ta[k]||0, ty=tb[k]||0;
       out[k] = x===undefined ? y : y===undefined ? x : tx>ty ? x : ty>tx ? y : (aNewer ? x : y);
       var t=Math.max(tx,ty); if(t) ot[k]=t;
@@ -8142,6 +8225,15 @@ html.lkm .wh{overflow:hidden}
     out.history=recs.filter(function(r){ return r.date<dd; });
     if(Math.max(RA,RB)) out.resetAt=Math.max(RA,RB);
     if(Object.keys(ot).length) out._t=ot;
+    var I={}, X={};
+    JN_COLL.forEach(function(c){
+      var R=jnColl(A,B,c,aNewer); if(!R.any) return;
+      if(c==="wh.items"){ if(!out.wh || typeof out.wh!=="object") out.wh={}; else out.wh=JSON.parse(JSON.stringify(out.wh)); out.wh.items=R.list; }
+      else out[c]=R.list;
+      if(Object.keys(R.i).length) I[c]=R.i; if(Object.keys(R.x).length) X[c]=R.x;
+    });
+    if(Object.keys(I).length) out._i=I; if(Object.keys(X).length) out._x=X;
+    hlcSeen(jnMax(out));
     return out;
   }
   /* write a merged record here (the page starts again from it); the old one is kept as dial.before */
@@ -8159,19 +8251,19 @@ html.lkm .wh{overflow:hidden}
      saved version of the Drive file (Drive keeps old revisions). Recovery only ever adds. */
   function rcStrip(st){ var o=JSON.parse(JSON.stringify(st)); delete o.resetAt; return o; }
   function rcFloor(st){ var d=[st.clStart, st.hcSince].filter(Boolean); (st.history||[]).forEach(function(r){ if(r && r.date) d.push(r.date); }); return d.sort()[0]||""; }
-  function rcSleep(cur, more){                          /* sessions that aren't here yet and don't overlap one that is */
-    var out=(cur||[]).slice(), seen={};
+  function rcSleep(cur, more, gone){                    /* sessions that aren't here yet, weren't deleted, and don't overlap one that is */
+    var out=(cur||[]).slice(), seen={}; gone=gone||{};
     var span=function(s){ return [+s.bed||0, +(s.wake||s.bed)||0]; };
     out.forEach(function(s){ seen[s.bed]=1; });
     (more||[]).forEach(function(s){
-      if(!s || !s.bed || seen[s.bed]) return;
+      if(!s || !s.bed || seen[s.bed] || gone[s.id||("s"+s.bed)]) return;
       var a=span(s), hit=out.some(function(o){ var b=span(o); return a[0]<=b[1] && b[0]<=a[1]; });
-      if(!hit){ out.push({bed:s.bed, wake:s.wake||null}); seen[s.bed]=1; }
+      if(!hit){ out.push({id:s.id||("s"+s.bed), bed:s.bed, wake:s.wake||null}); seen[s.bed]=1; }
     });
     return out.sort(function(x,y){ return x.bed-y.bed; });
   }
   function rcMerge(cur, srcs){
-    var floor=rcFloor(cur), M=rcStrip(cur), sl=[];
+    var floor=cur.resetAt ? (cur.clStart||cur.hcSince||"") : "", M=rcStrip(cur), sl=[], latest=null;
     srcs.forEach(function(st){
       if(!st || !st.day) return;
       var S=rcStrip(st);
@@ -8180,13 +8272,24 @@ html.lkm .wh{overflow:hidden}
       Object.keys(S).forEach(function(k){ if(k!=="day" && k!=="history") delete S[k]; });   /* settings, goals, warehouse: this device's stay */
       M=stateMerge(M, S, 1, 0);
       sl=sl.concat(st.sleep||[]);
+      if(!latest || st.day.date>latest.day.date || (st.day.date===latest.day.date && jnMax(st)>jnMax(latest))) latest=st;
     });
-    M.sleep=rcSleep(cur.sleep, sl);
+    /* a wiped device: what it no longer has at all comes back from the latest version */
+    var top=0, empty=function(v){ return v===undefined || v===null || (typeof v==="object" && !Object.keys(v).length); };
+    var wiped=!(cur.history||[]).length && !cur._t;      /* nothing here yet but today: settings come back whole */
+    if(latest && !cur.resetAt){
+      ["clStart","hcSince","hc","goals","wh"].forEach(function(k){
+        if(!empty(latest[k]) && (empty(cur[k]) || (wiped && sStr(cur[k])!==sStr(latest[k])))){ M[k]=JSON.parse(JSON.stringify(latest[k])); top++; }
+      });
+      srcs.forEach(function(st){ if(st && st.hcSince && M.hcSince && st.hcSince<M.hcSince && !(cur.history||[]).length){ M.hcSince=st.hcSince; top++; } });
+    }
+    M.sleep=rcSleep(cur.sleep, sl, (cur._x||{}).sleep);
+    ["_i","_x","_t"].forEach(function(k){ if(cur[k]) M[k]=JSON.parse(JSON.stringify(cur[k])); else delete M[k]; });
     if(!(cur.sleep||[]).length && !sl.length) delete M.sleep;
     if(cur.resetAt) M.resetAt=cur.resetAt;
     var old={}; mgRecs(cur).forEach(function(r){ old[r.date]=sStr(r); });
     var days=mgRecs(M).filter(function(r){ return old[r.date]!==sStr(r); }).map(function(r){ return r.date; });
-    return {M:M, days:days, sleep:(M.sleep||[]).length-(cur.sleep||[]).length};
+    return {M:M, days:days, sleep:(M.sleep||[]).length-(cur.sleep||[]).length, top:top};
   }
   function rcParse(txt){                                /* a Drive version or a backup: its record */
     try{ var o=typeof txt==="string" ? JSON.parse(txt) : txt; var st=o && o.data && JSON.parse(o.data[KEY]); return st && st.day ? st : null; }catch(e){ return null; }
@@ -8196,12 +8299,13 @@ html.lkm .wh{overflow:hidden}
   function mgKeepBefore(){
     if(!state || !vHas(state)) return;
     var p=mgBefore(), S=JSON.parse(JSON.stringify(state));
-    if(p){ try{ S=stateMerge(rcStrip(p.state), rcStrip(state), 0, 1); S.sleep=rcSleep(state.sleep, p.state.sleep); }catch(e){} }
+    if(p){ try{ S=stateMerge(rcStrip(p.state), rcStrip(state), 0, 1); S.sleep=rcSleep(state.sleep, p.state.sleep, (state._x||{}).sleep); }catch(e){} }
+    try{ jvPut("before sync"); }catch(e){}
     var d={}; d[KEY]=JSON.stringify(S);
     lsSet("dial.before", JSON.stringify({app:"golden-path", v:1, savedAt:Date.now(), data:d}));
   }
   function rcLocal(){ var out=[]; ["dial.before","dial.before.used"].forEach(function(k){ var st=rcParse(lsGet(k)||""); if(st) out.push(st); }); return out; }
-  function mgRecoverable(){ try{ var R=rcMerge(state, rcLocal()); return R.days.length || R.sleep>0 ? R : null; }catch(e){ return null; } }
+  function mgRecoverable(){ try{ var R=rcMerge(state, rcLocal()); return R.days.length || R.sleep>0 || R.top ? R : null; }catch(e){ return null; } }
   function rcDrive(step){                               /* every saved version of every copy of the file */
     var q=encodeURIComponent("name='"+GD_FILE+"'"), out=[], jobs=[];
     var list=function(id, tok){
@@ -8227,13 +8331,16 @@ html.lkm .wh{overflow:hidden}
   }
   function rcDayName(k){ var p=k.split("-"); return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString("en-US",{month:"short", day:"numeric"}); }
   function mgRecover(){
-    var local=rcLocal();
+    jvStored().then(function(stored){ mgRecover2(rcLocal().concat(stored)); });
+  }
+  function mgRecover2(local){
     var finish=function(drive, n){
       GD.busy=false;
       var R=rcMerge(state, local.concat(drive));
-      if(!R.days.length && R.sleep<=0){ toast(n ? "Nothing lost was found in "+n+" saved versions." : "Nothing to recover."); return; }
+      if(!R.days.length && R.sleep<=0 && !R.top){ toast(n ? "Nothing lost was found in "+n+" saved versions." : "Nothing to recover."); return; }
       var what=R.days.slice(0,6).map(rcDayName).join(", ")+(R.days.length>6 ? " +"+(R.days.length-6) : "");
       if(R.sleep>0) what+=(what ? "; " : "")+R.sleep+" sleep session"+(R.sleep>1 ? "s" : "");
+      if(R.top) what+=(what ? "; " : "")+"settings and goals";
       ask("Recover lost records?", "Found: "+what+". Missing records are added back; nothing here is removed.", "Recover", function(){
         var old=lsGet("dial.before");
         mgWriteLocal(R.M, null, Date.now());
@@ -8242,7 +8349,7 @@ html.lkm .wh{overflow:hidden}
         if(gdLinked() && gdValid()) gdPush().then(go, go); else go();
       });
     };
-    if(!gdLinked()){ finish([], local.length); return; }
+    if(!gdLinked() || navigator.onLine===false){ finish([], local.length); return; }
     toast("Reading saved versions from Google Drive…");
     gdAuth(true, function(ok){
       if(!ok){ finish([], local.length); return; }
@@ -8250,6 +8357,94 @@ html.lkm .wh{overflow:hidden}
       rcDrive(function(d,n){ if(d===n || d%10===0) toast("Reading saved versions… "+d+"/"+n); })
         .then(function(list){ finish(list, list.length+local.length); }, function(){ toast("Couldn't read Google Drive."); finish([], local.length); });
     });
+  }
+  /* ---------- Offline safety net ----------
+     Versions: the record is kept in this device's own database (IndexedDB) every 20 minutes
+     while it changes and whenever the app goes to the background — all from the last two days, then the last of each day for 14 days.
+     With a backup folder (the phone app), the last of each day for 14 days also goes to
+     golden-path-history.json there, which outlives the app's own storage. Recovery reads
+     all of these, offline too. The browser is asked to keep the storage persistent; sync
+     runs again as soon as the connection is back, and the Drive line says since when
+     changes here haven't reached Drive. */
+  var JV={db:null, opening:null}, JV_FILE="golden-path-history.json", JV_EVERY=20*60000;
+  function jvOpen(){
+    if(JV.db) return Promise.resolve(JV.db);
+    if(JV.opening) return JV.opening;
+    JV.opening=new Promise(function(res){
+      try{
+        var q=indexedDB.open("ritual",1);
+        q.onupgradeneeded=function(){ try{ q.result.createObjectStore("ver",{keyPath:"t"}); }catch(e){} };
+        q.onsuccess=function(){ JV.db=q.result; res(JV.db); };
+        q.onerror=function(){ res(null); }; q.onblocked=function(){ res(null); };
+      }catch(e){ res(null); }
+    });
+    return JV.opening;
+  }
+  function jvTx(mode, fn){
+    return jvOpen().then(function(db){
+      if(!db) return null;
+      return new Promise(function(res){
+        try{ var tx=db.transaction("ver",mode), out=fn(tx.objectStore("ver")); tx.oncomplete=function(){ res(out && "result" in out ? out.result : null); }; tx.onerror=tx.onabort=function(){ res(null); }; }
+        catch(e){ res(null); }
+      });
+    });
+  }
+  function jvAll(){ return jvTx("readonly", function(st){ return st.getAll(); }).then(function(l){ return (l||[]).sort(function(a,b){ return a.t-b.t; }); }); }
+  function jvPrune(){
+    return jvAll().then(function(l){
+      var now=Date.now(), keep={}, lastOfDay={};
+      l.forEach(function(v){
+        if(now-v.t<48*3600000){ keep[v.t]=1; return; }
+        if(now-v.t>14*86400000) return;
+        var k=dayKey(new Date(v.t)); if(!lastOfDay[k] || v.t>lastOfDay[k]) lastOfDay[k]=v.t;
+      });
+      Object.keys(lastOfDay).forEach(function(k){ keep[lastOfDay[k]]=1; });
+      var drop=l.filter(function(v){ return !keep[v.t]; });
+      if(drop.length) return jvTx("readwrite", function(st){ drop.forEach(function(v){ st.delete(v.t); }); });
+    });
+  }
+  function jvPut(why){
+    if(!state || !vHas(state)) return Promise.resolve();
+    var d=JSON.stringify(state); if(d===JV.lastD) return Promise.resolve(); JV.lastD=d;
+    var v={t:Date.now(), why:why||"", d:d};
+    lsSet("dial.ver.at", String(v.t));
+    return jvTx("readwrite", function(st){ st.put(v); }).then(jvPrune).catch(function(){});
+  }
+  function jvSoon(){ if(Date.now()-(+(lsGet("dial.ver.at")||0))>=JV_EVERY) jvPut("auto"); }
+  function jvVault(){                                   /* the folder copy: last of each day, 14 days */
+    var H=vHost(); if(!H || !state || !vHas(state)) return;
+    try{ if(!H.vaultFolder()) return; }catch(e){ return; }
+    if(Date.now()-(+(lsGet("dial.vh.at")||0))<3600000) return;
+    var o=null; try{ o=JSON.parse(H.vaultRead(JV_FILE)||"null"); }catch(e){}
+    var k=dayKey(), now=Date.now(), L=((o && o.versions)||[]).filter(function(v){ return v && v.k!==k && now-v.t<15*86400000; });
+    L.push({k:k, t:now, d:JSON.stringify(state)});
+    var ok=false; try{ ok=H.vaultWrite(JV_FILE, JSON.stringify({app:"golden-path-history", v:1, versions:L})); }catch(e){}
+    if(ok) lsSet("dial.vh.at", String(now));
+  }
+  function jvStored(){                                  /* every kept version: this device's database + the folder copy */
+    return jvAll().then(function(l){
+      var out=l.map(function(v){ try{ return JSON.parse(v.d); }catch(e){ return null; } });
+      var H=vHost();
+      if(H){ try{ var o=JSON.parse(H.vaultRead(JV_FILE)||"null"); ((o && o.versions)||[]).forEach(function(v){ try{ out.push(JSON.parse(v.d)); }catch(e){} }); }catch(e){} }
+      return out.filter(function(st){ return st && st.day; });
+    }, function(){ return []; });
+  }
+  /* what hasn't reached Drive yet */
+  function jnClean(d0){ var d=lsGet("dial.gd.dirty"); if(d && d===d0) try{ localStorage.removeItem("dial.gd.dirty"); }catch(e){} }
+  function jnDirty(){ return +(lsGet("dial.gd.dirty")||0); }
+  function jnNote(){ var d=jnDirty(); if(!d) return ""; return (navigator.onLine===false ? "Offline · " : "")+"Unsynced since "+vWhen(d); }
+  function jnStale(){ var d=jnDirty(); return !!d && gdLinked() && Date.now()-d>6*3600000; }
+  function jvStart(){
+    try{ if(navigator.storage && navigator.storage.persist) navigator.storage.persisted().then(function(p){ if(!p) return navigator.storage.persist(); }).catch(function(){}); }catch(e){}
+    window.addEventListener("online", function(){ renderDrive(); if(gdLinked()) gdSoon(); });
+    window.addEventListener("offline", function(){ renderDrive(); });
+    setInterval(function(){
+      if(document.hidden || !gdLinked() || !jnDirty() || navigator.onLine===false || GD.busy || GD.t || RESTORING) return;
+      gdSync(false);
+    }, 5*60000);
+    setTimeout(jvSoon, 3000);
+    document.addEventListener("visibilitychange", function(){ if(document.hidden && !RESTORING) jvPut("hide"); });
+    window.addEventListener("pagehide", function(){ if(!RESTORING) jvPut("hide"); });
   }
   function gdPayload(){
     var o=vaultPack(); o.app="the-ritual"; o.v=2; o.act=actTime(); o.savedAt=Date.now();
@@ -8327,7 +8522,8 @@ html.lkm .wh{overflow:hidden}
       });
     });
   }
-  function gdPush(){
+  function gdPush(){ var d0=lsGet("dial.gd.dirty"); return gdPush0().then(function(r){ jnClean(d0); renderDrive(); return r; }); }
+  function gdPush0(){
     var body=gdPayload();
     return gdFind().then(function(id){
       if(id) return gdReq("PATCH","/upload/drive/v3/files/"+id+"?uploadType=media","application/json",body).then(gdOk);
@@ -8402,9 +8598,9 @@ html.lkm .wh{overflow:hidden}
             if(!r){ if(!mine && !vHas(state)) return "same"; return gdPush().then(function(){ return "pushed"; }); }
             /* both records meet field by field; whichever side lacks something gets it */
             var M=stateMerge(state, r.state, mine, r.act), mS=sStr(M), toLocal=mS!==sStr(state), toDrive=mS!==sStr(r.state);
-            if(!toLocal && !toDrive) return "same";
+            if(!toLocal && !toDrive){ jnClean(lsGet("dial.gd.dirty")); return "same"; }
             if(toLocal) mgWriteLocal(M, r.act>mine ? r.data["dial.vmem"] : null, Math.max(mine, r.act));
-            var done=function(){ if(!toLocal) return "pushed"; lsSet("dial.gd.at", String(Date.now())); lsSet("dial.gd.note","merge"); location.reload(); return "pulled"; };
+            var done=function(){ if(!toLocal) return "pushed"; if(!toDrive) jnClean(lsGet("dial.gd.dirty")); lsSet("dial.gd.at", String(Date.now())); lsSet("dial.gd.note","merge"); location.reload(); return "pulled"; };
             return toDrive ? gdPush().then(done) : done();
           })
           .catch(function(e){
@@ -8440,16 +8636,16 @@ html.lkm .wh{overflow:hidden}
     var T={
       off:["Connect Google Drive",""],
       working:["Syncing…",""],
-      ok:["Google Drive", at ? "Synced "+vWhen(at) : ""],
-      expired:["Reconnect Google Drive", at ? "Last synced "+vWhen(at) : ""],
-      fail:[linked ? "Reconnect Google Drive" : "Connect Google Drive", gdExplain(GD.why)],
-      error:["Google Drive", gdExplain(GD.why)]
+      ok:["Google Drive", jnNote() || (at ? "Synced "+vWhen(at) : "")],
+      expired:["Reconnect Google Drive", jnNote() || (at ? "Last synced "+vWhen(at) : "")],
+      fail:[linked ? "Reconnect Google Drive" : "Connect Google Drive", (linked && jnNote()) || gdExplain(GD.why)],
+      error:["Google Drive", jnNote() || gdExplain(GD.why)]
     }[st];
     lb.textContent=T[0]; setText("drvNote",T[1]); document.getElementById("drvNote").hidden=!T[1];
     document.getElementById("drvBtn").dataset.state=st;
     document.getElementById("drvOff").hidden=!linked;
     document.getElementById("drvPush").hidden=!linked; document.getElementById("drvPull").hidden=!linked;
-    document.getElementById("drvRecover").hidden=!(linked || mgRecoverable());
+    document.getElementById("drvRecover").hidden=false;
     moreDot();
   }
 
@@ -8601,7 +8797,8 @@ html.lkm .wh{overflow:hidden}
   }
 
   state=load();
-  STAMP=stampSnap(state);
+  jnIds(state); hlcSeen(jnMax(state)); STAMP=stampSnap(state);
+  setTimeout(jvStart, 0);
   if(state.clStart) CL_START=state.clStart;
   rollover();
   buildDial(); buildCards(); buildPips(); buildHabits(); buildHealth(); buildCore(); buildXr(); buildAe(); buildAr(); buildCl(); buildSync(); buildMenu(); buildGoals(); buildWarehouse(); buildSleep(); buildLock();
