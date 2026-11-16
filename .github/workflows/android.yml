@@ -5,6 +5,9 @@ on:
     branches: [main]
   workflow_dispatch:
 
+permissions:
+  contents: write        # to publish the "app" release that "Check for update" reads
+
 jobs:
   apk:
     runs-on: ubuntu-latest
@@ -28,12 +31,29 @@ jobs:
           mkdir -p android/app/src/main/assets
           cp index.html android/app/src/main/assets/index.html
 
+      - name: Version
+        id: v
+        run: |
+          echo "native=$(git ls-files -s -- android ':(exclude)android/app/src/main/assets' | sha1sum | cut -c1-12)" >> "$GITHUB_OUTPUT"
+          echo "build=$(grep -o 'APP_BUILD="[^"]*"' index.html | head -1 | cut -d'"' -f2)" >> "$GITHUB_OUTPUT"
+
       - name: Build debug APK
         working-directory: android
-        run: gradle assembleDebug --no-daemon --stacktrace
+        run: gradle assembleDebug --no-daemon --stacktrace -PappCode=${{ github.run_number }} -PnativeId=${{ steps.v.outputs.native }}
 
       - uses: actions/upload-artifact@v4
         with:
           name: the-ritual-apk
           path: android/app/build/outputs/apk/debug/app-debug.apk
           if-no-files-found: error
+
+      - name: Publish the update (release "app")
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          cp android/app/build/outputs/apk/debug/app-debug.apk the-ritual.apk
+          printf '{"code":%s,"native":"%s","build":"%s","sha":"%s"}\n' "${{ github.run_number }}" "${{ steps.v.outputs.native }}" "${{ steps.v.outputs.build }}" "${{ github.sha }}" > version.json
+          cat version.json
+          gh release delete app --yes --cleanup-tag || true
+          gh release create app the-ritual.apk index.html version.json --target "${{ github.sha }}" --latest \
+            --title "The Ritual — build ${{ github.run_number }}" --notes "Page ${{ steps.v.outputs.build }} · native ${{ steps.v.outputs.native }}"
