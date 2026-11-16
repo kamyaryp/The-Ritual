@@ -1325,7 +1325,7 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
-  var APP_BUILD="2026.11.16-1808";
+  var APP_BUILD="2026.11.16-1819";
   var KEY="dial.gods.v1";
   /* Hours of grace after a rite's window closes. 0 = the past is past. */
   var GRACE=0;
@@ -8076,7 +8076,11 @@ html.lkm .wh{overflow:hidden}
     return m;
   }
   function jnGet(st,c){ if(c==="wh.items") return st.wh && Array.isArray(st.wh.items) ? st.wh.items : null; return Array.isArray(st[c]) ? st[c] : null; }
-  function jnKey(c,e){ return e && e.id!=null ? String(e.id) : "~"+sStr(e); }
+  function jnKey(c,e){                                 /* a sleep session without an id (older devices) is the same session as one with it */
+    if(e && e.id!=null) return String(e.id);
+    if(c==="sleep" && e && (e.bed || e.wake)) return "s"+(e.bed||e.wake);
+    return "~"+sStr(e);
+  }
   function jnIds(st){ (st.sleep||[]).forEach(function(e){ if(e && e.id==null && (e.bed || e.wake)) e.id="s"+(e.bed||e.wake); }); }
   function jnMap(st,c){ var m={}; (jnGet(st,c)||[]).forEach(function(e){ m[jnKey(c,e)]=sStr(e); }); return m; }
   function jnCount(e){ var v=+e.b||0, d=e.d||{}; Object.keys(d).forEach(function(k){ v+=+d[k][0]||0; }); return v; }
@@ -8202,6 +8206,17 @@ html.lkm .wh{overflow:hidden}
     if(Object.keys(oc).length) out._c=oc;
     return out;
   }
+  function mgNorm(st){                                  /* what load() would make of it */
+    delete st.missions; delete st.sample;
+    if(st.day) st.day=upgrade(st.day);
+    if(!Array.isArray(st.history)) st.history=[];
+    st.history.forEach(mergePills);
+    if(!st.hc || typeof st.hc!=="object") st.hc={};
+    if(!st.hcSince) st.hcSince=dayKey();
+    jnIds(st);
+    if(Array.isArray(st.sleep)){ var seen={}; st.sleep=st.sleep.filter(function(e){ var k=jnKey("sleep",e); if(seen[k]) return false; seen[k]=1; return true; }); }
+    return st;
+  }
   function mgMaxT(r){ var m=0, t=r._t||{}; Object.keys(t).forEach(function(k){ if(t[k]>m) m=t[k]; }); return m; }
   function mgPrune(st,R){                               /* the side from before a reset: only what was recorded after it */
     var o=JSON.parse(JSON.stringify(st)), t=o._t||{};
@@ -8238,7 +8253,7 @@ html.lkm .wh{overflow:hidden}
     });
     if(Object.keys(I).length) out._i=I; if(Object.keys(X).length) out._x=X;
     hlcSeen(jnMax(out));
-    return out;
+    return mgNorm(out);
   }
   /* write a merged record here (the page starts again from it); the old one is kept as dial.before */
   function mgWriteLocal(M, vmem, act){
@@ -8433,6 +8448,7 @@ html.lkm .wh{overflow:hidden}
       return out.filter(function(st){ return st && st.day; });
     }, function(){ return []; });
   }
+  function jnHash(t){ var h=5381; for(var i=0;i<t.length;i++) h=((h<<5)+h+t.charCodeAt(i))|0; return (h>>>0).toString(36); }
   /* what hasn't reached Drive yet */
   function jnClean(d0){ var d=lsGet("dial.gd.dirty"); if(d && d===d0) try{ localStorage.removeItem("dial.gd.dirty"); }catch(e){} }
   function jnDirty(){ return +(lsGet("dial.gd.dirty")||0); }
@@ -8646,6 +8662,11 @@ html.lkm .wh{overflow:hidden}
             /* both records meet field by field; whichever side lacks something gets it */
             var M=stateMerge(state, r.state, mine, r.act), mS=sStr(M), toLocal=mS!==sStr(state), toDrive=mS!==sStr(r.state);
             if(!toLocal && !toDrive){ jnClean(lsGet("dial.gd.dirty")); return "same"; }
+            /* a safety catch: the same merge written here twice in two minutes means this device can't take it
+               as it is; Drive takes this device's record instead, and the round ends without reloading */
+            var mh=sStr(M).length+":"+jnHash(mS), LP=null; try{ LP=JSON.parse(lsGet("dial.gd.loop")||"null"); }catch(e){}
+            if(toLocal && LP && LP.h===mh && Date.now()-LP.t<120000){ try{ localStorage.removeItem("dial.gd.loop"); }catch(e){} save(); return gdPush().then(function(){ return "pushed"; }); }
+            if(toLocal) lsSet("dial.gd.loop", JSON.stringify({h:mh, t:Date.now()}));
             if(toLocal) mgWriteLocal(M, r.act>mine ? r.data["dial.vmem"] : null, Math.max(mine, r.act));
             var done=function(){ if(!toLocal) return "pushed"; if(!toDrive) jnClean(lsGet("dial.gd.dirty")); lsSet("dial.gd.at", String(Date.now())); lsSet("dial.gd.note","merge"); location.reload(); return "pulled"; };
             return toDrive ? gdPush().then(done) : done();
