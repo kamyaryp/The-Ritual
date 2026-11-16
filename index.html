@@ -1325,7 +1325,7 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
-  var APP_BUILD="2026.11.16-1819";
+  var APP_BUILD="2026.11.16-1831";
   var KEY="dial.gods.v1";
   /* Hours of grace after a rite's window closes. 0 = the past is past. */
   var GRACE=0;
@@ -8481,7 +8481,7 @@ html.lkm .wh{overflow:hidden}
     if(st==="install"){ toast("Confirm the install to finish the update."); return; }
     if(st==="failed"){ toast("The update wasn't installed."); return; }
     if(st==="page"){ lsSet("dial.upd.want", String(info||"")); save(); setTimeout(function(){ location.reload(); }, 250); return; }
-    toast(navigator.onLine===false ? "You're offline." : "Couldn't check for updates.");
+    toast(navigator.onLine===false ? "You're offline." : /http 404/.test(info||"") ? "No update has been published on GitHub yet." : "Couldn't check for updates."+(info ? " ("+String(info).slice(0,60)+")" : ""));
   };
   function updCheck(){
     if(UPD.busy) return;
