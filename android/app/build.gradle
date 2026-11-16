@@ -8,8 +8,11 @@ android {
         applicationId "com.ritual.dial"
         minSdk 24
         targetSdk 34
-        versionCode 3
-        versionName "1.2"
+        // CI passes the run number (every build installs over the last) and an id of the
+        // native code, which "Check for update" compares with the latest release's.
+        versionCode Integer.parseInt((project.findProperty('appCode') ?: '3').toString())
+        versionName "1.3." + (project.findProperty('appCode') ?: '0')
+        buildConfigField "String", "NATIVE_ID", "\"" + (project.findProperty('nativeId') ?: 'dev') + "\""
     }
 
     // One fixed key, kept in the repo, so every build installs over the last
@@ -27,6 +30,8 @@ android {
         debug { signingConfig signingConfigs.debug }
         release { minifyEnabled false }
     }
+
+    buildFeatures { buildConfig true }
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_17

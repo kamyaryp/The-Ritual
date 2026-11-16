@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8"?>
-<!-- The page itself never touches the network. The app may buzz, post notifications,
+<!-- The page itself never touches the network (updates are fetched by the app, from the repo's release). The app may buzz, post notifications,
      wake at set times to post them (also after a restart), run its timers in the
      background with sound while the phone is locked, and, once the owner connects it,
      sync the record with their own Google Drive (the app's hidden folder only). -->
@@ -15,6 +15,8 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE" />
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_MEDIA_PLAYBACK" />
     <uses-permission android:name="android.permission.WAKE_LOCK" />
+    <!-- "Check for update" may hand a newer build of this app to Android's installer (the owner confirms) -->
+    <uses-permission android:name="android.permission.REQUEST_INSTALL_PACKAGES" />
 
     <application
         android:label="Golden Path"
@@ -42,6 +44,9 @@
             android:name=".TimerService"
             android:exported="false"
             android:foregroundServiceType="mediaPlayback" />
+
+        <!-- the installer's answer to an update: its confirmation screen, or a failure -->
+        <receiver android:name=".InstallReceiver" android:exported="false" />
 
         <!-- posts one planned notification when its alarm goes off -->
         <receiver android:name=".NoteReceiver" android:exported="false" />

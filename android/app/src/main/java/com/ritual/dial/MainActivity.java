@@ -11,6 +11,8 @@ import android.os.Bundle;
 import android.view.View;
 import android.view.WindowManager;
 import android.webkit.JavascriptInterface;
+import android.webkit.WebResourceRequest;
+import android.webkit.WebResourceResponse;
 import android.webkit.WebSettings;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
@@ -23,11 +25,13 @@ import com.google.android.gms.common.api.Scope;
 
 import org.json.JSONObject;
 
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.Collections;
 
 /**
- * The whole app: one WebView showing the bundled page from assets.
- * Records live in the WebView's localStorage, on the device, with no network.
+ * The whole app: one WebView showing the bundled page from assets (or a newer page downloaded
+ * by "Check for update", served at the same address). Records live in the WebView's localStorage.
  */
 public class MainActivity extends Activity {
 
@@ -37,6 +41,14 @@ public class MainActivity extends Activity {
 
     /** Whether the app is on screen, so a countdown it already announced isn't announced twice. */
     static volatile boolean foreground = false;
+
+    /** The activity on screen, for answers that arrive elsewhere (the installer). */
+    private static volatile MainActivity current;
+
+    static void tellUpdate(String state, String info) {
+        MainActivity a = current;
+        if (a != null) a.tellJs("window.updateState&&window.updateState(" + JSONObject.quote(state) + "," + JSONObject.quote(info == null ? "" : info) + ")");
+    }
 
     /** What the page may ask of the phone: keep the screen on, buzz, and plan notifications. */
     public class Host {
@@ -123,6 +135,15 @@ public class MainActivity extends Activity {
             }).start();
         }
 
+        /** "Check for update": the page passes its own build; the answer comes back to window.updateState. */
+        @JavascriptInterface
+        public void updateCheck(String running) {
+            Update.check(MainActivity.this, running == null ? "" : running, new Update.Say() {
+                @Override
+                public void say(String state, String info) { tellUpdate(state, info); }
+            });
+        }
+
         @JavascriptInterface
         public void keepAwake(final boolean on) {
             runOnUiThread(new Runnable() {
@@ -138,6 +159,7 @@ public class MainActivity extends Activity {
     @Override
     protected void onCreate(Bundle saved) {
         super.onCreate(saved);
+        current = this;
         getWindow().setStatusBarColor(Color.parseColor("#0d0d0c"));
         getWindow().setNavigationBarColor(Color.parseColor("#0d0d0c"));
 
@@ -156,9 +178,21 @@ public class MainActivity extends Activity {
         s.setMediaPlaybackRequiresUserGesture(false);  // the timer's ticks
 
         web.addJavascriptInterface(new Host(), "RitualHost");
-        web.setWebViewClient(new WebViewClient());
+        web.setWebViewClient(new WebViewClient() {
+            /** A page downloaded by "Check for update" stands in for the bundled one, at the same address. */
+            @Override
+            public WebResourceResponse shouldInterceptRequest(WebView view, WebResourceRequest req) {
+                try {
+                    if (req.isForMainFrame() && Update.PAGE_URL.equals(req.getUrl().toString())) {
+                        File f = Update.page(MainActivity.this);
+                        if (f != null) return new WebResourceResponse("text/html", "utf-8", new FileInputStream(f));
+                    }
+                } catch (Exception ignored) { }
+                return super.shouldInterceptRequest(view, req);
+            }
+        });
         setContentView(web);
-        web.loadUrl("file:///android_asset/index.html");
+        web.loadUrl(Update.PAGE_URL);
 
         Notes.channels(this);
         Sfx.init(this);
@@ -241,6 +275,12 @@ public class MainActivity extends Activity {
                 if (web != null) web.evaluateJavascript("window.vaultPicked&&window.vaultPicked(" + ok + ")", null);
             }
         });
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (current == this) current = null;
+        super.onDestroy();
     }
 
     @Override

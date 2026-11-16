@@ -982,6 +982,9 @@ html.lkm .wh{overflow:hidden}
     <div id="syncMore" hidden><button type="button" class="mn-it sub" id="syncAlt" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2 4.5c0-.6.4-1 1-1h3l1.4 1.5H13c.6 0 1 .4 1 1v6c0 .6-.4 1-1 1H3c-.6 0-1-.4-1-1z" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round"/></svg><span class="mn-t" id="syncAltLbl"></span></button></div>
     <input type="file" id="syncFile" accept="application/json,.json" hidden>
     <div class="mn-sep"></div>
+    <p class="mn-h">App</p>
+    <button type="button" class="mn-it" id="updBtn" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 2.5v7.5M4.8 6.8 8 10l3.2-3.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/><path d="M3 11.5v1a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-1" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/></svg><span class="mn-t"><span>Check for update</span><span class="mn-s" id="updNote"></span></span></button>
+    <div class="mn-sep"></div>
     <button type="button" class="mn-it danger" id="clReset" role="menuitem"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg><span class="mn-t">Reset the Golden Path</span></button>
   </div>
 
@@ -1322,6 +1325,7 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
+  var APP_BUILD="2026.11.16-1808";
   var KEY="dial.gods.v1";
   /* Hours of grace after a rite's window closes. 0 = the past is past. */
   var GRACE=0;
@@ -8446,6 +8450,49 @@ html.lkm .wh{overflow:hidden}
     document.addEventListener("visibilitychange", function(){ if(document.hidden && !RESTORING) jvPut("hide"); });
     window.addEventListener("pagehide", function(){ if(!RESTORING) jvPut("hide"); });
   }
+  /* ---------- Updates ----------
+     "Check for update". In the phone app, the app asks the repo's latest build: a new page is
+     downloaded and shown in place of the bundled one (records stay where they are); a new app
+     (its native side changed) is downloaded and Android asks to install it. In the browser,
+     the latest page is loaded. APP_BUILD names this build. */
+  var UPD={busy:false};
+  function updNative(){ var H=window.RitualHost; return H && typeof H.updateCheck==="function" ? H : null; }
+  window.updateState=function(st, info){
+    UPD.busy = st==="progress";
+    if(st==="progress"){ toast("Downloading update… "+info+"%"); return; }
+    if(st==="none"){ toast("You're on the latest version."); return; }
+    if(st==="allow"){ toast("Allow Golden Path to install updates, then check again."); return; }
+    if(st==="install"){ toast("Confirm the install to finish the update."); return; }
+    if(st==="failed"){ toast("The update wasn't installed."); return; }
+    if(st==="page"){ lsSet("dial.upd.want", String(info||"")); save(); setTimeout(function(){ location.reload(); }, 250); return; }
+    toast(navigator.onLine===false ? "You're offline." : "Couldn't check for updates.");
+  };
+  function updCheck(){
+    if(UPD.busy) return;
+    var H=updNative();
+    if(H){ UPD.busy=true; toast("Checking for updates…"); try{ H.updateCheck(APP_BUILD); }catch(e){ window.updateState("error"); } return; }
+    if(vHost()){ toast("This app can't update itself yet. Install the latest APK from GitHub once."); return; }
+    if(!/^https?:$/.test(location.protocol)){ toast("You're on the latest version."); return; }
+    UPD.busy=true; toast("Checking for updates…");
+    fetch("index.html?u="+Date.now(), {cache:"no-store"})
+      .then(function(r){ return r.ok ? r.text() : Promise.reject(); })
+      .then(function(t){
+        UPD.busy=false;
+        var m=t.match(/APP_BUILD="([^"]+)"/), b=m ? m[1] : "";
+        if(!b || b===APP_BUILD){ toast("You're on the latest version."); return; }
+        lsSet("dial.upd.want", b); save();
+        var go=function(){ location.reload(); };
+        if(navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(function(g){ return g && g.update(); }).then(go, go);
+        else go();
+      }, function(){ window.updateState("error"); });
+  }
+  function updStart(){
+    setText("updNote", "Version "+APP_BUILD);
+    document.getElementById("updBtn").addEventListener("click", function(){ fb("tap"); updCheck(); });
+    var w=lsGet("dial.upd.want"); if(!w) return;
+    try{ localStorage.removeItem("dial.upd.want"); }catch(e){}
+    setTimeout(function(){ toast(w===APP_BUILD ? "Updated to "+APP_BUILD+"." : "The update couldn't be applied. Install the latest APK from GitHub."); }, 900);
+  }
   function gdPayload(){
     var o=vaultPack(); o.app="the-ritual"; o.v=2; o.act=actTime(); o.savedAt=Date.now();
     return JSON.stringify(o);
@@ -8798,6 +8845,7 @@ html.lkm .wh{overflow:hidden}
 
   state=load();
   jnIds(state); hlcSeen(jnMax(state)); STAMP=stampSnap(state);
+  setTimeout(updStart, 0);
   setTimeout(jvStart, 0);
   if(state.clStart) CL_START=state.clStart;
   rollover();
