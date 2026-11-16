@@ -8146,7 +8146,7 @@ html.lkm .wh{overflow:hidden}
   }
   /* write a merged record here (the page starts again from it); the old one is kept as dial.before */
   function mgWriteLocal(M, vmem, act){
-    if(vHas(state)) lsSet("dial.before", JSON.stringify(vaultPack()));
+    mgKeepBefore();
     RESTORING=true; clearTimeout(vaultT); vaultT=0; clearTimeout(GD.t); GD.t=0;
     lsSet(KEY, JSON.stringify(M)); if(typeof vmem==="string") lsSet("dial.vmem", vmem);
     lsSet("dial.act", String(act));
@@ -8154,22 +8154,101 @@ html.lkm .wh{overflow:hidden}
 
   /* records lost to an old sync: what this device held before it last took another's record
      (dial.before) is merged back in; nothing here is removed */
-  function mgBefore(){ try{ var o=JSON.parse(lsGet("dial.before")||"null"); var st=o && o.data && JSON.parse(o.data[KEY]); return st && st.day ? {state:st, act:+o.savedAt||0} : null; }catch(e){ return null; } }
-  function mgRecoverable(){
-    var b=mgBefore(); if(!b || !state) return null;
-    var M=stateMerge(state, b.state, actTime(), b.act);
-    if(sStr(M)===sStr(state)) return null;
-    var cur={}; mgRecs(state).forEach(function(r){ cur[r.date]=sStr(r); });
-    var n=mgRecs(M).filter(function(r){ return cur[r.date]!==sStr(r); }).length;
-    return {M:M, days:n};
+  /* ---- finding records lost to a sync ----
+     Sources: what this device held before each sync (dial.before, kept as a union) and every
+     saved version of the Drive file (Drive keeps old revisions). Recovery only ever adds. */
+  function rcStrip(st){ var o=JSON.parse(JSON.stringify(st)); delete o.resetAt; return o; }
+  function rcFloor(st){ var d=[st.clStart, st.hcSince].filter(Boolean); (st.history||[]).forEach(function(r){ if(r && r.date) d.push(r.date); }); return d.sort()[0]||""; }
+  function rcSleep(cur, more){                          /* sessions that aren't here yet and don't overlap one that is */
+    var out=(cur||[]).slice(), seen={};
+    var span=function(s){ return [+s.bed||0, +(s.wake||s.bed)||0]; };
+    out.forEach(function(s){ seen[s.bed]=1; });
+    (more||[]).forEach(function(s){
+      if(!s || !s.bed || seen[s.bed]) return;
+      var a=span(s), hit=out.some(function(o){ var b=span(o); return a[0]<=b[1] && b[0]<=a[1]; });
+      if(!hit){ out.push({bed:s.bed, wake:s.wake||null}); seen[s.bed]=1; }
+    });
+    return out.sort(function(x,y){ return x.bed-y.bed; });
   }
+  function rcMerge(cur, srcs){
+    var floor=rcFloor(cur), M=rcStrip(cur), sl=[];
+    srcs.forEach(function(st){
+      if(!st || !st.day) return;
+      var S=rcStrip(st);
+      S.history=(S.history||[]).filter(function(r){ return r && r.date>=floor; });
+      if(S.day.date<floor || S.day.date>M.day.date){ if(S.day.date<=M.day.date && S.day.date>=floor) S.history.push(S.day); S.day=null; }
+      Object.keys(S).forEach(function(k){ if(k!=="day" && k!=="history") delete S[k]; });   /* settings, goals, warehouse: this device's stay */
+      M=stateMerge(M, S, 1, 0);
+      sl=sl.concat(st.sleep||[]);
+    });
+    M.sleep=rcSleep(cur.sleep, sl);
+    if(!(cur.sleep||[]).length && !sl.length) delete M.sleep;
+    if(cur.resetAt) M.resetAt=cur.resetAt;
+    var old={}; mgRecs(cur).forEach(function(r){ old[r.date]=sStr(r); });
+    var days=mgRecs(M).filter(function(r){ return old[r.date]!==sStr(r); }).map(function(r){ return r.date; });
+    return {M:M, days:days, sleep:(M.sleep||[]).length-(cur.sleep||[]).length};
+  }
+  function rcParse(txt){                                /* a Drive version or a backup: its record */
+    try{ var o=typeof txt==="string" ? JSON.parse(txt) : txt; var st=o && o.data && JSON.parse(o.data[KEY]); return st && st.day ? st : null; }catch(e){ return null; }
+  }
+  function mgBefore(){ var o=null; try{ o=JSON.parse(lsGet("dial.before")||"null"); }catch(e){} var st=rcParse(o); return st ? {state:st, act:+(o && o.savedAt)||0} : null; }
+  /* before this device takes another record, what it holds joins what it held before */
+  function mgKeepBefore(){
+    if(!state || !vHas(state)) return;
+    var p=mgBefore(), S=JSON.parse(JSON.stringify(state));
+    if(p){ try{ S=stateMerge(rcStrip(p.state), rcStrip(state), 0, 1); S.sleep=rcSleep(state.sleep, p.state.sleep); }catch(e){} }
+    var d={}; d[KEY]=JSON.stringify(S);
+    lsSet("dial.before", JSON.stringify({app:"golden-path", v:1, savedAt:Date.now(), data:d}));
+  }
+  function rcLocal(){ var out=[]; ["dial.before","dial.before.used"].forEach(function(k){ var st=rcParse(lsGet(k)||""); if(st) out.push(st); }); return out; }
+  function mgRecoverable(){ try{ var R=rcMerge(state, rcLocal()); return R.days.length || R.sleep>0 ? R : null; }catch(e){ return null; } }
+  function rcDrive(step){                               /* every saved version of every copy of the file */
+    var q=encodeURIComponent("name='"+GD_FILE+"'"), out=[], jobs=[];
+    var list=function(id, tok){
+      return gdReq("GET","/drive/v3/files/"+id+"/revisions?pageSize=1000&fields=nextPageToken,revisions(id)"+(tok ? "&pageToken="+encodeURIComponent(tok) : "")).then(gdOk).then(function(r){
+        var j={}; try{ j=JSON.parse(r.text||"{}"); }catch(e){}
+        (j.revisions||[]).forEach(function(v){ jobs.push("/drive/v3/files/"+id+"/revisions/"+v.id+"?alt=media"); });
+        return j.nextPageToken ? list(id, j.nextPageToken) : null;
+      }, function(){ jobs.push("/drive/v3/files/"+id+"?alt=media"); });
+    };
+    return gdReq("GET","/drive/v3/files?spaces=appDataFolder&q="+q+"&pageSize=100&fields=files(id)").then(gdOk).then(function(r){
+      var j={}; try{ j=JSON.parse(r.text||"{}"); }catch(e){}
+      return (j.files||[]).reduce(function(p,f){ return p.then(function(){ return list(f.id); }); }, Promise.resolve());
+    }).then(function(){
+      var i=0, done=0;
+      var worker=function(){
+        if(i>=jobs.length) return Promise.resolve();
+        var path=jobs[i++];
+        return gdReq("GET", path).then(function(r){ if(r.status>=200 && r.status<300){ var st=rcParse(r.text); if(st) out.push(st); } })
+          .then(function(){ done++; if(step) step(done, jobs.length); return worker(); });
+      };
+      return Promise.all([worker(),worker(),worker(),worker()]).then(function(){ return out; });
+    });
+  }
+  function rcDayName(k){ var p=k.split("-"); return new Date(+p[0], +p[1]-1, +p[2]).toLocaleDateString("en-US",{month:"short", day:"numeric"}); }
   function mgRecover(){
-    var R=mgRecoverable(); if(!R){ toast("Nothing to recover."); return; }
-    ask("Recover lost records?", "What this device held before its last sync is merged back in: "+vDaysText(R.days)+" gain records. Nothing here is removed.", "Recover", function(){
-      var old=lsGet("dial.before");
-      mgWriteLocal(R.M, null, Date.now());
-      lsSet("dial.before.used", old||""); try{ localStorage.removeItem("dial.before"); }catch(e){}
-      lsSet("dial.gd.note","recover"); location.reload();
+    var local=rcLocal();
+    var finish=function(drive, n){
+      GD.busy=false;
+      var R=rcMerge(state, local.concat(drive));
+      if(!R.days.length && R.sleep<=0){ toast(n ? "Nothing lost was found in "+n+" saved versions." : "Nothing to recover."); return; }
+      var what=R.days.slice(0,6).map(rcDayName).join(", ")+(R.days.length>6 ? " +"+(R.days.length-6) : "");
+      if(R.sleep>0) what+=(what ? "; " : "")+R.sleep+" sleep session"+(R.sleep>1 ? "s" : "");
+      ask("Recover lost records?", "Found: "+what+". Missing records are added back; nothing here is removed.", "Recover", function(){
+        var old=lsGet("dial.before");
+        mgWriteLocal(R.M, null, Date.now());
+        lsSet("dial.before.used", old||""); lsSet("dial.gd.note","recover");
+        var go=function(){ location.reload(); };
+        if(gdLinked() && gdValid()) gdPush().then(go, go); else go();
+      });
+    };
+    if(!gdLinked()){ finish([], local.length); return; }
+    toast("Reading saved versions from Google Drive…");
+    gdAuth(true, function(ok){
+      if(!ok){ finish([], local.length); return; }
+      GD.busy=true;
+      rcDrive(function(d,n){ if(d===n || d%10===0) toast("Reading saved versions… "+d+"/"+n); })
+        .then(function(list){ finish(list, list.length+local.length); }, function(){ toast("Couldn't read Google Drive."); finish([], local.length); });
     });
   }
   function gdPayload(){
@@ -8183,7 +8262,7 @@ html.lkm .wh{overflow:hidden}
   }
   /* take the file whole: this device's record is replaced, and the page starts again from it */
   function gdApply(r){
-    if(vHas(state)) lsSet("dial.before", JSON.stringify(vaultPack()));
+    mgKeepBefore();
     RESTORING=true; clearTimeout(vaultT); vaultT=0; clearTimeout(GD.t); GD.t=0;
     VAULT_KEYS.forEach(function(k){ if(typeof r.data[k]==="string") lsSet(k, k===KEY ? whCarry(r.data[k]) : r.data[k]); else try{ localStorage.removeItem(k); }catch(e){} });
     lsSet("dial.act", String(r.act)); lsSet("dial.gd.at", String(Date.now())); lsSet("dial.gd.note","1");
@@ -8370,7 +8449,7 @@ html.lkm .wh{overflow:hidden}
     document.getElementById("drvBtn").dataset.state=st;
     document.getElementById("drvOff").hidden=!linked;
     document.getElementById("drvPush").hidden=!linked; document.getElementById("drvPull").hidden=!linked;
-    document.getElementById("drvRecover").hidden=!mgRecoverable();
+    document.getElementById("drvRecover").hidden=!(linked || mgRecoverable());
     moreDot();
   }
 
