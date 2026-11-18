@@ -1326,7 +1326,17 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
-  var APP_BUILD="2026.11.18-1313";
+  var APP_BUILD="2026.11.18-1435";
+  var APK_URL="https://github.com/kamyaryp/The-Ritual/releases/latest/download/the-ritual.apk";
+  /* starting the page again: the phone app restarts it itself (so a downloaded newer page stays in place);
+     an older app gets a fresh load of the same address rather than a reload */
+  function appReload(){
+    try{ var H=window.RitualHost;
+      if(H && typeof H.reloadPage==="function"){ H.reloadPage(); return; }
+      if(H && typeof H.vaultRead==="function"){ location.replace(String(location.href).split("#")[0].split("?")[0]); return; }
+    }catch(e){}
+    location.reload();
+  }
   var KEY="dial.gods.v1";
   /* Hours of grace after a rite's window closes. 0 = the past is past. */
   var GRACE=0;
@@ -7788,7 +7798,7 @@ html.lkm .wh{overflow:hidden}
     RESTORING=true; clearTimeout(vaultT); vaultT=0;
     VAULT_KEYS.forEach(function(k){ if(typeof o.data[k]==="string") lsSet(k, k===KEY ? whCarry(o.data[k]) : o.data[k]); });
     lsSet("dial.act", String(o.savedAt||Date.now())); lsSet("dial.vault.last", String(o.savedAt)); lsSet("dial.vault.at", String(Date.now()));
-    location.reload();
+    appReload();
   }
   function vaultKeep(name){                           /* a copy of the current record under another name, if a folder is set */
     var H=vHost(); if(!H || !vHas(state) || !H.vaultFolder()) return false;
@@ -8580,7 +8590,7 @@ html.lkm .wh{overflow:hidden}
         syncNote("recovered: "+R.days.join(","));
         mgWriteLocal(R.M, null, Date.now());
         lsSet("dial.before.used", old||""); lsSet("dial.gd.note","recover");
-        var go=function(){ location.reload(); };
+        var go=function(){ appReload(); };
         if(gdLinked() && gdValid()) gdPush().then(go, go); else go();
       });
     };
@@ -8695,8 +8705,9 @@ html.lkm .wh{overflow:hidden}
     if(st==="none"){ toast("You're on the latest version."); return; }
     if(st==="allow"){ toast("Allow Golden Path to install updates, then check again."); return; }
     if(st==="install"){ toast("Confirm the install to finish the update."); return; }
-    if(st==="failed"){ toast("The update wasn't installed."); return; }
-    if(st==="page"){ lsSet("dial.upd.want", String(info||"")); save(); setTimeout(function(){ location.reload(); }, 250); return; }
+    if(st==="failed"){ var Hf=window.RitualHost; if(Hf && typeof Hf.openLink==="function"){ Hf.openLink(APK_URL); toast("Opening the download. Install it from there."); } else toast("The update wasn't installed."); return; }
+    if(st==="link"){ toast("The download opened in the browser. Install it from there."); return; }
+    if(st==="page"){ lsSet("dial.upd.want", String(info||"")); save(); setTimeout(function(){ appReload(); }, 250); return; }
     toast(navigator.onLine===false ? "You're offline." : /http 404/.test(info||"") ? "No update has been published on GitHub yet." : "Couldn't check for updates."+(info ? " ("+String(info).slice(0,60)+")" : ""));
   };
   function updCheck(){
@@ -8713,7 +8724,7 @@ html.lkm .wh{overflow:hidden}
         var m=t.match(/APP_BUILD="([^"]+)"/), b=m ? m[1] : "";
         if(!b || b===APP_BUILD){ toast("You're on the latest version."); return; }
         lsSet("dial.upd.want", b); save();
-        var go=function(){ location.reload(); };
+        var go=function(){ appReload(); };
         if(navigator.serviceWorker && navigator.serviceWorker.getRegistration) navigator.serviceWorker.getRegistration().then(function(g){ return g && g.update(); }).then(go, go);
         else go();
       }, function(){ window.updateState("error"); });
@@ -8723,7 +8734,11 @@ html.lkm .wh{overflow:hidden}
     document.getElementById("updBtn").addEventListener("click", function(){ fb("tap"); updCheck(); });
     var w=lsGet("dial.upd.want"); if(!w) return;
     try{ localStorage.removeItem("dial.upd.want"); }catch(e){}
-    setTimeout(function(){ toast(w===APP_BUILD ? "Updated to "+APP_BUILD+"." : "The update couldn't be applied. Install the latest APK from GitHub."); }, 900);
+    if(w===APP_BUILD){ setTimeout(function(){ toast("Updated to "+APP_BUILD+"."); }, 900); return; }
+    var H=window.RitualHost;                                  /* the new page didn't take: install the whole app instead */
+    if(H && typeof H.updateApk==="function"){ setTimeout(function(){ toast("Installing the full update…"); H.updateApk(); }, 900); return; }
+    if(H && typeof H.openLink==="function"){ setTimeout(function(){ H.openLink(APK_URL); toast("Opening the download. Install it from there."); }, 900); return; }
+    setTimeout(function(){ toast("The update couldn't be applied. Install the latest APK from GitHub."); }, 900);
   }
   /* ---------- Sync log ----------
      Each sync round notes what the merge changed here (field, old → new, both stamps), and every whole
@@ -8769,7 +8784,7 @@ html.lkm .wh{overflow:hidden}
     RESTORING=true; clearTimeout(vaultT); vaultT=0; clearTimeout(GD.t); GD.t=0;
     VAULT_KEYS.forEach(function(k){ if(typeof r.data[k]==="string") lsSet(k, k===KEY ? whCarry(r.data[k]) : r.data[k]); else try{ localStorage.removeItem(k); }catch(e){} });
     lsSet("dial.act", String(r.act)); lsSet("dial.gd.at", String(Date.now())); lsSet("dial.gd.note","1");
-    location.reload();
+    appReload();
   }
 
   /* talking to Drive: fetch on the web, the phone's own connection in the app */
@@ -8914,7 +8929,7 @@ html.lkm .wh{overflow:hidden}
             if(toLocal && LP && LP.h===mh && Date.now()-LP.t<120000){ try{ localStorage.removeItem("dial.gd.loop"); }catch(e){} syncNote("loop guard: pushed this device"); save(); return gdPush().then(function(){ return "pushed"; }); }
             if(toLocal) lsSet("dial.gd.loop", JSON.stringify({h:mh, t:Date.now()}));
             if(toLocal) mgWriteLocal(M, r.act>mine ? r.data["dial.vmem"] : null, Math.max(mine, r.act));
-            var done=function(){ if(!toLocal) return "pushed"; if(!toDrive) jnClean(lsGet("dial.gd.dirty")); lsSet("dial.gd.at", String(Date.now())); lsSet("dial.gd.note","merge"); location.reload(); return "pulled"; };
+            var done=function(){ if(!toLocal) return "pushed"; if(!toDrive) jnClean(lsGet("dial.gd.dirty")); lsSet("dial.gd.at", String(Date.now())); lsSet("dial.gd.note","merge"); appReload(); return "pulled"; };
             return toDrive ? gdPush().then(done) : done();
           })
           .catch(function(e){

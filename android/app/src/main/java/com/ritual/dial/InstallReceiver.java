@@ -18,7 +18,7 @@ public class InstallReceiver extends BroadcastReceiver {
             }
             return;
         }
-        if (st != PackageInstaller.STATUS_SUCCESS) {
+        if (st != PackageInstaller.STATUS_SUCCESS && st != PackageInstaller.STATUS_FAILURE_ABORTED) {
             MainActivity.tellUpdate("failed", String.valueOf(i.getStringExtra(PackageInstaller.EXTRA_STATUS_MESSAGE)));
         }
     }

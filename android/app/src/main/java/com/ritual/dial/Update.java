@@ -63,7 +63,7 @@ final class Update {
                 try {
                     JSONObject v = new JSONObject(new String(get(BASE + "version.json", null, null), "UTF-8"));
                     String nat = v.optString("native", ""), build = v.optString("build", "");
-                    if (nat.length() > 0 && !nat.equals(BuildConfig.NATIVE_ID)) { app(a, say); return; }
+                    if (nat.length() > 0 && !nat.equals(BuildConfig.NATIVE_ID)) { appOrLink(a, say); return; }
                     if (build.length() == 0 || build.equals(running)) { say.say("none", ""); return; }
                     byte[] html = get(BASE + "index.html", null, null);
                     String text = new String(html, "UTF-8");
@@ -82,6 +82,47 @@ final class Update {
                 }
             }
         }).start();
+    }
+
+    /** The whole app, now (when a page update didn't take). */
+    static void apk(final Activity a, final Say say) {
+        new Thread(new Runnable() {
+            @Override
+            public void run() { appOrLink(a, say); }
+        }).start();
+    }
+
+    /** Install the app; if that can't be done here, open its download so the owner installs it in one tap. */
+    private static void appOrLink(Activity a, Say say) {
+        try { app(a, say); }
+        catch (Exception e) { open(a, BASE + "the-ritual.apk"); say.say("link", String.valueOf(e.getMessage())); }
+    }
+
+    static void open(final Activity a, final String url) {
+        if (url == null || !url.startsWith("https://github.com/kamyaryp/The-Ritual/")) return;
+        a.runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    Intent i = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+                    i.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    a.startActivity(i);
+                } catch (Exception ignored) { }
+            }
+        });
+    }
+
+    static String read(File f) throws Exception {
+        InputStream in = new FileInputStream(f);
+        ByteArrayOutputStream out = new ByteArrayOutputStream();
+        try {
+            byte[] b = new byte[65536];
+            int n;
+            while ((n = in.read(b)) > 0) out.write(b, 0, n);
+        } finally {
+            in.close();
+        }
+        return new String(out.toByteArray(), "UTF-8");
     }
 
     /** A new app: Android must allow this app to install, then the download goes to the installer. */

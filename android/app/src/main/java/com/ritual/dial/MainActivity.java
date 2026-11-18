@@ -144,6 +144,30 @@ public class MainActivity extends Activity {
             });
         }
 
+        /** Start the page again (the downloaded one when there is one). The page calls this instead of reloading itself. */
+        @JavascriptInterface
+        public void reloadPage() {
+            runOnUiThread(new Runnable() {
+                @Override
+                public void run() { loadPage(); }
+            });
+        }
+
+        /** The page update didn't take: install the whole app instead (or open its download). */
+        @JavascriptInterface
+        public void updateApk() {
+            Update.apk(MainActivity.this, new Update.Say() {
+                @Override
+                public void say(String state, String info) { tellUpdate(state, info); }
+            });
+        }
+
+        /** Open the app's own download page in the browser (only the repo's addresses). */
+        @JavascriptInterface
+        public void openLink(String url) {
+            Update.open(MainActivity.this, url);
+        }
+
         @JavascriptInterface
         public void keepAwake(final boolean on) {
             runOnUiThread(new Runnable() {
@@ -192,7 +216,7 @@ public class MainActivity extends Activity {
             }
         });
         setContentView(web);
-        web.loadUrl(Update.PAGE_URL);
+        loadPage();
 
         Notes.channels(this);
         Sfx.init(this);
@@ -200,6 +224,20 @@ public class MainActivity extends Activity {
                 && checkSelfPermission("android.permission.POST_NOTIFICATIONS") != PackageManager.PERMISSION_GRANTED) {
             requestPermissions(new String[]{"android.permission.POST_NOTIFICATIONS"}, 1);
         }
+    }
+
+    /** The page: a downloaded newer one is shown at the bundled page's address (so its records are the same
+        ones), as data with that address as its base; otherwise the bundled page itself. */
+    void loadPage() {
+        if (web == null) return;
+        File f = Update.page(this);
+        if (f != null) {
+            try {
+                web.loadDataWithBaseURL(Update.PAGE_URL, Update.read(f), "text/html", "utf-8", null);
+                return;
+            } catch (Exception ignored) { }
+        }
+        web.loadUrl(Update.PAGE_URL);
     }
 
     /** The folder picker came back: keep the folder and let the page sync with it. */
