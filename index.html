@@ -819,6 +819,35 @@ html.wh-on .toast{z-index:60}
 .slp-s b{margin-left:auto;font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--ink-2)}
 .slp-x{width:28px;height:28px;border:0;background:transparent;color:var(--ink-3);font-size:16px;line-height:1;border-radius:var(--r-s);cursor:pointer;padding:0}
 .slp-x:hover{color:var(--xeron)}
+/* Log sleep: the night in one line, one button */
+.slp2{display:grid;grid-template-columns:1fr auto;gap:10px 12px;align-items:center;padding-bottom:12px;margin-bottom:2px;border-bottom:1px solid var(--line-2)}
+.slp-n{display:flex;flex-direction:column;align-items:flex-start;gap:3px;min-width:0;padding:0;border:0;background:transparent;color:inherit;font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.slp-n span{font-size:11.5px;color:var(--ink-3)}
+.slp-n b{font-family:var(--mono);font-size:17px;font-weight:500;color:var(--ink);line-height:1.15;white-space:nowrap}
+.slp-n.empty-n b{color:var(--ink-3)}
+.slp2 .slp-r{align-self:center}
+.slp-go{grid-column:1/-1;height:40px;border:1px solid color-mix(in srgb,var(--hue) 55%,var(--line));border-radius:var(--r);background:color-mix(in srgb,var(--hue) 10%,transparent);color:var(--ink);font:inherit;font-size:14px;font-weight:500;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.slp-go:active{background:color-mix(in srgb,var(--hue) 18%,transparent)}
+.slp2 .slp-list{grid-column:1/-1;display:flex;flex-direction:column;margin-top:-2px}
+.slp2 .slp-list:empty{display:none}
+.slp2 .slp-s{display:flex;align-items:center;justify-content:space-between;min-height:34px;padding:0;border:0;border-top:1px solid var(--line-2);background:transparent;color:var(--ink-2);font:inherit;font-family:var(--mono);font-size:13px;cursor:pointer;text-align:left}
+.slp2 .slp-s b{font-weight:500;font-size:12.5px;color:var(--ink-3)}
+/* the sheet: two wheels */
+.sw2{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin:18px 0 4px}
+.sw-g{display:flex;flex-direction:column;align-items:stretch;gap:6px;min-width:0}
+.sw-g>span{font-size:11.5px;color:var(--ink-3);display:flex;justify-content:space-between}
+.sw-g>span em{font-style:normal;color:var(--ink-2)}
+.sw-w{position:relative;display:flex;gap:4px;height:120px;border:1px solid var(--line);border-radius:var(--r);background:var(--well);overflow:hidden}
+.sw-w::before{content:"";position:absolute;left:6px;right:6px;top:40px;height:40px;border-radius:var(--r-s);background:color-mix(in srgb,var(--hue) 14%,transparent);border:1px solid color-mix(in srgb,var(--hue) 40%,transparent);pointer-events:none}
+.sw-w::after{content:":";position:absolute;left:50%;top:40px;height:40px;line-height:38px;transform:translateX(-50%);font-family:var(--mono);font-size:20px;color:var(--ink-3);pointer-events:none}
+.sw{flex:1 1 0;height:120px;overflow-y:auto;scroll-snap-type:y mandatory;scrollbar-width:none;-webkit-overflow-scrolling:touch;overscroll-behavior:contain;position:relative;z-index:1}
+.sw::-webkit-scrollbar{display:none}
+.sw-pad{height:40px}
+.sw-i{height:40px;line-height:40px;text-align:center;font-family:var(--mono);font-size:22px;color:var(--ink-3);scroll-snap-align:center;cursor:pointer;-webkit-tap-highlight-color:transparent}
+.sw-i.on{color:var(--ink);font-weight:500}
+#seInfo{text-align:center;font-family:var(--mono);font-size:14px;color:var(--ink);margin:12px 0 2px}
+#seInfo.bad{color:var(--xeron)}
+
 #slpEd{z-index:45}
 .se-clock{display:flex;align-items:center;gap:10px;margin:22px 0 6px}
 .se-col{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:stretch;gap:6px}
@@ -940,8 +969,11 @@ html.lkm .wh{overflow:hidden}
 
 <div class="modal" id="slpEd" hidden>
   <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="seT" style="--hue:var(--c-care)">
-    <div class="ge-top"><span class="we-ey" id="seT">To bed</span><button type="button" class="ge-x" id="seX" aria-label="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
-    <div class="se-clock"><div class="se-col"><button type="button" data-d="h+" aria-label="Hour up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><input id="seH" type="text" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Hour"><button type="button" data-d="h-" aria-label="Hour down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div><span class="se-sep">:</span><div class="se-col"><button type="button" data-d="m+" aria-label="Minutes up"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 15l6-6 6 6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button><input id="seM" type="text" inputmode="numeric" maxlength="2" autocomplete="off" aria-label="Minutes"><button type="button" data-d="m-" aria-label="Minutes down"><svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 9l6 6 6-6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button></div></div>
+    <div class="ge-top"><span class="we-ey" id="seT">Log sleep</span><button type="button" class="ge-x" id="seX" aria-label="Close"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4l8 8M12 4l-8 8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></button></div>
+    <div class="sw2">
+      <div class="sw-g" id="swB"><span>Bed <em id="seBD"></em></span><div class="sw-w"><div class="sw" id="swBH"></div><div class="sw" id="swBM"></div></div></div>
+      <div class="sw-g" id="swW"><span>Wake <em id="seWD"></em></span><div class="sw-w"><div class="sw" id="swWH"></div><div class="sw" id="swWM"></div></div></div>
+    </div>
     <p class="se-info" id="seInfo"></p>
     <div class="ge-btns" id="seBtns"></div>
   </div>
@@ -1162,10 +1194,10 @@ html.lkm .wh{overflow:hidden}
       </div>
       <div class="card" id="careCard" style="--hue:var(--c-care)">
         <div class="card-head"><span class="gname">Rest &amp; care</span></div>
-        <div class="slp" id="slp">
-          <button type="button" class="slp-b" id="slpBed"><span>To bed</span><b id="slpBedT">—</b></button>
-          <button type="button" class="slp-b" id="slpWake"><span>Awake</span><b id="slpWakeT">—</b></button>
+        <div class="slp slp2" id="slp">
+          <button type="button" class="slp-n" id="slpNight"><span id="slpK">Last night</span><b id="slpTimes">—</b></button>
           <div class="slp-r"><b id="slpHrs">—</b><span id="slpAvg"></span></div>
+          <button type="button" class="slp-go" id="slpGo">Log sleep</button>
           <div class="slp-list" id="slpList"></div>
         </div>
       </div>
@@ -1326,7 +1358,7 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
-  var APP_BUILD="2026.11.18-1435";
+  var APP_BUILD="2026.11.20-1607";
   var APK_URL="https://github.com/kamyaryp/The-Ritual/releases/latest/download/the-ritual.apk";
   /* starting the page again: the phone app restarts it itself (so a downloaded newer page stays in place);
      an older app gets a fresh load of the same address rather than a reload */
@@ -6001,56 +6033,154 @@ html.lkm .wh{overflow:hidden}
     voiceEvent("xenlil","slp_wake",{hrs: n && n.hrs!=null ? n.hrs : null, nap: len!=null && len<3, nh: len!=null ? slpH(len) : ""});
     save(); fb("on"); renderXen();
   }
-  var SLP_ED=null;
-  /* the time sheet: hours and minutes, in the app's own sheet */
-  function slpPick(e,field){
-    var v=e[field], c = v ? slpClock(v) : slpClock(Date.now());
-    SLP_ED={e:e, field:field, h:Math.floor(c/60), m:c%60, had:!!v};
-    setText("seT", field==="bed" ? "To bed" : "Awake");
-    slpEdPaint(true);
-    var md=document.getElementById("slpEd"); md.hidden=false; void md.offsetWidth; md.classList.add("in");
+  /* ---------- Log sleep: one sheet, both times ----------
+     The card shows today's night in one line (bed → wake · hours), the week's average, and one button.
+     The sheet has two wheels, Bed and Wake (hours, minutes in fives), filled in with a guess: wake now,
+     bed at your usual hour (or the open night's bed). The night's length shows as you turn them. One
+     Save. "In bed now" opens a night that a later Log sleep closes. Tap the night (or a nap below it)
+     to change or delete it. */
+  var SLP_ED=null, SW_H=40;
+  function slpUsualBed(){                                  /* the median bed hour of the last nights, for the guess */
+    var cs=[], t=dayKey();
+    for(var i=0;i<14;i++){ var n=slpFor(keyAdd(t,-i)); if(n && n.bed){ var c=slpClock(n.bed); cs.push(c<12*60 ? c+1440 : c); } }
+    if(!cs.length) return 23*60+30;
+    cs.sort(function(a,b){ return a-b; }); return cs[Math.floor(cs.length/2)]%1440;
   }
-  /* only what the time gives: the sleep it makes with the other end of the session (no date: times are always today's) */
+  function slpRound(c){ return (Math.round(c/5)*5)%1440; }
+  /* clock times placed in real time: the wake at or before now (today, else yesterday), the bed before the wake */
+  function slpPlace(bedC, wakeC){
+    var d=new Date(); d.setHours(0,0,0,0);
+    var w=d.getTime()+wakeC*60000; if(w>Date.now()+5*60000) w-=86400000;
+    var b=new Date(w); b.setHours(0,0,0,0); var bt=b.getTime()+bedC*60000; if(bt>=w) bt-=86400000;
+    return {bed:bt, wake:w};
+  }
+  function slpDayWord(ms){ var k=slpDay(ms), t=dayKey(); return k===t ? "today" : k===keyAdd(t,-1) ? "yesterday" : new Date(ms).toLocaleDateString("en-US",{weekday:"short"}); }
+  function swBuild(el, n, step){
+    var h=''; for(var i=0;i<n;i++) h+='<div class="sw-i">'+String(i*step).padStart(2,"0")+'</div>';
+    el.innerHTML='<div class="sw-pad"></div>'+h+'<div class="sw-pad"></div>';
+  }
+  function swSet(el, idx){ el.scrollTop=idx*SW_H; el.dataset.v=idx; swMark(el); }
+  function swMark(el){ var v=+el.dataset.v; [].forEach.call(el.querySelectorAll(".sw-i"),function(it,i){ it.classList.toggle("on", i===v); }); }
+  function swGet(el){ return +el.dataset.v||0; }
+  function slpEdRead(){
+    var g=function(id,step){ return swGet(document.getElementById(id))*step; };
+    return {bed:g("swBH",1)*60+g("swBM",5), wake:g("swWH",1)*60+g("swWM",5)};
+  }
   function slpEdInfo(){
     var E=SLP_ED; if(!E) return;
-    var t=slpResolve(E.e,E.field,E.h*60+E.m), other = E.field==="bed" ? E.e.wake : E.e.bed, info="";
-    if(other){ var len=Math.abs((E.field==="bed" ? other-t : t-other))/3600000; info="Sleep "+slpH(Math.max(0,len-SLP_GIVE)); }
-    var el=document.getElementById("seInfo"); el.textContent=info; el.hidden=!info;
+    var c=slpEdRead(), e=E.e;
+    var keepW=!!(e && e.wake && c.wake===E.w0), keepB=!!(e && e.bed && c.bed===E.b0);   /* an untouched wheel keeps the exact time */
+    var w = keepW ? e.wake : slpPlace(c.bed, c.wake).wake, b;
+    if(keepB){ b=e.bed; if(w<=b){ var d2=new Date(b); d2.setHours(0,0,0,0); w=d2.getTime()+c.wake*60000; while(w<=b) w+=86400000; } }
+    else { var d=new Date(w); d.setHours(0,0,0,0); b=d.getTime()+c.bed*60000; if(b>=w) b-=86400000; }
+    var len=(w-b)/3600000, bad = len<1/6 || len>20 || w>Date.now()+5*60000;
+    setText("seBD", slpDayWord(b)); setText("seWD", slpDayWord(w));
+    setText("seInfo", bad ? "Not a night" : slpH(Math.max(0,len-SLP_GIVE))+" of sleep");
+    document.getElementById("seInfo").classList.toggle("bad", bad);
+    E.place=bad ? null : {bed:b, wake:w};
   }
-  function slpEdPaint(withButtons){
-    var E=SLP_ED; if(!E) return;
-    document.getElementById("seH").value=String(E.h).padStart(2,"0");
-    document.getElementById("seM").value=String(E.m).padStart(2,"0");
-    slpEdInfo();
-    if(!withButtons) return;          /* the buttons stay put, so a tap that blurs a field still lands */
+  function slpEdOpen(e){
+    if(shut()) return;
+    var open=slpOpen(), isOpen=!e && !!open;
+    if(isOpen) e=open;
+    var now=slpRound(slpClock(Date.now())), bedC, wakeC;
+    if(e && e.bed) bedC=slpRound(slpClock(e.bed)); else bedC=slpRound(slpUsualBed());
+    if(e && e.wake) wakeC=slpRound(slpClock(e.wake)); else wakeC=now;
+    SLP_ED={e:e||null, open:isOpen || (!!e && !!e.bed && !e.wake), edit:!!e && !isOpen, b0:bedC, w0:wakeC};
+    setText("seT", SLP_ED.edit ? "Edit sleep" : SLP_ED.open ? "Woke up" : "Log sleep");
+    var md=document.getElementById("slpEd"); md.hidden=false; void md.offsetWidth; md.classList.add("in");
+    swSet(document.getElementById("swBH"), Math.floor(bedC/60)); swSet(document.getElementById("swBM"), (bedC%60)/5);
+    swSet(document.getElementById("swWH"), Math.floor(wakeC/60)); swSet(document.getElementById("swWM"), (wakeC%60)/5);
+    document.getElementById("swB").classList.toggle("fixed", false);
     var b='';
-    if(E.had) b+='<button type="button" class="ic" data-se="clear" aria-label="Clear"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
-    b+='<button type="button" data-se="now">Now</button><button type="button" class="pri" data-se="save">Save</button>';
+    if(SLP_ED.edit || SLP_ED.open) b+='<button type="button" class="ic" data-se="del" aria-label="Delete"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14H6L5 6"/><path d="M10 11v6M14 11v6"/></svg></button>';
+    if(!SLP_ED.edit && !SLP_ED.open) b+='<button type="button" data-se="inbed">In bed now</button>';
+    b+='<button type="button" class="pri" data-se="save">Save</button>';
     document.getElementById("seBtns").innerHTML=b;
+    slpEdInfo();
   }
   function slpEdClose(){
     var md=document.getElementById("slpEd"); if(md.hidden) return;
-    document.activeElement && document.activeElement.blur && document.activeElement.blur();
     md.classList.remove("in"); md.classList.add("out");
     setTimeout(function(){ md.hidden=true; md.classList.remove("out"); },270);
     SLP_ED=null;
   }
+  function slpEdSave(){
+    var E=SLP_ED; if(!E) return; slpEdInfo();
+    if(!E.place){ fb("deny"); toast("Check the times: that isn't a night."); return; }
+    var l=slpList(), e=E.e, before=e && e.wake ? slpDay(e.wake) : null, isNew=!e;
+    if(isNew){ e={bed:E.place.bed, wake:E.place.wake}; l.push(e); if(l.length>600) l.splice(0,l.length-600); }
+    else { e.bed=E.place.bed; e.wake=E.place.wake; }
+    if(before && before!==slpDay(e.wake)) slpFlagsDay(before);
+    slpFlags(e);
+    slpEdClose(); fb("on");
+    if(!E.edit){ var n=slpFor(slpDay(e.wake)), len=slpLen(e);
+      voiceEvent("xenlil","slp_wake",{hrs: n && n.hrs!=null ? n.hrs : null, nap: len!=null && len<3, nh: len!=null ? slpH(len) : ""}); }
+    actNow(); save(); renderXen();
+  }
+  function slpInBed(){
+    var l=slpList(), now=Date.now(), e={bed:now, wake:null};
+    l.push(e); if(l.length>600) l.splice(0,l.length-600);
+    slpEdClose(); fb("on");
+    voiceEvent("xenlil","slp_bed",{bt:hm(slpClock(now))}); actNow(); save(); renderXen();
+  }
+  function slpDelete(e){
+    if(!e) return; var l=slpList();
+    ask("Delete this sleep?", (e.bed ? hm(slpClock(e.bed)) : "—")+" → "+(e.wake ? hm(slpClock(e.wake)) : "…"), "Delete", function(){
+      var d=e.wake ? slpDay(e.wake) : null, i=l.indexOf(e); if(i>=0) l.splice(i,1); if(d) slpFlagsDay(d); actNow(); save(); renderXen(); });
+  }
   function slpRender(){
     var box=document.getElementById("slp"); if(!box) return;
-    var open=slpOpen(), N=slpFor(dayKey()), l=slpList();
-    setText("slpBedT", open ? hm(slpClock(open.bed)) : "—"); document.getElementById("slpBed").classList.toggle("set", !!open);
-    setText("slpWakeT", "—"); document.getElementById("slpWake").classList.toggle("on", !!open);
+    var open=slpOpen(), N=slpFor(dayKey()), l=slpList(), main=N && N.e && N.e.bed ? N.e : (N ? N.e : null);
+    var times="—", key="Last night";
+    if(open){ key="In bed"; times="since "+hm(slpClock(open.bed)); }
+    else if(main){ times=(main.bed ? hm(slpClock(main.bed)) : "—")+" → "+hm(slpClock(main.wake)); }
+    else key="No night logged";
+    setText("slpK", key); setText("slpTimes", times);
+    document.getElementById("slpNight").classList.toggle("empty-n", !open && !main);
     var hEl=document.getElementById("slpHrs"), q=N ? slpQOf(N.hrs) : null;
     hEl.textContent = N && N.hrs!=null ? slpH(N.hrs) : "—";
     hEl.style.setProperty("--sq", q==null ? "107,103,96" : q>=0.75 ? "48,209,88" : q>=0.5 ? "255,179,64" : "255,69,58");
     var a=slpAvg(); setText("slpAvg", a!=null ? "avg "+slpH(a) : "");
-    var rows=(N ? N.sessions.slice() : []); if(open) rows.push(open);
-    document.getElementById("slpList").innerHTML=rows.map(function(e){
+    setText("slpGo", open ? "Woke up" : "Log sleep");
+    var extra=(N ? N.sessions.filter(function(e){ return e!==main; }) : []);
+    document.getElementById("slpList").innerHTML=extra.map(function(e){
       var i=l.indexOf(e), h=slpOf(e);
-      return '<div class="slp-s"><button type="button" data-s="'+i+'" data-f="bed">'+(e.bed ? hm(slpClock(e.bed)) : "—")+'</button><i>→</i>'+
-        '<button type="button" data-s="'+i+'" data-f="wake">'+(e.wake ? hm(slpClock(e.wake)) : "…")+'</button>'+
-        '<b>'+(h!=null ? slpH(h) : "")+'</b><button type="button" class="slp-x" data-del="'+i+'" aria-label="Delete">×</button></div>';
+      return '<button type="button" class="slp-s" data-s="'+i+'"><span>'+(e.bed ? hm(slpClock(e.bed)) : "—")+' → '+(e.wake ? hm(slpClock(e.wake)) : "…")+'</span><b>'+(h!=null ? slpH(h) : "")+'</b></button>';
     }).join('');
+    document.getElementById("slpNight").dataset.i = open ? l.indexOf(open) : main ? l.indexOf(main) : "";
+  }
+  function buildSleep(){
+    ["swBH","swWH"].forEach(function(id){ swBuild(document.getElementById(id),24,1); });
+    ["swBM","swWM"].forEach(function(id){ swBuild(document.getElementById(id),12,5); });
+    [].forEach.call(document.querySelectorAll("#slpEd .sw"),function(el){
+      var t=0;
+      el.addEventListener("scroll",function(){
+        var n=el.querySelectorAll(".sw-i").length, v=Math.max(0,Math.min(n-1,Math.round(el.scrollTop/SW_H)));
+        if(v!==+el.dataset.v){ el.dataset.v=v; swMark(el); slpEdInfo(); }
+        clearTimeout(t); t=setTimeout(function(){ if(Math.abs(el.scrollTop-v*SW_H)>1) el.scrollTo({top:v*SW_H, behavior:"smooth"}); },120);
+      },{passive:true});
+      el.addEventListener("click",function(ev){ var it=ev.target.closest(".sw-i"); if(!it) return; var i=[].indexOf.call(el.querySelectorAll(".sw-i"),it); el.scrollTo({top:i*SW_H, behavior:"smooth"}); });
+    });
+    document.getElementById("slpGo").addEventListener("click",function(){ fb("tap"); slpEdOpen(null); });
+    document.getElementById("slpNight").addEventListener("click",function(){
+      var i=this.dataset.i; fb("tap"); if(i===""){ slpEdOpen(null); return; } var e=slpList()[+i]; slpEdOpen(e && !e.wake ? null : e);
+    });
+    document.getElementById("slpList").addEventListener("click",function(ev){
+      var b=ev.target.closest("[data-s]"); if(!b) return; var e=slpList()[+b.dataset.s]; if(e){ fb("tap"); slpEdOpen(e); }
+    });
+    var md=document.getElementById("slpEd");
+    md.addEventListener("click",function(ev){
+      if(ev.target===md){ slpEdClose(); return; }
+      var b=ev.target.closest("[data-se]"); if(!b || !SLP_ED) return;
+      var k=b.dataset.se;
+      if(k==="save"){ slpEdSave(); return; }
+      if(k==="inbed"){ slpInBed(); return; }
+      if(k==="del"){ var e=SLP_ED.e; slpEdClose(); slpDelete(e); return; }
+    });
+    document.getElementById("seX").addEventListener("click",slpEdClose);
+    var ob=window.ritualBack; window.ritualBack=function(){ if(!document.getElementById("modal").hidden) return ob ? ob() : false; if(!md.hidden){ slpEdClose(); return true; } return ob ? ob() : false; };
+    document.addEventListener("keydown",function(ev){ if(ev.key==="Escape" && document.getElementById("modal").hidden) slpEdClose(); });
   }
   /* ---- overlays own the screen ----
      While a sheet (any .modal), the ceremony, the Warehouse page or the More menu is open, the page
@@ -6340,46 +6470,6 @@ html.lkm .wh{overflow:hidden}
         "Your nights averaged {sa} this week. The body keeps that account.","{sa} a night, on average, this week. Worth a look."])
     ]);
   }
-  function buildSleep(){
-    document.getElementById("slpBed").addEventListener("click",function(){ fb("tap"); slpTap("bed"); });
-    document.getElementById("slpWake").addEventListener("click",function(){ fb("tap"); slpTap("wake"); });
-    document.getElementById("slpList").addEventListener("click",function(ev){
-      var l=slpList(), b=ev.target.closest("[data-s]");
-      if(b){ var e=l[+b.dataset.s]; if(e){ fb("tap"); slpPick(e,b.dataset.f); } return; }
-      var x=ev.target.closest("[data-del]"); if(!x) return; var e2=l[+x.dataset.del]; if(!e2) return;
-      fb("tap");
-      ask("Delete?", (e2.bed ? hm(slpClock(e2.bed)) : "—")+" → "+(e2.wake ? hm(slpClock(e2.wake)) : "…"), "Delete", function(){
-        var d=e2.wake ? slpDay(e2.wake) : null, i=l.indexOf(e2); if(i>=0) l.splice(i,1); if(d) slpFlagsDay(d); actNow(); save(); renderXen(); });
-    });
-    var md=document.getElementById("slpEd");
-    md.addEventListener("click",function(ev){
-      if(ev.target===md){ slpEdClose(); return; }
-      var E=SLP_ED; if(!E) return;
-      var st=ev.target.closest("[data-d]");
-      if(st){ fb("tap"); var d=st.dataset.d;
-        if(d==="h+") E.h=(E.h+1)%24; else if(d==="h-") E.h=(E.h+23)%24;
-        else if(d==="m+"){ E.m=(Math.floor(E.m/5)+1)*5; if(E.m>=60){ E.m=0; E.h=(E.h+1)%24; } }
-        else if(d==="m-"){ E.m = E.m%5 ? Math.floor(E.m/5)*5 : E.m-5; if(E.m<0){ E.m=55; E.h=(E.h+23)%24; } }
-        slpEdPaint(); return; }
-      var b=ev.target.closest("[data-se]"); if(!b) return;
-      if(b.dataset.se==="now"){ fb("tap"); var c=slpClock(Date.now()); E.h=Math.floor(c/60); E.m=c%60; slpEdPaint(); return; }
-      var e=E.e, f=E.field, clock = b.dataset.se==="save" ? E.h*60+E.m : null;
-      slpEdClose(); fb("on"); slpAt(e,f,clock);
-    });
-    ["seH","seM"].forEach(function(id){
-      var inp=document.getElementById(id);
-      inp.addEventListener("focus",function(){ this.select(); });
-      inp.addEventListener("input",function(){
-        var E=SLP_ED; if(!E) return; var v=parseInt(this.value.replace(/\D/g,""),10); if(isNaN(v)) return;
-        if(id==="seH") E.h=Math.min(23,v); else E.m=Math.min(59,v);
-        slpEdInfo();
-      });
-      inp.addEventListener("blur",function(){ slpEdPaint(); });
-    });
-    document.getElementById("seX").addEventListener("click",slpEdClose);
-    var ob=window.ritualBack; window.ritualBack=function(){ if(!document.getElementById("modal").hidden) return ob ? ob() : false; if(!md.hidden){ slpEdClose(); return true; } return ob ? ob() : false; };
-    document.addEventListener("keydown",function(ev){ if(ev.key==="Escape" && document.getElementById("modal").hidden) slpEdClose(); });
-  }
   /* the night as the voices read it */
   function sleepReadN(m,N){
     /* the night by its hours only: when you went down or rose doesn't matter, how long you slept does.
@@ -6395,12 +6485,12 @@ html.lkm .wh{overflow:hidden}
   }
   /* Xenlil on the night */
   var V_SLP={
-    bed:["To bed. Eight hours of sleep ends near {rise}.","Logged. The body takes it from here; eight hours, then rise.","Down. Sleep is counted in hours; count eight.","Lights out. Eight hours of sleep lands near {rise}."],
-    good:["{sh} of sleep. That's the law.","{sh}. A rested body. Rise and rule.","Up after {sh}. Well slept."],
-    short:["{sh} of sleep. Short. Tonight, earlier.","Only {sh}. The body will collect.","{sh}. Not enough; plan the night now."],
-    long:["{sh} of sleep. Too long; the day is shorter for it.","{sh}. More than the body needs.","Up after {sh}. Eight is the law, not ten."],
-    nobed:["Awake. When did you go to bed?","Up. Set the bed time."],
-    nap:["{nh} in bed. A rest, not a night.","A pause: {nh}. Noted.","{nh}. The day goes on."]
+    bed:["Noted.","Logged, {bt}.","Good night.","The record has it."],
+    good:["Logged: {sh}.","Morning. {sh} in the record.","{sh}. Noted."],
+    short:["Logged: {sh}.","Morning. {sh} in the record.","{sh}. Noted."],
+    long:["Logged: {sh}.","Morning. {sh} in the record.","{sh}. Noted."],
+    nobed:["Morning.","Logged."],
+    nap:["{nh} of rest. Noted.","Noted: {nh}."]
   };
   (function(){
     var oR=XENLIL_SPEC.react, oT=XENLIL_SPEC.tokens;
@@ -8188,7 +8278,7 @@ html.lkm .wh{overflow:hidden}
       setTimeout(function(){ gdSync(false); }, 1500);
     }
     document.addEventListener("visibilitychange",function(){
-      if(document.hidden){ if(GD.t){ clearTimeout(GD.t); GD.t=0; gdSync(false); } return; }   /* leaving: send what's waiting */
+      if(document.hidden){ if(GD.t){ clearTimeout(GD.t); GD.t=0; gdSync(false,"leave"); } return; }   /* leaving: send what's waiting */
       if(gdLinked() && Date.now()-(+(lsGet("dial.gd.at")||0))>30000) gdSync(false);       /* back: take what other devices sent */
     });
   }
@@ -8251,7 +8341,29 @@ html.lkm .wh{overflow:hidden}
     if(c==="sleep" && e && (e.bed || e.wake)) return "s"+(e.bed||e.wake);
     return "~"+sStr(e);
   }
-  function jnIds(st){ (st.sleep||[]).forEach(function(e){ if(e && e.id==null && (e.bed || e.wake)) e.id="s"+(e.bed||e.wake); }); }
+  function jnIds(st){
+    (st.sleep||[]).forEach(function(e){ if(e && e.id==null && (e.bed || e.wake)) e.id="s"+(e.bed||e.wake); });
+    mgRecs(st).forEach(function(r){
+      if(r && Array.isArray(r.log)){                    /* the day's log stays in time order (stable), wherever its entries came from */
+        var ok=true; for(var i=1;i<r.log.length;i++) if((+(r.log[i]||[])[0]||0)<(+(r.log[i-1]||[])[0]||0)){ ok=false; break; }
+        if(!ok) r.log=r.log.map(function(e,i){ return [e,i]; }).sort(function(p,q){ return (+p[0][0]||0)-(+q[0][0]||0) || p[1]-q[1]; }).map(function(p){ return p[0]; });
+      }
+    });
+    mgRecs(st).forEach(function(r){                     /* Arurael's blocks: an id each, so a block edited later is the same block */
+      if(!r || !Array.isArray(r.arLog)) return;
+      var used={};
+      r.arLog.forEach(function(e,i){
+        if(!e || typeof e!=="object") return;
+        if(e.id==null || used[e.id]) e.id=String(e.k)+"@"+(e.m!=null && !used[String(e.k)+"@"+e.m] ? e.m : "x"+Date.now().toString(36)+i);
+        used[e.id]=1;
+      });
+    });
+  }
+  function alKey(e){                                   /* a block without an id yet is the one jnIds will name k@m */
+    if(e && e.id!=null) return String(e.id);
+    if(e && e.m!=null) return String(e.k)+"@"+e.m;
+    return "~"+sStr(e);
+  }
   function jnMap(st,c){ var m={}; (jnGet(st,c)||[]).forEach(function(e){ m[jnKey(c,e)]=sStr(e); }); return m; }
   function jnCount(e){ var v=+e.b||0, d=e.d||{}; Object.keys(d).forEach(function(k){ v+=+d[k][0]||0; }); return v; }
   function jnCMerge(x,y){                               /* two journals of one count: each device's latest */
@@ -8278,7 +8390,7 @@ html.lkm .wh{overflow:hidden}
       out.push(JSON.parse(JSON.stringify(v)));
     });
     Object.keys(X).forEach(function(k){ if(I[k] && I[k]<=X[k]) delete I[k]; });
-    if(c==="sleep") out.sort(function(p,q){ return ((+p.bed||+p.wake||0)-(+q.bed||+q.wake||0)); });
+    /* this device's order stays (the open night is the last one); the other side's new items follow */
     return {list:out, i:I, x:X, any: !!(la || lb)};
   }
   function mgFlat(r){                                   /* {path: json}, one level into objects */
@@ -8289,7 +8401,8 @@ html.lkm .wh{overflow:hidden}
   }
   function stampSnap(st){
     var s={rec:{}, top:{}};
-    mgRecs(st).forEach(function(r){ if(r && r.date) s.rec[r.date]=mgFlat(r); });
+    s.al={};
+    mgRecs(st).forEach(function(r){ if(r && r.date){ s.rec[r.date]=mgFlat(r); var m={}; (Array.isArray(r.arLog)?r.arLog:[]).forEach(function(e){ m[alKey(e)]=sStr(e); }); s.al[r.date]=m; } });
     Object.keys(st).forEach(function(k){ if(k!=="day" && k!=="history" && k!=="_t" && k!=="_i" && k!=="_x") s.top[k]=JSON.stringify(st[k]); });
     s.coll={}; JN_COLL.forEach(function(c){ s.coll[c]=jnMap(st,c); });
     return s;
@@ -8307,6 +8420,10 @@ html.lkm .wh{overflow:hidden}
         if(seen[p] || a[p]===b[p] || MG_NOSTAMP[p] || p==="_c") return; seen[p]=1;
         if(!r._t) r._t={}; r._t[p]=T();
         var x=a[p]!==undefined ? JSON.parse(a[p]) : null, y=b[p]!==undefined ? JSON.parse(b[p]) : null;
+        if(p==="arLog"){                                                    /* each block on its own: changed or added, and removed */
+          var oa=(STAMP.al||{})[r.date]||{}, na=next.al[r.date]||{};
+          Object.keys(oa).concat(Object.keys(na)).forEach(function(id){ if(oa[id]===na[id]) return; r._t[(na[id]!==undefined ? "arLog#" : "arLog-")+id]=T(); });
+        }
         if(typeof x==="number" && typeof y==="number"){                     /* a count: this device's change joins the journal */
           var C=r._c||(r._c={}), e=C[p]||(C[p]={b:x, d:{}}), me=e.d[dev]||[0,0];
           e.d[dev]=[me[0]+(y-x), T()];
@@ -8337,11 +8454,26 @@ html.lkm .wh{overflow:hidden}
     if(mgObj(x) && mgObj(y)){ var o2={}; Object.keys(x).concat(Object.keys(y)).forEach(function(k){ o2[k]=mgFuller(x[k],y[k],aNewer); }); return o2; }
     return aNewer ? x : y;
   }
-  function mgUnion(x,y,key){                            /* the log and the block list: everything from both, in time order */
-    var seen={}, out=[];
-    (Array.isArray(x)?x:[]).concat(Array.isArray(y)?y:[]).forEach(function(e){ var s=sStr(e); if(!seen[s]){ seen[s]=1; out.push(e); } });
-    var at=function(e){ return Array.isArray(e) ? +e[0]||0 : (e && e.m!=null ? +e.m : 0); };
-    return out.map(function(e,i){ return [e,i]; }).sort(function(p,q){ return at(p[0])-at(q[0]) || p[1]-q[1]; }).map(function(p){ return p[0]; });
+  /* Arurael's blocks: by id; the newer change of a block wins, a removal newer than its last change holds;
+     this device's order stays (the page points at blocks by position) and the other side's new blocks follow */
+  function mgArLog(a,b,aNewer){
+    var la=Array.isArray(a.arLog)?a.arLog:[], lb=Array.isArray(b.arLog)?b.arLog:[], ta=a._t||{}, tb=b._t||{}, A={}, B={}, out=[], done={};
+    la.forEach(function(e){ A[alKey(e)]=e; }); lb.forEach(function(e){ B[alKey(e)]=e; });
+    var take=function(id){
+      if(done[id]) return; done[id]=1;
+      var ca=+ta["arLog#"+id]||0, cb=+tb["arLog#"+id]||0, del=Math.max(+ta["arLog-"+id]||0, +tb["arLog-"+id]||0), ea=A[id], eb=B[id];
+      if(del && del>=Math.max(ca,cb)) return;
+      var e = ea && eb ? (ca>cb ? ea : cb>ca ? eb : ((eb.tags||[]).length>(ea.tags||[]).length ? eb : (aNewer ? ea : eb))) : (ea||eb);
+      out.push(JSON.parse(JSON.stringify(e)));
+    };
+    la.forEach(function(e){ take(alKey(e)); }); lb.forEach(function(e){ take(alKey(e)); });
+    return out;
+  }
+  function mgUnion(x,y,key){                            /* the log: everything from both — an entry twice on one side (two glasses in a minute) stays twice */
+    var A=Array.isArray(x)?x:[], B=Array.isArray(y)?y:[], n={}, out=[];
+    A.forEach(function(e){ var s=sStr(e); n[s]=(n[s]||0)+1; out.push(e); });
+    var m={}; B.forEach(function(e){ var s=sStr(e); m[s]=(m[s]||0)+1; if(m[s]>(n[s]||0)) out.push(e); });
+    return out;                                         /* this device's order, then what only the other side has */
   }
   function mgRec(a,b,aNewer){
     var ta=a._t||{}, tb=b._t||{}, out={}, ot={};
@@ -8350,16 +8482,21 @@ html.lkm .wh{overflow:hidden}
     Object.keys(keys).forEach(function(k){
       var va=a[k], vb=b[k];
       if(k==="date"){ out.date=va||vb; return; }
+      if(k==="arLog"){ out[k]=mgArLog(a,b,aNewer); return; }
       if(MG_UNION[k]){ out[k]=mgUnion(va,vb,k); return; }
       if((mgObj(va) || va===undefined) && (mgObj(vb) || vb===undefined)){
         var A=va||{}, B=vb||{}, o={}, sub={};
         Object.keys(A).concat(Object.keys(B)).forEach(function(s){ sub[s]=1; });
-        Object.keys(sub).forEach(function(s){ var p=k+"."+s, r=pick(A[s],B[s],ta[p]||ta[k]||0,tb[p]||tb[k]||0);
+        Object.keys(sub).forEach(function(s){ var p=k+"."+s;
+          if(MG_NOSTAMP[p]){ var lv=A[s]!==undefined ? A[s] : B[s]; if(lv!==undefined) o[s]=lv; return; }   /* worked out here from the sleep times */
+          var r=pick(A[s],B[s],ta[p]||ta[k]||0,tb[p]||tb[k]||0);
           if(r[0]!==undefined) o[s]=r[0]; if(r[1]) ot[p]=r[1]; });
         out[k]=o; return;
       }
       var r=pick(va,vb,ta[k]||0,tb[k]||0); if(r[0]!==undefined) out[k]=r[0]; if(r[1]) ot[k]=r[1];
     });
+    /* every stamp either side holds travels on (the log, the block list and each block included) */
+    Object.keys(ta).concat(Object.keys(tb)).forEach(function(k){ if(ot[k]===undefined){ var t=Math.max(+ta[k]||0, +tb[k]||0); if(t) ot[k]=t; } });
     if(Object.keys(ot).length) out._t=ot;
     /* counts with a journal: base + every device's changes */
     var ca=a._c||{}, cb=b._c||{}, oc={};
@@ -8470,6 +8607,12 @@ html.lkm .wh{overflow:hidden}
   function rcFillRec(m, r, T, dev, said){              /* one day: m gains what r has more of */
     Object.keys(r).forEach(function(k){
       if(k==="date" || k==="_t" || k==="_c") return;
+      if(k==="arLog"){                                   /* blocks this record doesn't have (by id), unless removed here */
+        var have={}, mt=m._t||{}, add=[]; (m.arLog||[]).forEach(function(e){ have[alKey(e)]=1; });
+        (Array.isArray(r.arLog)?r.arLog:[]).forEach(function(e){ var id=alKey(e); if(have[id] || (+mt["arLog-"+id]||0)>0) return; have[id]=1; add.push(JSON.parse(JSON.stringify(e))); });
+        if(add.length){ m.arLog=(m.arLog||[]).concat(add); (m._t=m._t||{}); add.forEach(function(e){ m._t["arLog#"+alKey(e)]=T; }); said.push("+"+add.length+" blocks"); }
+        return;
+      }
       if(MG_UNION[k]){
         var before=(m[k]||[]).length, u=mgUnion(m[k], r[k], k);
         if(u.length>before){ m[k]=u; (m._t=m._t||{})[k]=T; said.push("+"+(u.length-before)+(k==="log" ? " entries" : " blocks")); }
@@ -8898,9 +9041,21 @@ html.lkm .wh{overflow:hidden}
   window.driveAuthed=function(ok, tok){ var f=GD.authCb; GD.authCb=null; if(ok && tok){ gdSetToken(tok, 3000); if(f) f(true); } else if(f) f(false, tok); };
 
   /* one round: read the file, then the newer record wins whole */
-  function gdSync(interactive){
+  /* the owner is in the middle of something: a sheet open, a field focused, or a touch in the last few seconds */
+  var UI_AT=0;
+  ["pointerdown","keydown","input","touchstart"].forEach(function(t){ document.addEventListener(t, function(){ UI_AT=Date.now(); }, true); });
+  function uiBusy(){
+    try{
+      if(document.documentElement.classList.contains("lk")) return true;
+      var a=document.activeElement; if(a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName)) return true;
+    }catch(e){}
+    return Date.now()-UI_AT<6000;
+  }
+  function gdLater(ms){ clearTimeout(GD.t); GD.t=setTimeout(function(){ GD.t=0; gdSync(false); }, ms||8000); }
+  function gdSync(interactive, why){
     if(RESTORING) return;
     if(!interactive && !gdLinked()) return;
+    if(!interactive && why!=="leave" && uiBusy()){ gdLater(8000); return; }
     if(GD.busy){ GD.again=true; return; }
     gdAuth(interactive, function(ok, why){
       if(!ok){
@@ -8923,6 +9078,7 @@ html.lkm .wh{overflow:hidden}
             var M=stateMerge(state, r.state, mine, r.act), mS=sStr(M), toLocal=mS!==sStr(state), toDrive=mS!==sStr(r.state);
             if(toLocal || toDrive) syncLog(state, r.state, M, mine, r.act, toLocal, toDrive);
             if(!toLocal && !toDrive){ jnClean(lsGet("dial.gd.dirty")); return "same"; }
+            if(toLocal && !interactive && !document.hidden && uiBusy()){ gdLater(8000); return "later"; }
             /* a safety catch: the same merge written here twice in two minutes means this device can't take it
                as it is; Drive takes this device's record instead, and the round ends without reloading */
             var mh=sStr(M).length+":"+jnHash(mS), LP=null; try{ LP=JSON.parse(lsGet("dial.gd.loop")||"null"); }catch(e){}
@@ -8942,6 +9098,7 @@ html.lkm .wh{overflow:hidden}
       };
       round(true).then(function(how){
         if(how==="pulled") return;                                       /* the page is reloading */
+        if(how==="later"){ gdUi("ok"); return; }                          /* waits for a quiet moment */
         lsSet("dial.gd.at", String(Date.now())); gdUi("ok");
         if(interactive) toast(how==="pushed" ? "Saved to Google Drive." : how==="none" ? "There's no record in Google Drive yet." : "Already up to date with Google Drive.");
       }).catch(function(e){
