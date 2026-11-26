@@ -1374,7 +1374,7 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
-  var APP_BUILD="2026.11.26-0546";
+  var APP_BUILD="2026.11.26-0559";
   var APK_URL="https://github.com/kamyaryp/The-Ritual/releases/latest/download/the-ritual.apk";
   /* starting the page again: the phone app restarts it itself (so a downloaded newer page stays in place);
      an older app gets a fresh load of the same address rather than a reload */
@@ -3314,7 +3314,7 @@ html.lkm .wh{overflow:hidden}
     return {
       locked: today<CL_START, start: clDate(CL_START,{weekday:"short",month:"short",day:"numeric"}),
       date: today, min: m, D: deps(state.day.xr), T: thrs(state.day.xr),
-      bound: (state.day.ae||[]).map(Boolean), running: !!(AET.run && AET.date===today),
+      bound: (state.day.ae||[]).map(Boolean), running: !!AET.run,
       s0: s0, best: best, yFell: !!(yr && deps(yr.xr)>0),
       bedLast: yr && yr.habits ? !!yr.habits.bed : null,
       awake: m>habCloses(wake) ? !!(state.day.habits && state.day.habits.wake) : null,
@@ -6899,9 +6899,10 @@ html.lkm .wh{overflow:hidden}
 
   /* ---------- The Binding of Aeshma ----------
      Eight times a day, one for each three-hour quarter (00:00–03:00 ... 21:00–24:00), the
-     binding opens. It is a stopwatch with no pause: started any time in its quarter, it runs
-     until it is finished (the quarter is bound) or stopped (cancelled, nothing kept). A running
-     one is never cut off; it belongs to the quarter it began in. One finish per quarter.
+     binding opens. It is a stopwatch with no pause: started any time, it runs until it is
+     finished or stopped (cancelled, nothing kept). A running one is never cut off; it binds the
+     quarter (and day) in which it is FINISHED. One finish per quarter: finishing in a quarter
+     already bound is refused, and the stopwatch keeps running.
      Only the longest binding ever finished is kept (state.aeBest, ms, across every era);
      the bindings are not part of the record chart or the cluster reports.
      Numbered with Arexia's runes, drawn as a small dial of her shape. */
@@ -6911,10 +6912,10 @@ html.lkm .wh{overflow:hidden}
   function aeSave(){ try{ localStorage.setItem("dial.ae",JSON.stringify(AET)); }catch(e){} }
   function aeOpensAt(i,k){ var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date(); d.setHours(i*3,0,0,0); return d.getTime(); }
   function aeClosesAt(i,k){ return aeOpensAt(i,k)+AE_END*60000; }
-  function aeRunning(i){ return AET.run && AET.idx===i && AET.date===dayKey(); }
+  function aeNow(){ return Math.min(7, Math.floor(nowHours()/3)); }   /* the quarter we are in */
+  function aeRunning(i){ return AET.run && i===aeNow(); }               /* a running one lands here if finished now */
   function aeState(i){
     var t=Date.now();
-    if(aeRunning(i)) return "open";
     if(t<aeOpensAt(i)) return "awaiting";
     if(t<aeClosesAt(i)) return "open";
     return "lapsed";
@@ -6932,27 +6933,25 @@ html.lkm .wh{overflow:hidden}
   function aeStart(){
     if(AET.run){ fb("deny"); toast("Aeshma is already being bound · "+aeDur(aeEl())+"."); return; }
     if(shut()) return;
-    var i=-1, t=Date.now(); for(var j=0;j<8;j++) if(t>=aeOpensAt(j) && t<aeClosesAt(j)) i=j;
-    if(i<0){ fb("deny"); toast("No binding is open now."); return; }
-    if(state.day.ae[i]){ var n=aeNext(); fb("deny"); toast("Aeshma is already bound for "+RUNE[i]+(n>=0 ? ". The next binding opens at "+hm(n*180)+"." : ".")); return; }
+    var i=aeNow(), bound=!!state.day.ae[i];
+    if(bound && i===7){ fb("deny"); toast("Aeshma is already bound for "+RUNE[7]+". The next binding opens at 00:00."); return; }
     audio();
     AET={date:dayKey(), idx:i, run:true, startAt:Date.now()}; aeSave(); aePush();
-    voiceEvent("xeron","bind_start",{q:i}); renderAe(); renderQartaq();
+    if(bound) toast(RUNE[i]+" is already bound · this one counts if you finish after "+hm(i*180+AE_END)+".");
+    voiceEvent("xeron","bind_start",{q:bound ? i+1 : i}); renderAe(); renderQartaq();
   }
-  /* stop: cancel the binding, nothing is kept. Two taps, so a long one isn't lost to a slip */
+  /* stop: cancel the binding at once, nothing is kept */
   var aeArm=0;
   function aeStop(){
     if(!AET.run) return;
-    if(Date.now()-aeArm>3000){ aeArm=Date.now(); fb("tap"); toast("Tap ■ again to cancel this binding."); aeTimes(); setTimeout(aeTimes,3100); return; }
     fb("off"); aeClear(); voiceEvent("xeron","bind_reset"); renderAe(); renderQartaq();
   }
-  /* finish: the quarter it began in is bound; the longest one ever is kept */
+  /* finish: the quarter it is finished in is bound (today's); the longest one ever is kept */
   function aeFinish(){
     if(!AET.run) return;
-    var i=AET.idx, day=AET.date, dur=aeEl(), best=aeBest();
     rollover();
-    var r=rec(day)||state.day; if(!Array.isArray(r.ae)) r.ae=blankAe();
-    if(r.ae[i]){ aeClear(); fb("deny"); toast("Aeshma was already bound for "+RUNE[i]+"."); renderXr(); return; }
+    var i=aeNow(), dur=aeEl(), best=aeBest(), r=state.day; if(!Array.isArray(r.ae)) r.ae=blankAe();
+    if(r.ae[i]){ fb("deny"); toast(RUNE[i]+" is already bound · finish after "+hm(i*180+AE_END)+", or stop."); return; }
     r.ae[i]=true;
     var rec2=dur>best; if(rec2) state.aeBest=dur;
     save(); aeClear(); sfx("done"); fb("done");
@@ -7027,7 +7026,7 @@ html.lkm .wh{overflow:hidden}
     var a=state.day.ae||[], q=Math.min(7,Math.floor(nowHours()/3)), bound=aeCount(a), missed=0;
     for(var i=0;i<q;i++) if(!a[i]) missed++;
     if(dayKey()<CL_START) return {o:.08, glow:.06, dart:0,   jit:0,   pupil:3,   anger:0};    /* not yet: asleep */
-    if(AET.run && AET.date===dayKey()){                                                        /* being bound */
+    if(AET.run){                                                                               /* being bound */
       var p=Math.max(0,Math.min(1,aeEl()/Math.max(aeBest(),13*60000)));
       return {o:Math.max(.12,.95-.82*p), glow:.8-.55*p, dart:.7, jit:.3+1.5*(1-p), pupil:1.3, anger:.85-.5*p};
     }
@@ -7100,7 +7099,7 @@ html.lkm .wh{overflow:hidden}
     aeEyesWake();
   }
   function aeTimes(){
-    var card=document.getElementById("aeCard"), i=AET.run ? AET.idx : aeOpen();
+    var card=document.getElementById("aeCard"), i=aeNow();
     var done = !AET.run && i>=0 && !!state.day.ae[i];
     var el=aeEl(), best=aeBest();
     document.getElementById("aeTime").textContent = done ? "Bound ✓" : aeDur(el);
@@ -7110,9 +7109,7 @@ html.lkm .wh{overflow:hidden}
     var play=document.getElementById("aePlay"), stop=document.getElementById("aeStop"), fin=document.getElementById("aeFinish");
     play.style.display = AET.run ? "none" : "";
     stop.style.display = fin.style.display = AET.run ? "" : "none";
-    play.disabled = i<0 || done;
-    var armed = AET.run && Date.now()-aeArm<=3000;
-    stop.classList.toggle("armed", armed); stop.setAttribute("aria-label", armed ? "Tap again to cancel" : "Stop (cancel)");
+    play.disabled = done && i===7;
   }
   /* ---------- Arurael: focus blocks with countdowns ----------
      A running block is kept as a wall-clock end time, so it carries on
