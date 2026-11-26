@@ -1144,7 +1144,7 @@ html.lkm .wh{overflow:hidden}
   <section class="goals-card" id="goals-arexia" data-god="arexia"></section>
   <section class="chron">
     <div class="sec-head">
-      <h2>Record</h2><span class="c-avg" id="avgRites"></span>
+      <h2>Record</h2><span class="c-avg" id="avgRites" title="Rites per day"></span>
     </div>
     <div class="chartbox">
       <svg class="chart" id="chart" viewBox="0 0 700 190" aria-label="Rites fulfilled, last fourteen days"></svg>
@@ -1168,11 +1168,11 @@ html.lkm .wh{overflow:hidden}
     </section>
     <div class="cards">
       <div class="card" id="waterCard" style="--hue:var(--c-water)">
-        <div class="card-head"><span class="gname">Water</span><span class="c-avg" id="avgWater"></span></div>
+        <div class="card-head"><span class="gname">Water</span><span class="c-avg" id="avgWater" title="Glasses per day"></span></div>
         <div class="pips" id="pips"></div>
       </div>
       <div class="card" id="gymCard" style="--hue:var(--c-gym)">
-        <div class="card-head"><span class="gname">Gym</span></div>
+        <div class="card-head"><span class="gname">Gym</span><span class="c-avg" id="avgGym" title="Sessions per cycle"></span></div>
         <div class="rite gymrow" id="gymRow0" data-n="0">
           <button type="button" class="box" role="checkbox" aria-checked="false" aria-label="Gym session 1">
             <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
@@ -1209,7 +1209,7 @@ html.lkm .wh{overflow:hidden}
         </div>
       </div>
       <div class="card" id="suppCard" style="--hue:var(--c-supp)">
-        <div class="card-head"><span class="gname">Supplements</span><span class="c-avg" id="avgFiber"></span></div>
+        <div class="card-head"><span class="gname">Supplements</span><span class="c-avg" id="avgFiber" title="Days with fiber"></span></div>
       </div>
       <div class="card" id="careCard" style="--hue:var(--c-care)">
         <div class="card-head"><span class="gname">Rest &amp; care</span></div>
@@ -1312,7 +1312,7 @@ html.lkm .wh{overflow:hidden}
       </div>
     </div>
       <div class="card xr-ctr" id="depCard" style="--hue:var(--x-endoin)">
-        <div class="card-head"><span class="gname">Depletion</span><span class="c-avg" id="avgDep"></span></div>
+        <div class="card-head"><span class="gname">Depletion</span><span class="c-avg" id="avgDep" title="Depletions per day"></span></div>
       </div>
       <div class="card xr-ctr" id="thrCard" style="--hue:var(--x-tendoin)">
         <div class="card-head"><span class="gname">Threshold</span></div>
@@ -1345,7 +1345,7 @@ html.lkm .wh{overflow:hidden}
     <section class="goals-card" id="goals-arurael" data-god="arurael"></section>
     <section class="chron">
       <div class="sec-head">
-        <h2>Record</h2><span class="c-avg" id="avgDivs"></span>
+        <h2>Record</h2><span class="c-avg" id="avgDivs" title="Divisions per day"></span>
       </div>
       <div class="chartbox">
         <svg class="chart" id="achart" viewBox="0 0 700 190" aria-label="Minutes of focus per day"></svg>
@@ -1378,7 +1378,7 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
-  var APP_BUILD="2026.11.26-0617";
+  var APP_BUILD="2026.11.26-0620";
   var APK_URL="https://github.com/kamyaryp/The-Ritual/releases/latest/download/the-ritual.apk";
   /* starting the page again: the phone app restarts it itself (so a downloaded newer page stays in place);
      an older app gets a fresh load of the same address rather than a reload */
@@ -7706,10 +7706,13 @@ html.lkm .wh{overflow:hidden}
   function renderAvgs(force){
     var mark=dayKey()+"|"+CL_START; if(!force && mark===AVG_MARK) return; AVG_MARK=mark;
     var keys=avgSpan();
-    avgSet("avgRites","Avg / day", avgFmt(avgOf(function(k){ return total(recordFor(k)||{}); }, keys))+" of 8");
-    avgSet("avgDivs","Avg divisions / day", avgFmt(avgOf(function(k,r){ return workN(r.work)+workN(r.extra)+arBlocks(r.ar); }, keys)));
+    avgSet("avgRites","Avg", avgFmt(avgOf(function(k){ return total(recordFor(k)||{}); }, keys)));
+    avgSet("avgDivs","Avg", avgFmt(avgOf(function(k,r){ return workN(r.work)+workN(r.extra)+arBlocks(r.ar); }, keys)));
     avgSet("avgWater","Avg", avgFmt(avgOf(function(k,r){ return r.water||0; }, keys)));
     avgSet("avgDep","Avg", avgFmt(avgOf(function(k,r){ return deps(r.xr); }, keys)));
+    /* gym sessions per cycle, over the cycles already finished */
+    var nc=Math.floor(keys.length/CY_LEN), gs=0; keys.slice(0,nc*CY_LEN).forEach(function(k){ var r=rec(k); if(r && r.gym) gs++; });
+    avgSet("avgGym","Avg", nc ? avgFmt(gs/nc) : "—");
     var fib=HABITS.filter(function(x){ return x.k==="fiber"; })[0];
     var fk=keys.filter(function(k){ return !fib || isDue(fib,k); }), fp=avgOf(function(k,r){ return r.habits && r.habits.fiber ? 1 : 0; }, fk);
     avgSet("avgFiber","Fiber", fp==null ? "—" : Math.round(fp*100)+"%");
