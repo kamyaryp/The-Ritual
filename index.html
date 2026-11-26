@@ -325,7 +325,12 @@ svg.dial{width:100%;max-width:450px;height:auto}
 #extraSlots .pip:hover{border-color:var(--a-xtra)}
 .work-sub{margin-top:10px}
 .work-sub .sname{font-size:15px;font-weight:600;color:var(--a-xtra);letter-spacing:-.01em}
-/* the Binding of Aeshma: a small dial of the day's eight windows, and the countdown */
+/* the Binding of Aeshma: a small dial of the day's eight windows, and the stopwatch */
+.ae-card .card-head{align-items:baseline}
+.ae-best{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.ae-best b{color:var(--hue);font-weight:500;margin-left:4px}
+.ae-card[data-over="1"] .blk-bar i{box-shadow:0 0 8px var(--hue)}
+.ae-ctl .ctl.armed{background:var(--hue);border-color:var(--hue);color:var(--bg)}
 .ae-body{display:flex;align-items:center;gap:22px}
 .ae-dial{flex:0 0 auto;width:150px;height:150px;display:block;overflow:visible}
 .ae-side{flex:1 1 auto;min-width:0;display:flex;flex-direction:column;gap:9px}
@@ -1288,15 +1293,16 @@ html.lkm .wh{overflow:hidden}
     </section>
     <div class="cards xr-grid">
       <div class="card ae-card" id="aeCard" style="--hue:var(--x-ae)">
-      <div class="card-head"><span class="gname">The Binding of Aeshma</span></div>
+      <div class="card-head"><span class="gname">The Binding of Aeshma</span><span class="ae-best" id="aeBest" title="The longest binding, all time">Record<b>—</b></span></div>
       <div class="ae-body">
         <svg class="ae-dial" id="aeDial" viewBox="36 36 308 308" aria-label="The eight bindings of the day"></svg>
         <div class="ae-side">
-          <div class="ae-time" id="aeTime">13:00</div>
+          <div class="ae-time" id="aeTime">00:00</div>
           <div class="blk-bar"><i id="aeBar"></i></div>
           <div class="ae-ctl">
-            <button type="button" class="ctl sm go" id="aePlay" aria-label="Start"><svg viewBox="0 0 16 16" aria-hidden="true"><path id="aePlayIcon" d="M5 3.5v9l7.5-4.5z"/></svg></button>
-            <button type="button" class="ctl sm" id="aeReset" aria-label="Reset"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3.2 6.2A5 5 0 1 1 3 9.5" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/><path d="M2.6 2.8v3.8h3.8" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
+            <button type="button" class="ctl sm go" id="aePlay" aria-label="Start"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M5 3.5v9l7.5-4.5z"/></svg></button>
+            <button type="button" class="ctl sm" id="aeStop" aria-label="Stop (cancel)" style="display:none"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M4 4h8v8H4z"/></svg></button>
+            <button type="button" class="ctl sm go" id="aeFinish" aria-label="Finish" style="display:none"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M3 8.4l3.2 3.1L13 4.6" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/></svg></button>
           </div>
         </div>
       </div>
@@ -1368,7 +1374,7 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
-  var APP_BUILD="2026.11.26-0535";
+  var APP_BUILD="2026.11.26-0546";
   var APK_URL="https://github.com/kamyaryp/The-Ritual/releases/latest/download/the-ritual.apk";
   /* starting the page again: the phone app restarts it itself (so a downloaded newer page stays in place);
      an older app gets a fresh load of the same address rather than a reload */
@@ -2905,7 +2911,7 @@ html.lkm .wh{overflow:hidden}
     var missed=0, slept=0;                                   /* unbound while awake / while asleep */
     for(var i=0;i<q;i++) if(!f.bound[i]){ if(awakeIn(f.log,i)) missed++; else slept++; }
     var boundN=f.bound.filter(Boolean).length;
-    var startBy=q*180+167;                                   /* last minute a binding can begin */
+    var startBy=q*180+180;                                   /* a binding can begin until the quarter ends */
     var clean=f.D===0;
     return {
       q:q, missed:missed, slept:slept, boundN:boundN,
@@ -3013,7 +3019,7 @@ html.lkm .wh{overflow:hidden}
       "Aeshma won an hour. Don't give him the night as well."]},
 
     {id:"binding_now", tone:"order", when:function(f){ return f.running; }, lines:[
-      "Hold him. Thirteen minutes, and every one counts.",
+      "Hold him. Every minute counts.",
       "The binding is on. Don't look away until it's done.",
       "Chains are going on. Keep still, keep steady.",
       "Good. Bind him slowly and completely.",
@@ -3033,13 +3039,13 @@ html.lkm .wh{overflow:hidden}
       "{t} near-falls. Find what keeps leading you there and cut it off."]},
 
     {id:"closing", tone:"order", when:function(f,x){ return x.closing; }, lines:[
-      "{rune} is open until {startBy}. Thirteen minutes. Bind him now.",
+      "{rune} is open until {startBy}. Bind him now.",
       "Begin before {startBy}, or the hour is his.",
       "The window of {rune} closes at {end}. Don't hand it to Aeshma.",
       "Window {rune}. You have until {startBy} to start. Go.",
       "Last call for {rune}. After {startBy}, it's too late to bind him.",
       "Don't let {rune} pass unbound. Start before {startBy}.",
-      "{rune} is closing. Thirteen minutes, and he's chained.",
+      "{rune} is closing. Start the binding and hold it.",
       "Aeshma is waiting for {end}. Bind him before {startBy}."]},
 
     {id:"night_watch", tone:"quiet", bare:true, when:function(f,x){ return f.ctx.phase==="night" && f.D===0 && f.T===0; }, lines:[
@@ -3238,13 +3244,13 @@ html.lkm .wh{overflow:hidden}
          "A near thing. Breathe, and move.",
          "Recorded. Persistence, in action."],
     undo:["Corrected.","Fixed. Keep the record honest.","Adjusted.","Record amended.","Changed. Accuracy is discipline too.","Noted, and corrected."],
-    bind_start:["Binding {rune}. Thirteen minutes. Go.",
+    bind_start:["Binding {rune}. The clock is running. Go.",
          "Chains on. Hold him.",
          "Good. Start strong, finish stronger.",
          "The binding begins. Keep your eyes on it.",
          "{rune} is being bound. I'm watching.",
          "He'll fight it. Let him.",
-         "Thirteen minutes, start to finish.",
+         "No pauses. Start to finish.",
          "That's it. Bind him."],
     bind_pause:["Paused? Don't leave him half-bound.",
          "Hold position, but come back fast.",
@@ -3258,9 +3264,9 @@ html.lkm .wh{overflow:hidden}
          "That's {b} today.",
          "Chained. The daughters breathe easier.",
          "Done. He's quiet, for now.",
-         "Thirteen minutes, held. Excellent.",
+         "Held to the end. Excellent.",
          "{brune}, sealed. On to the next."],
-    bind_reset:["Reset. Start again when you're ready.","Cleared. The window is still open.","Fine. Begin again, properly.","Reset. Don't wait too long."]
+    bind_reset:["Stopped. Start again when you're ready.","Cancelled. The window is still open until {end}.","Fine. Begin again, properly.","Stopped. Don't wait too long."]
   };
   var XERON_OPEN={
     phase:{
@@ -6842,8 +6848,6 @@ html.lkm .wh{overflow:hidden}
     setText("zToday",deps(x));
     setText("zDeps",D);
     setText("zThrs",T);
-    var B=aeCount(state.day.ae); state.history.forEach(function(r){ B+=aeCount(r.ae); });
-    setText("zBound",B);
     renderAe();
     if(VIEW==="xr") xrSubtitle();
     drawXrChart();
@@ -6886,102 +6890,79 @@ html.lkm .wh{overflow:hidden}
   }
   function infoXr(k){
     var r=rec(k);
-    if(!r || (!r.xr && !r.ae)) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
+    if(!r || !r.xr) return '<div class="th">'+fmtDay(k)+'</div><div class="tr muted">No record</div>';
     var x=r.xr||{};
     var h='<div class="th">'+fmtDay(k)+' · '+Math.round(DAY.xeron(k))+'%</div>';
     XR.forEach(function(it){ h+=tr(it.color,it.name,it.grp==="dep"?deps(x):thrs(x)); });
-    if(r.ae){
-      var runes=r.ae.map(function(v,i){ return v?RUNE[i]:""; }).join(" ").trim();
-      h+=tr("var(--x-ae)","Bound",aeCount(r.ae)+"/8");
-      if(runes) h+='<div class="tr"><span class="aerunes">'+runes+'</span></div>';
-    }
     return h;
   }
 
   /* ---------- The Binding of Aeshma ----------
-     Eight times a day, one for each three-hour quarter, the binding opens: it can be started
-     any time in its quarter, as long as its 13-minute countdown is done before the quarter ends
-     (00:00–03:00, 03:00–06:00 ... 21:00–24:00). Not done by then, it is missed.
+     Eight times a day, one for each three-hour quarter (00:00–03:00 ... 21:00–24:00), the
+     binding opens. It is a stopwatch with no pause: started any time in its quarter, it runs
+     until it is finished (the quarter is bound) or stopped (cancelled, nothing kept). A running
+     one is never cut off; it belongs to the quarter it began in. One finish per quarter.
+     Only the longest binding ever finished is kept (state.aeBest, ms, across every era);
+     the bindings are not part of the record chart or the cluster reports.
      Numbered with Arexia's runes, drawn as a small dial of her shape. */
-  var AE_MIN=13, AE_END=180, AE_WIN=AE_END-AE_MIN, AE_FULL=AE_MIN*60000;   /* minutes from the quarter's start */
-  var AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null};
-  try{ var _a=JSON.parse(localStorage.getItem("dial.ae")||"null"); if(_a && _a.date) AET=_a; }catch(e){}
+  var AE_END=180;                                        /* minutes in a quarter */
+  var AET={date:dayKey(), idx:-1, run:false, startAt:0};
+  try{ var _a=JSON.parse(localStorage.getItem("dial.ae")||"null"); if(_a && _a.date && _a.run && _a.startAt) AET=_a; }catch(e){}
   function aeSave(){ try{ localStorage.setItem("dial.ae",JSON.stringify(AET)); }catch(e){} }
   function aeOpensAt(i,k){ var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date(); d.setHours(i*3,0,0,0); return d.getTime(); }
-  function aeStartBy(i,k){ return aeOpensAt(i,k)+AE_WIN*60000; }   /* last moment to start */
-  function aeClosesAt(i,k){ return aeOpensAt(i,k)+AE_END*60000; }  /* must be done by */
+  function aeClosesAt(i,k){ return aeOpensAt(i,k)+AE_END*60000; }
+  function aeRunning(i){ return AET.run && AET.idx===i && AET.date===dayKey(); }
   function aeState(i){
     var t=Date.now();
+    if(aeRunning(i)) return "open";
     if(t<aeOpensAt(i)) return "awaiting";
-    if(t<aeStartBy(i)) return "open";
-    /* started in time: stays open until :30 */
-    if(AET.idx===i && AET.date===dayKey() && t<aeClosesAt(i)) return "open";
+    if(t<aeClosesAt(i)) return "open";
     return "lapsed";
   }
   function aeOpen(){ for(var i=0;i<8;i++) if(aeState(i)==="open") return i; return -1; }
   function aeNext(){ for(var i=0;i<8;i++) if(aeState(i)==="awaiting") return i; return -1; }
-  function aeLeft(){ return AET.run ? Math.max(0, AET.endsAt-Date.now()) : (AET.left!=null ? AET.left : AE_FULL); }
+  function aeEl(){ return AET.run ? Math.max(0, Date.now()-AET.startAt) : 0; }
+  function aeDur(ms){ var s=Math.floor(Math.max(0,ms)/1000), h=Math.floor(s/3600), m=Math.floor(s/60)%60, x=s%60, p=function(n){ return String(n).padStart(2,"0"); };
+    return h ? h+":"+p(m)+":"+p(x) : p(m)+":"+p(x); }
+  function aeBest(){ return +state.aeBest||0; }
   function aeWords(i){ return hm(i*180)+"–"+hm(i*180+AE_END); }
-  function aePush(){
-    if(!NT) return;
-    if(AET.idx<0 || (!AET.run && AET.left==null)){ ntSend({kind:"ae", op:"clear"}); return; }
-    ntSend({kind:"ae", op:"set", id:"ae"+AET.idx, run:AET.run, el:Math.max(0, AE_FULL-aeLeft()), total:AE_FULL,
-            title:"Aeshma", sub:"",
-            deadline:aeClosesAt(AET.idx, AET.date), color:"#B3141C", arm:0,
-            doneTitle:"Aeshma \u2713", doneBody:""});
-  }
-  function aeClear(){ AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false); aePush(); }
-  function aeToggle(){
-    if(AET.run){                                         /* pause */
-      AET.left=Math.max(0, AET.endsAt-Date.now()); AET.run=false; aeSave(); awake(false); aePush(); voiceEvent("xeron","bind_pause"); renderAe(); renderQartaq(); return;
-    }
+  /* the phone's own countdown is not used for the stopwatch: clear any left from the old timer */
+  function aePush(){ if(NT) ntSend({kind:"ae", op:"clear"}); }
+  function aeClear(){ AET={date:dayKey(), idx:-1, run:false, startAt:0}; aeSave(); aeArm=0; }
+  function aeStart(){
+    if(AET.run){ fb("deny"); toast("Aeshma is already being bound · "+aeDur(aeEl())+"."); return; }
     if(shut()) return;
-    var i=aeOpen();
-    if(i<0){ var n=aeNext(); fb("deny"); toast(n<0 ? "No binding is left today." : "The next binding opens at "+hm(n*180)+"."); return; }
-    if(state.day.ae[i]){ fb("deny"); toast("Aeshma is already bound for "+RUNE[i]+"."); return; }
-    if(AET.idx!==i || AET.date!==dayKey()){
-      if(Date.now()>=aeStartBy(i)){ fb("deny"); toast("The binding had to begin by "+hm(i*180+AE_WIN)+"."); return; }
-      AET={date:dayKey(), idx:i, run:false, endsAt:0, left:null};
-    }
-    var left=aeLeft();
-    if(Date.now()+left>aeClosesAt(i)){ fb("deny"); toast("Too little time is left before "+hm(i*180+AE_END)+"."); return; }
+    var i=-1, t=Date.now(); for(var j=0;j<8;j++) if(t>=aeOpensAt(j) && t<aeClosesAt(j)) i=j;
+    if(i<0){ fb("deny"); toast("No binding is open now."); return; }
+    if(state.day.ae[i]){ var n=aeNext(); fb("deny"); toast("Aeshma is already bound for "+RUNE[i]+(n>=0 ? ". The next binding opens at "+hm(n*180)+"." : ".")); return; }
     audio();
-    AET.run=true; AET.endsAt=Date.now()+left; AET.left=null; aeSave(); awake(true); aePush(); voiceEvent("xeron","bind_start",{q:i}); renderAe(); renderQartaq();
+    AET={date:dayKey(), idx:i, run:true, startAt:Date.now()}; aeSave(); aePush();
+    voiceEvent("xeron","bind_start",{q:i}); renderAe(); renderQartaq();
   }
-  function aeReset(){ fb("off"); aeClear(); voiceEvent("xeron","bind_reset"); renderAe(); renderQartaq(); }
-  /* take up what the phone did: paused, played, reset, finished, or cut off at the window's end */
-  function aeSync(){
-    var st=ntState(), s=st.ae, cl=st.cleared||{};
-    if(cl.hasOwnProperty("ae")){ ntSend({kind:"ae", op:"ack"}); if(AET.idx>=0){ AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false); renderAe(); } return null; }
-    if(!s){ if(AET.run) aePush(); return null; }
-    var idx=+String(s.id).slice(2);
-    if(s.finished){ AET.idx=idx; AET.run=true; AET.endsAt=s.endedAt||Date.now(); return s; }
-    if(s.run){
-      var ends=Date.now()+(s.total-s.el);
-      if(!AET.run || AET.idx!==idx || Math.abs(AET.endsAt-ends)>800){ AET.idx=idx; AET.run=true; AET.endsAt=ends; AET.left=null; aeSave(); awake(true); renderAe(); }
-    } else if(AET.run){ AET.left=Math.max(0, s.total-s.el); AET.run=false; aeSave(); awake(false); renderAe(); }
-    return s;
+  /* stop: cancel the binding, nothing is kept. Two taps, so a long one isn't lost to a slip */
+  var aeArm=0;
+  function aeStop(){
+    if(!AET.run) return;
+    if(Date.now()-aeArm>3000){ aeArm=Date.now(); fb("tap"); toast("Tap ■ again to cancel this binding."); aeTimes(); setTimeout(aeTimes,3100); return; }
+    fb("off"); aeClear(); voiceEvent("xeron","bind_reset"); renderAe(); renderQartaq();
+  }
+  /* finish: the quarter it began in is bound; the longest one ever is kept */
+  function aeFinish(){
+    if(!AET.run) return;
+    var i=AET.idx, day=AET.date, dur=aeEl(), best=aeBest();
+    rollover();
+    var r=rec(day)||state.day; if(!Array.isArray(r.ae)) r.ae=blankAe();
+    if(r.ae[i]){ aeClear(); fb("deny"); toast("Aeshma was already bound for "+RUNE[i]+"."); renderXr(); return; }
+    r.ae[i]=true;
+    var rec2=dur>best; if(rec2) state.aeBest=dur;
+    save(); aeClear(); sfx("done"); fb("done");
+    voiceEvent("xeron","bound",{q:i});
+    toast("Aeshma is bound · "+RUNE[i]+" · "+aeDur(dur)+(rec2 ? " · new record" : ""));
+    renderXr();
   }
   var aeMark="";
   function aeTick(){
-    var ns=NT ? aeSync() : null;
-    if(AET.run && Date.now()>=AET.endsAt && (!ns || ns.finished)){
-      var i=AET.idx, day=dayKey(new Date(AET.endsAt-1));    /* one that ends on the stroke of midnight belongs to the day it ran in */
-      rollover();
-      var r=rec(day)||state.day; if(!Array.isArray(r.ae)) r.ae=blankAe();
-      r.ae[i]=true; save(); voiceEvent("xeron","bound",{q:i});
-      AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false);
-      if(NT) ntSend({kind:"ae", op:"clear"}); else { sfx("done"); fb("done"); }
-      toast("Aeshma is bound · "+RUNE[i]+".");
-      renderXr(); return;
-    }
-    /* a window that closed with the binding unfinished: missed */
-    /* a few seconds' grace, so a countdown that ends right at the close is still taken from the phone */
-    if(AET.idx>=0 && Date.now()>=aeClosesAt(AET.idx, AET.date)+5000){
-      AET={date:dayKey(), idx:-1, run:false, endsAt:0, left:null}; aeSave(); awake(false); aePush();
-    }
-    /* redraw when a window opens or closes, and the clock while on the tab */
-    var mark=dayKey()+aeOpen()+state.day.ae.join("");
+    var mark=dayKey()+aeOpen()+state.day.ae.join("")+AET.run;
     if(mark!==aeMark){ aeMark=mark; renderAe(); }
     else if(VIEW==="xr") aeTimes();
   }
@@ -6995,7 +6976,7 @@ html.lkm .wh{overflow:hidden}
         var i=god.a0/90+(r?4:0);                         /* windows 0-3 inside, 4-7 outside, as Arexia's rites */
         var p=el("path",{d:ringSeg(RINGS[r][0],RINGS[r][1],a0,a1),class:"aeband",fill:RED.dim,
           stroke:RED.hue,"stroke-width":"2","stroke-opacity":"0"});
-        p.addEventListener("click",function(){ if(aeState(i)==="open"){ fb("tap"); aeToggle(); } else aeExplain(i); });
+        p.addEventListener("click",function(){ if(aeRunning(i)){ fb("tap"); toast(RUNE[i]+" · being bound · "+aeDur(aeEl())); } else if(aeState(i)==="open" && !AET.run && !state.day.ae[i]){ fb("tap"); aeStart(); } else aeExplain(i); });
         svg.appendChild(p);
         var c=pt((RINGS[r][0]+RINGS[r][1])/2,(god.a0+god.a1)/2);
         var t=el("text",{x:c[0].toFixed(1),y:c[1].toFixed(1),class:"aerune","text-anchor":"middle","dominant-baseline":"central",fill:RED.hue});
@@ -7004,8 +6985,10 @@ html.lkm .wh{overflow:hidden}
       });
     });
     buildAeEyes(svg);
-    document.getElementById("aePlay").addEventListener("click",function(){ fb("tap"); aeToggle(); });
-    document.getElementById("aeReset").addEventListener("click",aeReset);
+    document.getElementById("aePlay").addEventListener("click",function(){ fb("tap"); aeStart(); });
+    document.getElementById("aeStop").addEventListener("click",aeStop);
+    document.getElementById("aeFinish").addEventListener("click",aeFinish);
+    aePush();
   }
   /* Aeshma's eyes, inside the bindings, in a disc of black. They answer the day's bindings:
      wide, burning and darting when windows were left unbound; watchful while a window stands open;
@@ -7045,7 +7028,7 @@ html.lkm .wh{overflow:hidden}
     for(var i=0;i<q;i++) if(!a[i]) missed++;
     if(dayKey()<CL_START) return {o:.08, glow:.06, dart:0,   jit:0,   pupil:3,   anger:0};    /* not yet: asleep */
     if(AET.run && AET.date===dayKey()){                                                        /* being bound */
-      var p=Math.max(0,Math.min(1,1-aeLeft()/AE_FULL));
+      var p=Math.max(0,Math.min(1,aeEl()/Math.max(aeBest(),13*60000)));
       return {o:Math.max(.12,.95-.82*p), glow:.8-.55*p, dart:.7, jit:.3+1.5*(1-p), pupil:1.3, anger:.85-.5*p};
     }
     if(bound===8)  return {o:.1,  glow:.1,  dart:.05, jit:0,   pupil:3,   anger:0};    /* all eight: subdued */
@@ -7117,20 +7100,20 @@ html.lkm .wh{overflow:hidden}
     aeEyesWake();
   }
   function aeTimes(){
-    var i = AET.idx>=0 ? AET.idx : aeOpen(), card=document.getElementById("aeCard");
-    var shown = i>=0 ? i : aeNext(), done = shown>=0 && !!state.day.ae[shown];
-    var open = i>=0 && aeState(i)==="open";
-    var left = (AET.idx>=0) ? aeLeft() : AE_FULL;
-    document.getElementById("aeTime").textContent = done ? "Bound ✓" : mmss(left);
-    document.getElementById("aeBar").style.width = (done ? 100 : (1-left/AE_FULL)*100).toFixed(2)+"%";
-    card.dataset.run=AET.run?"1":"0"; card.dataset.done=done?"1":"0";
-    var play=document.getElementById("aePlay");
-    play.disabled = !open || done || (!AET.run && Date.now()+left>aeClosesAt(i));
-    play.setAttribute("aria-label", AET.run ? "Pause" : "Start");
-    document.getElementById("aePlayIcon").setAttribute("d", AET.run ? "M4.5 3h2.5v10H4.5zM9 3h2.5v10H9z" : "M5 3.5v9l7.5-4.5z");
-    document.getElementById("aeReset").disabled = AET.idx<0;
+    var card=document.getElementById("aeCard"), i=AET.run ? AET.idx : aeOpen();
+    var done = !AET.run && i>=0 && !!state.day.ae[i];
+    var el=aeEl(), best=aeBest();
+    document.getElementById("aeTime").textContent = done ? "Bound ✓" : aeDur(el);
+    document.getElementById("aeBar").style.width = (done ? 100 : AET.run ? (best ? Math.min(1, el/best) : 1)*100 : 0).toFixed(2)+"%";
+    card.dataset.run=AET.run?"1":"0"; card.dataset.done=done?"1":"0"; card.dataset.over=(AET.run && best && el>best)?"1":"0";
+    document.getElementById("aeBest").innerHTML='Record<b>'+(best ? aeDur(best) : "—")+'</b>';
+    var play=document.getElementById("aePlay"), stop=document.getElementById("aeStop"), fin=document.getElementById("aeFinish");
+    play.style.display = AET.run ? "none" : "";
+    stop.style.display = fin.style.display = AET.run ? "" : "none";
+    play.disabled = i<0 || done;
+    var armed = AET.run && Date.now()-aeArm<=3000;
+    stop.classList.toggle("armed", armed); stop.setAttribute("aria-label", armed ? "Tap again to cancel" : "Stop (cancel)");
   }
-
   /* ---------- Arurael: focus blocks with countdowns ----------
      A running block is kept as a wall-clock end time, so it carries on
      through a locked screen or another app, and lands when you come back. */
@@ -7844,7 +7827,7 @@ html.lkm .wh{overflow:hidden}
           aeClear(); coreReset();
           if(typeof vaultKeep==="function") vaultKeep("golden-path-before-reset.json");   /* the old record stays in the backup folder */
           actNow();                                                                          /* a reset is a record: it wins everywhere */
-          state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start, wh:state.wh, resetAt:hlcNow()};       /* the warehouse isn't a record: it stays */
+          state={day:freshDay(), history:[], hc:{}, hcSince:start, clStart:start, wh:state.wh, aeBest:state.aeBest, resetAt:hlcNow()};       /* the warehouse isn't a record: it stays */
           VMEM={}; try{ localStorage.removeItem("dial.vmem"); }catch(e){}
           CL_START=start; CLSEL=null; save(); hideTip();
           render(); renderXen(); renderXr(); renderAr(); renderCl();
@@ -8587,6 +8570,7 @@ html.lkm .wh{overflow:hidden}
     out.day=recs.filter(function(r){ return r.date===dd; })[0] || freshDay(dd);
     out.history=recs.filter(function(r){ return r.date<dd; });
     if(Math.max(RA,RB)) out.resetAt=Math.max(RA,RB);
+    if(+A.aeBest || +B.aeBest) out.aeBest=Math.max(+A.aeBest||0, +B.aeBest||0);   /* the longest binding: the larger wins */
     if(Object.keys(ot).length) out._t=ot;
     var I={}, X={};
     JN_COLL.forEach(function(c){
@@ -9198,8 +9182,7 @@ html.lkm .wh{overflow:hidden}
     card(CL_GODS[0], [
       ["Depletions", function(d){ return {note:tXeron(d).D}; }],
       ["Thresholds", function(d){ return {note:tXeron(d).T}; }],
-      ["Clean days", function(d){ var t=tXeron(d), b=xrCycle(t).bonus; return {note: t.cleanDone+(b ? " · +"+(Math.round(b*10)/10) : "")}; }],
-      ["The Binding of Aeshma", function(d){ return {a:tXeron(d).bound, b:8*d.length}; }]]);
+      ["Clean days", function(d){ var t=tXeron(d), b=xrCycle(t).bonus; return {note: t.cleanDone+(b ? " · +"+(Math.round(b*10)/10) : "")}; }]]);
     card(CL_GODS[1], [
       ["Work", function(d){ var t=tArurael(d); return t.nW ? {a:t.W, b:8*t.nW} : {note:"days off"}; }],
       ["Extra · fills gaps", function(d){ return {note:tArurael(d).X}; }],
