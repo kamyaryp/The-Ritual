@@ -643,6 +643,15 @@ button.act.danger:hover{border-color:var(--xeron);color:var(--xeron)}
 .gl-code{font-family:var(--mono);font-size:12.5px;font-weight:500;color:var(--hue)}
 .gl-name{font-size:14px;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .gl-name.unset{color:var(--ink-3);display:flex;align-items:center}
+.gl-name:not(.unset){display:flex;flex-direction:column;gap:5px;white-space:normal}
+.gl-t{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.gl-bar,.ge-bar{display:block;height:3px;border-radius:2px;background:var(--line-2);overflow:hidden}
+.gl-bar i,.ge-bar i{display:block;height:100%;border-radius:2px;background:var(--hue)}
+.ge-prog{display:flex;align-items:center;gap:10px;margin-top:10px}
+.ge-prog[hidden]{display:none}
+.ge-prog .ge-bar{flex:1 1 auto;height:5px;border-radius:3px}
+.ge-prog .ge-bar i{border-radius:3px}
+.ge-prog b{font-family:var(--mono);font-size:12px;font-weight:500;color:var(--ink-2);white-space:nowrap}
 .gl-name.unset svg{width:14px;height:14px;opacity:.7}
 .gl-st{font-size:11px;font-family:var(--mono);color:var(--ink-3);white-space:nowrap;padding:2px 7px;border-radius:var(--r-s);border:1px solid var(--line);line-height:1.5}
 .gl-st[data-p="active"]{color:var(--ink);border-color:var(--hue)}
@@ -902,6 +911,7 @@ html.lkm .wh{overflow:hidden}
       <div class="ge-ro" id="geRo" hidden></div>
     </div>
     <div class="ge-when" id="geWhen"></div>
+    <div class="ge-prog" id="geProg" hidden></div>
     <div class="ge-ext" id="geExt" hidden><span>Extend</span><button type="button" class="step" id="geExtMinus" aria-label="Fewer clusters">−</button><b id="geExtN">1</b><button type="button" class="step plus" id="geExtPlus" aria-label="More clusters">+</button><span id="geExtTo"></span></div>
     <div class="ge-btns" id="geBtns"></div>
   </div>
@@ -1358,7 +1368,7 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
-  var APP_BUILD="2026.11.20-1607";
+  var APP_BUILD="2026.11.26-0535";
   var APK_URL="https://github.com/kamyaryp/The-Ritual/releases/latest/download/the-ritual.apk";
   /* starting the page again: the phone app restarts it itself (so a downloaded newer page stays in place);
      an older app gets a fresh load of the same address rather than a reload */
@@ -8014,21 +8024,42 @@ html.lkm .wh{overflow:hidden}
   }
 
   /* ---------- Goals ----------
-     Each god holds four horizons, one goal at a time in each: C12 (12 clusters, about 3 months),
-     C46 (about a year), C130 (about 2.8 years) and C229 (about 5 years). A goal is written as a
-     draft; activated, it waits for the next cluster that begins (never the running one) and runs
-     for its number of clusters. While it runs it can be marked achieved, or ended as not achieved.
+     Each god holds four horizons, one goal at a time in each: C8 (8 clusters, about 2 months),
+     C16 (about 4 months), C24 (about 6 months) and C32 (about 8 months). A goal is written as a
+     draft; activated, it counts from the first day of the running cluster and runs for its number
+     of clusters (a bar shows how much of it has passed). While it runs it can be marked achieved, or ended as not achieved.
      When its last cluster is over, the app asks: achieved, not achieved, or extended by some
      clusters. There are no percentages: a goal is achieved or it isn't. Closed goals stay in the
      god's history; the Landsraad shows the goals achieved during the cluster on show.
      state.goals: [{id, god, lvl, title, note, made, status: draft|set|achieved|missed,
                     start, end (day keys), ext (clusters added), done (day closed)}] */
   var GOAL_LV=[
-    {k:"C12",  n:12,  name:"Short-term",  span:"3 months"},
-    {k:"C46",  n:46,  name:"Mid-term",    span:"1 year"},
-    {k:"C130", n:130, name:"Long-term",   span:"2.8 years"},
-    {k:"C229", n:229, name:"Strategic",   span:"5 years"}
+    {k:"C8",  n:8,  name:"Short-term", span:"2 months"},
+    {k:"C16", n:16, name:"Mid-term",   span:"4 months"},
+    {k:"C24", n:24, name:"Long-term",  span:"6 months"},
+    {k:"C32", n:32, name:"Strategic",  span:"8 months"}
   ];
+  var GOAL_OLD={C12:"C8", C46:"C16", C130:"C24", C229:"C32"};
+  /* goals set on the old horizons (12 / 46 / 130 / 229 clusters) move to the new ones, keeping their start */
+  function goalMigrate(){
+    var ch=false;
+    goalList().forEach(function(g){
+      var nk=GOAL_OLD[g.lvl]; if(!nk) return;
+      g.lvl=nk; ch=true;
+      if(g.start){ var lv=goalLv(nk); g.end=keyAdd(g.start, (lv.n+(g.ext||0))*CL_LEN-1); }
+    });
+    if(ch){ save(); renderGoals(); }
+  }
+  /* the first day of the running cluster (or of Cluster 1, before it begins) */
+  function goalCurStart(){ var t=dayKey(); if(t<CL_START) return CL_START; return keyAdd(CL_START, clIndex(t)*CL_LEN); }
+  /* how much of a goal's time has passed: 0..1 */
+  function goalFrac(g){
+    if(!g || !g.start || !g.end) return null;
+    var p=goalPhase(g), at = (p==="achieved" || p==="missed") ? (g.done||g.end) : dayKey();
+    var all=dayNum(g.end)-dayNum(g.start)+1, gone=dayNum(at)-dayNum(g.start)+1;
+    return Math.max(0, Math.min(1, gone/all));
+  }
+  function goalBar(g, cls){ var f=goalFrac(g); if(f==null) return ''; return '<span class="'+(cls||"gl-bar")+'"><i style="width:'+(f*100).toFixed(1)+'%"></i></span>'; }
   var GOAL_GODS=["xeron","arurael","xenlil","arexia"];
   var GOAL_ED=null, GOAL_ASKED={}, goalT=0;
   function goalList(){ if(!Array.isArray(state.goals)) state.goals=[]; return state.goals; }
@@ -8064,7 +8095,7 @@ html.lkm .wh{overflow:hidden}
     GOAL_LV.forEach(function(lv){
       var g=goalSlot(god,lv.k), st=g ? goalStatus(g) : null;
       html+='<button type="button" class="gl-slot" data-god="'+god+'" data-lv="'+lv.k+'" aria-label="'+lv.k+' '+lv.name+'"><b class="gl-code">'+lv.k+'</b>'+
-        (g ? '<span class="gl-name">'+goalEsc(g.title)+'</span><span class="gl-st" data-p="'+st[0]+'">'+st[1]+'</span>'
+        (g ? '<span class="gl-name"><span class="gl-t">'+goalEsc(g.title)+'</span>'+goalBar(g)+'</span><span class="gl-st" data-p="'+st[0]+'">'+st[1]+'</span>'
            : '<span class="gl-name unset"><svg viewBox="0 0 16 16" aria-hidden="true"><path d="M8 3.5v9M3.5 8h9" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg></span><span></span>')+'</button>';
     });
     return '<div class="gl-slots">'+html+'</div>';
@@ -8120,12 +8151,16 @@ html.lkm .wh{overflow:hidden}
     if(final) ro.innerHTML='<b>'+goalEsc(g.title)+'</b>'+(g.note ? '<span>'+goalEsc(g.note)+'</span>' : '');
     var dirty = !!g && !final && (nm.value.trim()!==g.title || nt.value.trim()!==(g.note||""));
     var span=function(a,b){ return goalShort(a)+' <i>→</i> '+goalShort(b); };
-    if(p==="new" || p==="draft"){ var s0=goalNextStart(); when=span(s0, keyAdd(s0, lv.n*CL_LEN-1))+'<em>'+lv.n+' clusters · '+lv.span+'</em>'; }
+    if(p==="new" || p==="draft"){ var s0=goalCurStart(); when=span(s0, keyAdd(s0, lv.n*CL_LEN-1))+'<em>'+lv.n+' clusters · '+lv.span+'</em>'; }
     else if(p==="waiting") when=span(g.start,g.end)+'<em>'+goalClusters(g)+' clusters · in '+(dayNum(g.start)-dayNum(t))+'d</em>';
     else if(p==="active") when=span(g.start,g.end)+'<em>'+(dayNum(g.end)-dayNum(t)+1)+'d left</em>';
     else if(p==="due") when=span(g.start,g.end)+'<em>ended</em>';
     else when=(g.start ? span(g.start, g.done||g.end) : goalShort(g.done||g.end))+'<em>'+lv.n+' clusters</em>';
     document.getElementById("geWhen").innerHTML=when;
+    var gp=document.getElementById("geProg"), fr=g ? goalFrac(g) : null;
+    gp.hidden = fr==null;
+    if(fr!=null){ var cN=goalClusters(g), cI=Math.min(cN, Math.max(1, clIndex(p==="achieved"||p==="missed" ? (g.done||g.end) : t)-clIndex(g.start)+1));
+      gp.innerHTML=goalBar(g,"ge-bar")+'<b>C'+cI+'/'+cN+' · '+Math.round(fr*100)+'%</b>'; }
     var ex=document.getElementById("geExt"); ex.hidden=(p!=="due");
     if(p==="due"){
       var minN=Math.max(1, Math.ceil((dayNum(t)-dayNum(g.end)+1)/CL_LEN));
@@ -8136,9 +8171,9 @@ html.lkm .wh{overflow:hidden}
     var del=["×","ic",goalDelete,"Delete"];
     if(p==="new") btns=[["Save draft","",goalSaveDraft],["Activate","pri",goalActivate]];
     else if(p==="draft") btns=[del].concat(dirty ? [["Save","",goalSave]] : []).concat([["Activate","pri",goalActivate]]);
-    else if(p==="waiting") btns=[["Back to draft","",goalUnset]].concat(dirty ? [["Save","pri",goalSave]] : []);
-    else if(p==="active") btns=(dirty ? [["Save","",goalSave]] : []).concat([["Not achieved","no",goalMiss],["Achieved","ok",goalAchieve]]);
-    else if(p==="due") btns=[["Not achieved","no",goalMiss],["Extend","",goalExtend],["Achieved","ok",goalAchieve]];
+    else if(p==="waiting") btns=[del,["Back to draft","",goalUnset]].concat(dirty ? [["Save","pri",goalSave]] : []);
+    else if(p==="active") btns=[del].concat(dirty ? [["Save","",goalSave]] : []).concat([["Not achieved","no",goalMiss],["Achieved","ok",goalAchieve]]);
+    else if(p==="due") btns=[del,["Not achieved","no",goalMiss],["Extend","",goalExtend],["Achieved","ok",goalAchieve]];
     else btns=[del];
     var box=document.getElementById("geBtns"); box.innerHTML="";
     btns.forEach(function(b){ var el=document.createElement("button"); el.type="button"; if(b[1]) el.className=b[1];
@@ -8161,10 +8196,10 @@ html.lkm .wh{overflow:hidden}
   function goalSave(){ var g=goalCur(), f=goalForm(); if(!g || !f) return; g.title=f.title; g.note=f.note; goalChanged(); sheetClose("goalEdit"); toast("Saved."); }
   function goalActivate(){
     var f=goalForm(); if(!f) return;
-    var g=goalCur() || goalNew(f), lv=goalLv(g.lvl), start=goalNextStart();
+    var g=goalCur() || goalNew(f), lv=goalLv(g.lvl), start=goalCurStart();
     g.title=f.title; g.note=f.note; g.status="set"; g.start=start; g.end=keyAdd(start, lv.n*CL_LEN-1); g.ext=0;
     goalChanged(); sheetClose("goalEdit"); v3GoalEv(g,"goal_set");
-    toast("Starts "+goalShort(start)+".");
+    toast("Counting from "+goalShort(start)+" · ends "+goalShort(g.end)+".");
   }
   function goalUnset(){ var g=goalCur(); if(!g) return; var f=goalForm(true); if(f){ g.title=f.title; g.note=f.note; }
     g.status="draft"; delete g.start; delete g.end; g.ext=0; goalChanged(); goalPaint(); }
@@ -8211,13 +8246,14 @@ html.lkm .wh{overflow:hidden}
     document.getElementById("geX").addEventListener("click",function(){ fb("tap"); sheetClose("goalEdit"); });
     ["geName","geNote"].forEach(function(id){ document.getElementById(id).addEventListener("input",function(){ if(GOAL_ED) goalPaint(); }); });
     document.getElementById("geExtMinus").addEventListener("click",function(){ GOAL_ED.ext=Math.max(1,GOAL_ED.ext-1); goalPaint(); });
-    document.getElementById("geExtPlus").addEventListener("click",function(){ GOAL_ED.ext=Math.min(229,GOAL_ED.ext+1); goalPaint(); });
+    document.getElementById("geExtPlus").addEventListener("click",function(){ GOAL_ED.ext=Math.min(32,GOAL_ED.ext+1); goalPaint(); });
     document.addEventListener("keydown",function(e){
       if(e.key!=="Escape" || !document.getElementById("modal").hidden) return;
       if(!document.getElementById("goalEdit").hidden) sheetClose("goalEdit"); else sheetClose("goalSheet");
     });
     document.getElementById("geName").addEventListener("keydown",function(e){ if(e.key==="Enter"){ e.preventDefault(); document.getElementById("geNote").focus(); } });
     renderGoals();
+    setTimeout(goalMigrate, 0);
     setTimeout(goalAskDue, 2200);
     document.addEventListener("visibilitychange",function(){ if(!document.hidden){ renderGoals(); setTimeout(goalAskDue, 900); } });
   }
