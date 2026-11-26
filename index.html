@@ -1374,7 +1374,7 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
-  var APP_BUILD="2026.11.26-0559";
+  var APP_BUILD="2026.11.26-0605";
   var APK_URL="https://github.com/kamyaryp/The-Ritual/releases/latest/download/the-ritual.apk";
   /* starting the page again: the phone app restarts it itself (so a downloaded newer page stays in place);
      an older app gets a fresh load of the same address rather than a reload */
@@ -2838,7 +2838,7 @@ html.lkm .wh{overflow:hidden}
     for(var k in own) tok[k]=own[k];
     if(f.vt) for(var k2 in f.vt) tok[k2]=f.vt[k2];
     var out=function(id,tone,line,text,pool){ return {id:id, tone:tone, mood:vMood(tone), line:line, text:vCap(text), read:x, pool:pool}; };
-    if(!f.locked && ev && c.now-ev.at>=0 && c.now-ev.at<V_REACT_MS){
+    if(!f.locked && ev && c.now-ev.at>=0 && c.now-ev.at<V_REACT_MS && !(spec.urgent && spec.urgent(f))){
       var pool=spec.react(f,x,ev);
       if(pool && pool.length){
         var h=vHash(ev.kind+"|"+ev.at), i = force!=null ? force%pool.length : h%pool.length, t=vFill(pool[i],tok);
@@ -3018,6 +3018,15 @@ html.lkm .wh{overflow:hidden}
       "The flame dipped today; it didn't die. Tend it.",
       "Aeshma won an hour. Don't give him the night as well."]},
 
+    {id:"binding_past_record", tone:"praise", when:function(f){ return f.running && f.aeBest>0 && f.aeEl>f.aeBest; }, lines:[
+      "{aeel}. Past your record of {aebest}. Every minute now is new ground.",
+      "Beyond {aebest}. No one has held him this long. Keep going.",
+      "The old record was {aebest}. You're past it. Hold.",
+      "New ground: {aeel}. Don't let go now."]},
+    {id:"binding_near_record", tone:"order", when:function(f){ return f.running && f.aeBest>=5*60000 && f.aeEl>=.85*f.aeBest; }, lines:[
+      "{aeel}. The record is {aebest}. Almost there.",
+      "Close to {aebest}. Hold a little longer.",
+      "The record is in sight: {aebest}. Don't finish yet."]},
     {id:"binding_now", tone:"order", when:function(f){ return f.running; }, lines:[
       "Hold him. Every minute counts.",
       "The binding is on. Don't look away until it's done.",
@@ -3039,14 +3048,14 @@ html.lkm .wh{overflow:hidden}
       "{t} near-falls. Find what keeps leading you there and cut it off."]},
 
     {id:"closing", tone:"order", when:function(f,x){ return x.closing; }, lines:[
-      "{rune} is open until {startBy}. Bind him now.",
-      "Begin before {startBy}, or the hour is his.",
+      "{rune} is open until {end}. Finish a binding before then.",
+      "Finish before {end}, or the hour is his.",
       "The window of {rune} closes at {end}. Don't hand it to Aeshma.",
-      "Window {rune}. You have until {startBy} to start. Go.",
-      "Last call for {rune}. After {startBy}, it's too late to bind him.",
-      "Don't let {rune} pass unbound. Start before {startBy}.",
+      "Window {rune}. Finish the binding before {end}. Go.",
+      "Last call for {rune}. A binding finished after {end} belongs to the next window.",
+      "Don't let {rune} pass unbound. Finish before {end}.",
       "{rune} is closing. Start the binding and hold it.",
-      "Aeshma is waiting for {end}. Bind him before {startBy}."]},
+      "Aeshma is waiting for {end}. Bind him before then."]},
 
     {id:"night_watch", tone:"quiet", bare:true, when:function(f,x){ return f.ctx.phase==="night" && f.D===0 && f.T===0; }, lines:[
       "Night watch. These are his hours; the gate stays shut.",
@@ -3063,7 +3072,7 @@ html.lkm .wh{overflow:hidden}
       "One window left. Make it count.",
       "{rune}, the last one tonight. Bind him and close the day.",
       "The final binding before midnight. Don't skip it.",
-      "Last chance today. Start {rune} before {startBy}.",
+      "Last chance today. Finish {rune} before {end}.",
       "End the day with him in chains.",
       "The day's last gate. Shut it.",
       "One more binding, then the night is yours."]},
@@ -3185,7 +3194,7 @@ html.lkm .wh{overflow:hidden}
       "Night windows: slept. Day windows: mine. Start with {rune}.",
       "Sleep held the night for you. Now hold the day.",
       "No shame in a window slept through. The shame is in one wasted awake.",
-      "The night was rest, not retreat. Bind {rune} before {startBy}.",
+      "Rest is not retreat. Bind {rune} before {end}.",
       "Sleep covered the dark hours. The daughters have the rest; so do you."]},
 
     {id:"clean_aligned", tone:"praise", when:function(f,x){ return x.aligned && f.min>=18*60; }, lines:[
@@ -3265,7 +3274,12 @@ html.lkm .wh{overflow:hidden}
          "Chained. The daughters breathe easier.",
          "Done. He's quiet, for now.",
          "Held to the end. Excellent.",
-         "{brune}, sealed. On to the next."],
+         "{brune}, sealed. On to the next.",
+         "{aedur}, held. {brune} is bound."],
+    bound_record:["A new record: {aedur}. Aeshma has never been held this long.",
+         "{aedur}. The longest binding yet. The daughters will remember it.",
+         "Record broken: {aedur}. He'll remember this one.",
+         "{aedur}, held. Nothing longer, ever. Well fought."],
     bind_reset:["Stopped. Start again when you're ready.","Cancelled. The window is still open until {end}.","Fine. Begin again, properly.","Stopped. Don't wait too long."]
   };
   var XERON_OPEN={
@@ -3290,9 +3304,12 @@ html.lkm .wh{overflow:hidden}
     tokens:function(f,x,ev){
       return {d:xrWord(f.D), t:xrWord(f.T), s0:xrWord(f.s0), s:xrWord(x.s), m:xrWord(x.missed), z:xrWord(x.slept), b:xrWord(x.boundN),
               start:f.start, rune:x.rune, end:x.end, startBy:x.startBy,
+              aedur: ev.detail && ev.detail.dur ? aeDur(ev.detail.dur) : "", aeel: aeDur(f.aeEl||0), aebest: f.aeBest ? aeDur(f.aeBest) : "",
               brune: ev.detail && ev.detail.q!=null ? XR_RUNE[ev.detail.q] : x.rune};
     },
-    react:function(f,x,ev){ return XERON_REACT[ev.kind]; }
+    react:function(f,x,ev){ return XERON_REACT[ev.kind]; },
+    /* nearing or passing the record outranks the answer to the start */
+    urgent:function(f){ return f.running && f.aeBest>0 && (f.aeEl>f.aeBest || (f.aeBest>=5*60000 && f.aeEl>=.85*f.aeBest)); }
   };
   function xeronSpeaks(f, forceLine, ev){ return voiceSay(XERON_SPEC, f, ev, forceLine); }
 
@@ -3314,7 +3331,7 @@ html.lkm .wh{overflow:hidden}
     return {
       locked: today<CL_START, start: clDate(CL_START,{weekday:"short",month:"short",day:"numeric"}),
       date: today, min: m, D: deps(state.day.xr), T: thrs(state.day.xr),
-      bound: (state.day.ae||[]).map(Boolean), running: !!AET.run,
+      bound: (state.day.ae||[]).map(Boolean), running: !!AET.run, aeEl: aeEl(), aeBest: aeBest(),
       s0: s0, best: best, yFell: !!(yr && deps(yr.xr)>0),
       bedLast: yr && yr.habits ? !!yr.habits.bed : null,
       awake: m>habCloses(wake) ? !!(state.day.habits && state.day.habits.wake) : null,
@@ -4871,7 +4888,6 @@ html.lkm .wh{overflow:hidden}
     XERON_SPEC.god="Xeron"; XERON_SPEC.v2=L;
     v2Insert(XERON_SAYS,"fall_many",sh.top);
     v2Insert(XERON_SAYS,"night_watch",[
-      v2Sit("bind_late","advice",function(f,x){ var P=f.G&&f.G.pat; return !!P && P.bindLate && !f.bound[x.q] && !f.running && f.min-x.q*180<60; }, L.time.bind_late),
       v2Sit("weak_window","order",function(f,x){ var w=f.G&&f.G.weakWin; return !!w && w.n>=3 && w.q===x.q && !f.bound[x.q] && !f.running; }, L.own.weak_window)]);
     v2Insert(XERON_SAYS,"edge_held",[
       v2Sit("late_falls","warning",function(f){ var P=f.G&&f.G.pat; return !!P && P.depHour!=null && f.D===0 && f.min>=P.depHour-120 && f.min<P.depHour; }, L.time.late_falls),
@@ -5034,7 +5050,7 @@ html.lkm .wh{overflow:hidden}
         "Set a goal for the throne. Holding is not the same as winning.","No objective on the map. Give me one."],
       other_won:["{orealm} took its goal: “{og}”. The throne will not be outdone.","“{og}” fell to {orealm}. Good. Now ours.","{orealm} won “{og}”. The daughters cheered across the Lattice."],
       other_fin:["{orealm}'s goal, “{og}”, ends in {odays}. Don't let a fall here cost it there.","“{og}” is nearly due in {orealm}. Help it: keep the walls clean.","{orealm} is in the last days of “{og}”. Protect it."],
-      r_set:["“{eg}” is on the map. It begins on {estart}.","A new objective: “{eg}”. The daughters have their orders.","“{eg}”, {elvl}. Begins on {estart}. Prepare.","Marked: “{eg}”. From {estart}, we fight for it."],
+      r_set:["“{eg}” is on the map. It counts from {estart}.","A new objective: “{eg}”. The daughters have their orders.","“{eg}”, {elvl}. Counted from {estart}. Fight for it.","Marked: “{eg}”. Counted from {estart}; we fight for it now."],
       r_won:["“{eg}”, achieved. The walls shake with singing.","Taken. “{eg}” is ours.","Victory: “{eg}”. Xeron saw it.","“{eg}”. Won. I'm proud of you."],
       r_lost:["“{eg}”: not achieved. I've seen worse days. Choose the next battle.","Lost. We bury it with honour and move on.","“{eg}” fell. Grieve tonight; plan tomorrow.","Not achieved. The war continues."],
       r_ext:["“{eg}”, extended by {en}. More time is not more slack.","{en} more for “{eg}”. Use them better.","Extended. The siege goes on.","More time granted. Don't waste a day of it."]
@@ -5056,7 +5072,7 @@ html.lkm .wh{overflow:hidden}
         "What do you want to know a year from now? Make it a goal.","No goal yet. Choose one worth chasing."],
       other_won:["{orealm} reached “{og}”. Evidence that goals work.","“{og}”, achieved in {orealm}. Learn from how it was done.","{orealm} answered its goal: “{og}”."],
       other_fin:["{orealm}'s “{og}” is due in {odays}. A focused mind helps every realm.","“{og}” in {orealm} ends in {odays}.","{orealm} is close to judging “{og}”."],
-      r_set:["“{eg}”: a question worth chasing. It begins on {estart}.","Recorded: “{eg}”, {elvl}. Starts on {estart}.","A goal is a hypothesis. “{eg}” is tested from {estart}.","“{eg}”. Good. The Ahtuxasai open a page."],
+      r_set:["“{eg}”: a question worth chasing. Counted from {estart}.","Recorded: “{eg}”, {elvl}. Counted from {estart}.","A goal is a hypothesis. “{eg}” is tested from {estart}.","“{eg}”. Good. The Ahtuxasai open a page."],
       r_won:["“{eg}”, achieved. An explosion of light.","Answered: “{eg}”.","“{eg}”. Proven. Well done.","Achieved. Now ask what it taught you."],
       r_lost:["“{eg}”: not achieved. Record why.","Unmet. A result is still a result.","Closed without success. Study it, then begin again.","Not achieved. The question remains open."],
       r_ext:["“{eg}”: {en} more. Adjust the method, not just the deadline.","Extended by {en}. Use the time to learn what was missing.","More time for “{eg}”. Make it informed time.","{en} added. Same goal, better plan."]
@@ -5077,7 +5093,7 @@ html.lkm .wh{overflow:hidden}
         "A body with no goal drifts toward comfort. Set one.","Set a goal for the realm. The law alone is not enough."],
       other_won:["{orealm} achieved “{og}”. The realm salutes it.","“{og}”, kept in {orealm}. Match it.","{orealm} kept its goal: “{og}”. Good."],
       other_fin:["“{og}” in {orealm} is judged in {odays}. Sleep and strength serve it too.","{orealm}'s goal, “{og}”, ends in {odays}.","{orealm} rides toward “{og}”. Support it."],
-      r_set:["“{eg}”, decreed. It takes effect on {estart}.","A new law: “{eg}”. From {estart}.","“{eg}”, {elvl}. The Fedaykin take note.","Decreed. “{eg}” begins on {estart}."],
+      r_set:["“{eg}”, decreed. In force from {estart}.","A new law: “{eg}”. From {estart}.","“{eg}”, {elvl}. The Fedaykin take note.","Decreed. “{eg}” counts from {estart}."],
       r_won:["“{eg}”, achieved. A ruler's work.","Kept. “{eg}” stands in the record.","Achieved. The banners go up.","“{eg}”. Done, and done properly."],
       r_lost:["“{eg}”: not achieved. Reform, then try again.","Broken. Admit it; then rebuild.","Not achieved. The realm learns.","“{eg}” failed. The next one won't."],
       r_ext:["“{eg}” extended by {en}. Not one day of slack.","{en} more for “{eg}”. Earn them.","Extended. The law still stands.","More time. The same standard."]
@@ -5093,7 +5109,7 @@ html.lkm .wh{overflow:hidden}
       empty:["No goal in my realm. A rite without a pledge.","My realm has no goal. Set one.","Nothing pledged. Pledge something.","No goal. I have nothing to judge."],
       other_won:["{orealm} achieved “{og}”. Noted.","“{og}”, kept in {orealm}.","{orealm} kept a pledge: “{og}”."],
       other_fin:["{orealm}'s “{og}” ends in {odays}.","“{og}”, in {orealm}: {odays} left.","{orealm} approaches judgment: “{og}”."],
-      r_set:["“{eg}”. Pledged. From {estart}.","Recorded: “{eg}”, {elvl}.","“{eg}” begins on {estart}. I will count.","A pledge: “{eg}”."],
+      r_set:["“{eg}”. Pledged. From {estart}.","Recorded: “{eg}”, {elvl}.","“{eg}” is counted from {estart}. I am counting.","A pledge: “{eg}”."],
       r_won:["“{eg}”. Achieved.","Kept. Recorded.","“{eg}”. Acceptable.","Achieved. Noted."],
       r_lost:["“{eg}”. Not achieved. Recorded.","Abandoned.","“{eg}” is dead.","Not achieved. Noted."],
       r_ext:["“{eg}”. {en} more.","Extended. I am still counting.","More time for “{eg}”. Do not waste it.","{en} added. Noted."]
@@ -6399,8 +6415,10 @@ html.lkm .wh{overflow:hidden}
       });
       /* Arexia: the rite missed most, and the trend */
       var miss=[0,0,0,0,0,0,0,0], days=0, a7=0, n7=0, p7=0, q7=0;
-      for(i=1;i<=14;i++){ r=past(keyAdd(t,-i)); if(!r || !Array.isArray(r.ae) || isBlank(r)) continue; days++; var kept=r.ae.filter(Boolean).length;
-        r.ae.forEach(function(v,j){ if(!v) miss[j]++; }); if(i<=7){ a7+=kept; n7+=8; } else { p7+=kept; q7+=8; } }
+      for(i=1;i<=14;i++){ var kk=keyAdd(t,-i), c8=recordFor(kk); r=past(kk); if(!r || !c8 || isBlank(r)) continue; days++;
+        var rt=[0,0,0,0,0,0,0,0]; GODS.forEach(function(g,gi){ (c8[g.key]||[]).forEach(function(v,ri){ if(v) rt[gi+ri*4]=1; }); });   /* rite q = god + 4·(after noon), as riteNo */
+        var kept=rt.filter(Boolean).length;
+        rt.forEach(function(v,j){ if(!v) miss[j]++; }); if(i<=7){ a7+=kept; n7+=8; } else { p7+=kept; q7+=8; } }
       var wi=0; for(i=1;i<8;i++) if(miss[i]>miss[wi]) wi=i;
       S.wi=wi; S.wrune=AX_RUNE[wi]; S.wm=miss[wi]; S.wn=days; S.wtime=hm(wi*180);
       S.axp=n7 ? Math.round(a7*100/n7) : null; S.axq=q7 ? Math.round(p7*100/q7) : null;
@@ -6543,13 +6561,13 @@ html.lkm .wh{overflow:hidden}
      ends is closed with a ceremony. */
   var V2_GODS=["xeron","arurael","xenlil","arexia"];
   var V2_NAMES={xeron:"Xeron",arurael:"Arurael",xenlil:"Xenlil",arexia:"Arexia"};
-  var V2_LOG={rite:function(d){ return "r"+d.q; }, nature:"nat", dep:"dep", thr:"thr", bound:function(d){ return "b"+d.q; },
+  var V2_LOG={rite:function(d){ return "r"+d.q; }, nature:"nat", dep:"dep", thr:"thr", bound:function(d){ return "b"+d.q; }, bound_record:function(d){ return "b"+d.q; },
     bind_start:function(d){ return "bs"+d.q; }, div_start:"ds", div_done:"dv", work:"wk", extra:"xt", water:"w", gym:"gym",
     habit:function(d){ return "h:"+d.k; }, slp_bed:"h:bed", slp_wake:"h:wake", seal:"hc", core_start:"cs", core_done:"core"};
   /* the last real record on this device: a rite, a glass, a block, a count, a habit, an undo.
      Starting or pausing a timer is not a record, and neither is a sync. The newest record on
      any device decides whose whole record the others take (Google Drive and the backup file). */
-  function isActKind(k){ return /^(rite|unrite|nature|unnature|dep|thr|bound|div_done|work|extra|water|gym|habit|seal|core_done|undo|slp_bed|slp_wake)$/.test(k); }
+  function isActKind(k){ return /^(rite|unrite|nature|unnature|dep|thr|bound|bound_record|div_done|work|extra|water|gym|habit|seal|core_done|undo|slp_bed|slp_wake)$/.test(k); }
   function actNow(){ lsSet("dial.act", String(Date.now())); if(typeof gdSoon==="function") gdSoon(); }
   function actTime(){
     var v=+(lsGet("dial.act")||0); if(v) return v;
@@ -6955,14 +6973,15 @@ html.lkm .wh{overflow:hidden}
     r.ae[i]=true;
     var rec2=dur>best; if(rec2) state.aeBest=dur;
     save(); aeClear(); sfx("done"); fb("done");
-    voiceEvent("xeron","bound",{q:i});
+    voiceEvent("xeron", rec2 ? "bound_record" : "bound", {q:i, dur:dur});
     toast("Aeshma is bound · "+RUNE[i]+" · "+aeDur(dur)+(rec2 ? " · new record" : ""));
     renderXr();
   }
   var aeMark="";
   function aeTick(){
-    var mark=dayKey()+aeOpen()+state.day.ae.join("")+AET.run;
-    if(mark!==aeMark){ aeMark=mark; renderAe(); }
+    var el=aeEl(), best=aeBest(), lap=!AET.run||!best ? 0 : el>best ? 2 : el>=.85*best ? 1 : 0;   /* the voice turns at 85% and past the record */
+    var mark=dayKey()+aeOpen()+state.day.ae.join("")+AET.run+lap;
+    if(mark!==aeMark){ var turn=aeMark && lap; aeMark=mark; renderAe(); if(turn) renderQartaq(); }
     else if(VIEW==="xr") aeTimes();
   }
   var aeNodes=[];
