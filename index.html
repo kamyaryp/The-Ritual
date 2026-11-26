@@ -79,7 +79,11 @@ h1{font-weight:500;font-size:clamp(20px,3vw,25px);margin:0;letter-spacing:-.02em
 .brand{display:flex;align-items:center;gap:16px;min-width:0;flex:1 1 auto}
 .stamp{display:none}
 @media (max-width:620px){ .stamp .tm{display:none} }
-.brand-text{min-width:0}
+.brand-text{min-width:0;display:flex;align-items:baseline;gap:10px}
+.vpct{font-family:var(--mono);font-size:15px;font-weight:500;font-variant-numeric:tabular-nums;color:var(--vpc,var(--ink-3))}
+.c-avg{margin-left:auto;font-family:var(--mono);font-size:12px;color:var(--ink-3);font-variant-numeric:tabular-nums;white-space:nowrap}
+.c-avg b{color:var(--hue,var(--ink));font-weight:500;margin-left:4px}
+.sec-head .c-avg{margin-left:0}
 .mark{flex:0 0 auto;display:block;width:30px;height:30px;overflow:visible}
 .mark .arm{fill:#3a3a3a}
 .mark .arm.lit[data-v="xr"]{fill:var(--xeron)}
@@ -1003,7 +1007,7 @@ html.lkm .wh{overflow:hidden}
         <rect class="arm" data-v="dial" x="1100" y="900"  width="400" height="200"></rect>
       </svg>
       <div class="brand-text">
-        <h1 id="viewName">Arexia</h1>
+        <h1 id="viewName">Arexia</h1><span class="vpct" id="viewPct"></span>
         <p class="holder" id="holder">—</p>
       </div>
     </div>
@@ -1140,7 +1144,7 @@ html.lkm .wh{overflow:hidden}
   <section class="goals-card" id="goals-arexia" data-god="arexia"></section>
   <section class="chron">
     <div class="sec-head">
-      <h2>Record</h2>
+      <h2>Record</h2><span class="c-avg" id="avgRites"></span>
     </div>
     <div class="chartbox">
       <svg class="chart" id="chart" viewBox="0 0 700 190" aria-label="Rites fulfilled, last fourteen days"></svg>
@@ -1164,7 +1168,7 @@ html.lkm .wh{overflow:hidden}
     </section>
     <div class="cards">
       <div class="card" id="waterCard" style="--hue:var(--c-water)">
-        <div class="card-head"><span class="gname">Water</span></div>
+        <div class="card-head"><span class="gname">Water</span><span class="c-avg" id="avgWater"></span></div>
         <div class="pips" id="pips"></div>
       </div>
       <div class="card" id="gymCard" style="--hue:var(--c-gym)">
@@ -1174,21 +1178,21 @@ html.lkm .wh{overflow:hidden}
             <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <span class="rname"></span>
-          <span class="win">Mon</span>
+          <span class="win">Tue</span>
         </div>
         <div class="rite gymrow" id="gymRow1" data-n="1">
           <button type="button" class="box" role="checkbox" aria-checked="false" aria-label="Gym session 2">
             <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <span class="rname"></span>
-          <span class="win">Wed</span>
+          <span class="win">Thu</span>
         </div>
         <div class="rite gymrow" id="gymRow2" data-n="2">
           <button type="button" class="box" role="checkbox" aria-checked="false" aria-label="Gym session 3">
             <svg viewBox="0 0 14 14" aria-hidden="true"><path d="M2.5 7.4 L5.6 10.4 L11.5 3.8" fill="none" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/></svg>
           </button>
           <span class="rname"></span>
-          <span class="win">Thu</span>
+          <span class="win">Fri</span>
         </div>
         <div class="rest" id="gymRest" hidden>
           <span class="rest-dash" aria-hidden="true"></span>
@@ -1205,7 +1209,7 @@ html.lkm .wh{overflow:hidden}
         </div>
       </div>
       <div class="card" id="suppCard" style="--hue:var(--c-supp)">
-        <div class="card-head"><span class="gname">Supplements</span></div>
+        <div class="card-head"><span class="gname">Supplements</span><span class="c-avg" id="avgFiber"></span></div>
       </div>
       <div class="card" id="careCard" style="--hue:var(--c-care)">
         <div class="card-head"><span class="gname">Rest &amp; care</span></div>
@@ -1308,7 +1312,7 @@ html.lkm .wh{overflow:hidden}
       </div>
     </div>
       <div class="card xr-ctr" id="depCard" style="--hue:var(--x-endoin)">
-        <div class="card-head"><span class="gname">Depletion</span></div>
+        <div class="card-head"><span class="gname">Depletion</span><span class="c-avg" id="avgDep"></span></div>
       </div>
       <div class="card xr-ctr" id="thrCard" style="--hue:var(--x-tendoin)">
         <div class="card-head"><span class="gname">Threshold</span></div>
@@ -1341,7 +1345,7 @@ html.lkm .wh{overflow:hidden}
     <section class="goals-card" id="goals-arurael" data-god="arurael"></section>
     <section class="chron">
       <div class="sec-head">
-        <h2>Record</h2>
+        <h2>Record</h2><span class="c-avg" id="avgDivs"></span>
       </div>
       <div class="chartbox">
         <svg class="chart" id="achart" viewBox="0 0 700 190" aria-label="Minutes of focus per day"></svg>
@@ -1374,7 +1378,7 @@ html.lkm .wh{overflow:hidden}
 <script>
 (function(){
   "use strict";
-  var APP_BUILD="2026.11.26-0605";
+  var APP_BUILD="2026.11.26-0617";
   var APK_URL="https://github.com/kamyaryp/The-Ritual/releases/latest/download/the-ritual.apk";
   /* starting the page again: the phone app restarts it itself (so a downloaded newer page stays in place);
      an older app gets a fresh load of the same address rather than a reload */
@@ -1427,7 +1431,9 @@ html.lkm .wh{overflow:hidden}
     return d.getFullYear()+"-"+String(d.getMonth()+1).padStart(2,"0")+"-"+String(d.getDate()).padStart(2,"0");
   }
   function blankChecks(){ var c={}; GODS.forEach(function(g){c[g.key]=[false,false];}); return c; }
-  var WATER_TARGET=14, GYM_DAYS=[1,3,4];           /* Mon, Wed, Thu */
+  var WATER_TARGET=14, GYM_DAYS=[2,4,5];           /* Tue, Thu, Fri */
+  var GYM_NEW="2026-11-26", GYM_OLD=[1,3,4];       /* before that day: Mon, Wed, Thu (past days keep their own schedule) */
+  function gymDaysOn(k){ return (k||dayKey())<GYM_NEW ? GYM_OLD : GYM_DAYS; }
   var HABITS=[
     {k:"mvom", card:"supp", name:"Multivitamin & Omega 3", when:"after lunch"},
     {k:"cre",  card:"supp", name:"Creatine & whey",  when:"evening"},
@@ -1466,7 +1472,7 @@ html.lkm .wh{overflow:hidden}
     return null;
   }
   function fmtLong(k){ return new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)).toLocaleDateString(undefined,{day:"numeric",month:"short",year:"numeric"}); }
-  var GYM_NAMES=["Quads","Upper body","Hamstrings & glutes"];   /* Mon · Wed · Thu */
+  var GYM_NAMES=["Quads","Upper body","Hamstrings & glutes"];   /* Tue · Thu · Fri */
   function wday(k){ return (k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date()).getDay(); }
   function isDue(h,k){
     if(h.since && (k||dayKey())<h.since) return false;     /* added later: days before it aren't marked down */
@@ -1475,9 +1481,9 @@ html.lkm .wh{overflow:hidden}
     return true;
   }
   function gymName(n){ return (n+1)+' · '+GYM_NAMES[n]; }
-  function gymNo(k){                          /* Mon ᚠ · Wed ᚢ · Thu ᚦ */
+  function gymNo(k){                          /* Tue ᚠ · Thu ᚢ · Fri ᚦ */
     var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date();
-    var n=GYM_DAYS.indexOf(d.getDay());
+    var n=gymDaysOn(k).indexOf(d.getDay());
     return n<0?null:n;
   }
   function isFirst(k){ return (k||dayKey()).slice(8,10)==="01"; }
@@ -1530,10 +1536,14 @@ html.lkm .wh{overflow:hidden}
   function deps(x){ return x ? (x.d||0)+(x.exo||0)+(x.endoIn||0)+(x.endo||0) : 0; }
   function thrs(x){ return x ? (x.t||0)+(x.texo||0)+(x.tendoIn||0)+(x.tendo||0) : 0; }
   var AR=[
-    {k:"exe", name:"Execution & Science", min:25, blocks:2, color:"var(--a-exe)"},
+    {k:"exe", name:"Execution & Science", min:25, blocks:1, color:"var(--a-exe)"},
     {k:"sci", name:"Share",               min:25, blocks:1, color:"var(--a-sci)"},   /* key kept so saved days still read */
     {k:"eng", name:"English",   min:10, blocks:1, color:"var(--a-eng)"}
   ];
+  /* Execution & Science: one block from ES_ONE (two before). Scores keep E on 0-2: the one block counts as both */
+  var ES_ONE="2026-11-26";
+  function esBlocks(k){ return (k||dayKey())<ES_ONE ? 2 : 1; }
+  function arE(a,k){ var n=cnt((a||{}).exe); return esBlocks(k)===1 ? 2*Math.min(1,n) : Math.min(2,n); }
   var AR_FULL=AR.reduce(function(n,m){ return n+m.min*m.blocks; },0);   /* 85 min */
   function blankAr(){ var o={}; AR.forEach(function(m){ o[m.k]=[]; for(var i=0;i<m.blocks;i++) o[m.k].push(false); }); return o; }
   function arMin(a){ var n=0; if(a) AR.forEach(function(m){ (a[m.k]||[]).forEach(function(d){ if(d) n+=m.min; }); }); return n; }
@@ -1542,7 +1552,7 @@ html.lkm .wh{overflow:hidden}
   function fresh(){ return {day:freshDay(), history:[], hc:{}, hcSince:dayKey()}; }
   function isGymDay(k){
     var d=k?new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)):new Date();
-    return GYM_DAYS.indexOf(d.getDay())>=0;
+    return gymDaysOn(k).indexOf(d.getDay())>=0;
   }
   var state;
   function setText(id,v){ var e=document.getElementById(id); if(e) e.textContent=v; }
@@ -1596,6 +1606,7 @@ html.lkm .wh{overflow:hidden}
          }
     catch(e){ if(!saveWarned){ saveWarned=true; try{ toast("Could not save \u2014 storage is full or blocked."); }catch(_){} } }
     planNotes();
+    try{ if(typeof renderTop==="function") renderTop(); }catch(_){}
   }
   function total(c){ var n=0; GODS.forEach(function(g){ (c[g.key]||[]).forEach(function(v){ if(v) n++; }); }); return n; }
   function nextKey(k){ var d=new Date(+k.slice(0,4),+k.slice(5,7)-1,+k.slice(8,10)+1); return dayKey(d); }
@@ -3369,7 +3380,7 @@ html.lkm .wh{overflow:hidden}
   function aruraelRead(f){
     var score=arDayScore(f), duty=f.E>=2 && f.S>=1 && f.L>=1 && f.W>=8, full=score>=99.999;
     var left=[];                                             /* what the duty still owes */
-    if(f.E<2) left.push(f.E===1 ? "one Execution & Science block" : "both Execution & Science blocks");
+    if(f.E<2) left.push("Execution & Science");
     if(f.S<1) left.push("Share");
     if(f.L<1) left.push("English");
     if(f.W<8) left.push(arWord(8-f.W)+" work block"+(8-f.W===1?"":"s"));
@@ -3485,6 +3496,11 @@ html.lkm .wh{overflow:hidden}
       "Work filled in for {left}. A substitute, not the thing itself.",
       "Full marks. Now ask yourself why {left} was skipped."]},
 
+    /* Execution & Science became one block on 2026-11-26: said for the first week, while it is still owed */
+    {id:"es_one", tone:"advice", when:function(f,x){ return !x.duty && f.E===0 && f.date<=keyAdd(ES_ONE,7) && f.min>=10*60 && f.min<15*60; }, lines:[
+      "Execution & Science is one block now, and it carries the full weight. Twenty-five minutes.",
+      "One block of Execution & Science, worth what two were. Spend it well.",
+      "A single Execution & Science block now. Make it the deepest one of the day."]},
     {id:"tired_low", tone:"understanding", when:function(f,x){ return x.tired && x.score<50 && f.min>=13*60; }, lines:[
       "About {hrs} hours of sleep. A tired mind learns little; I won't judge today harshly.",
       "The night was short, and it shows here. Sleep first, then study.",
@@ -3795,7 +3811,7 @@ html.lkm .wh{overflow:hidden}
     return {
       locked: today<CL_START, start: clDate(CL_START,{weekday:"short",month:"short",day:"numeric"}),
       date: today, min: m,
-      E: Math.min(2,cnt(a.exe)), S: Math.min(1,cnt(a.sci)), L: Math.min(1,cnt(a.eng)),
+      E: arE(a,today), S: Math.min(1,cnt(a.sci)), L: Math.min(1,cnt(a.eng)),
       W: Math.min(8,workN(state.day.work)), X: Math.min(8,workN(state.day.extra)),
       running: ART.blk ? arMission(ART.blk).name : "",
       yScore: (yr && !(y<CL_START && isBlank(yr))) ? DAY.arurael(y) : null,
@@ -4392,6 +4408,11 @@ html.lkm .wh{overflow:hidden}
       "Missing: {supp}. Order is in the details.",
       "Take {supp}, then close the day."]},
 
+    /* the gym moved to Tue, Thu, Fri on 2026-11-26: for three weeks the new days and the freed ones say so */
+    {id:"gym_new_day", tone:"order", when:function(f){ return f.gymDue && !f.gym && f.min>=10*60 && f.date<=keyAdd(GYM_NEW,21) && [2,5].indexOf(new Date().getDay())>=0; }, lines:[
+      "{weekday} is a training day now. {gym} is due.",
+      "Under the new law, {weekday} belongs to the gym. {gym}, today.",
+      "The schedule changed: {weekday} means {gym} now. Go."]},
     {id:"gym_today", tone:"order", when:function(f){ return f.gymDue && !f.gym && f.min>=10*60; }, lines:[
       "Gym day: {gym}. Pick the hour and keep it.",
       "{gym} today. Courage first, comfort after.",
@@ -4452,6 +4473,10 @@ html.lkm .wh{overflow:hidden}
       "Well watered. Keep going.",
       "Ahead of schedule on water. Good discipline."]},
 
+    {id:"gym_moved", tone:"quiet", when:function(f,x){ return !f.gymDue && f.date<=keyAdd(GYM_NEW,21) && [1,3].indexOf(new Date().getDay())>=0 && f.min>=9*60 && f.min<18*60 && x.n===0; }, lines:[
+      "{weekday} is a rest day now. The gym moved to Tuesday, Thursday and Friday.",
+      "No gym on {weekday} anymore. The new law: Tuesday, Thursday, Friday.",
+      "The old {weekday} session is gone. Rest, and be ready for the next one."]},
     {id:"rest_day", tone:"quiet", when:function(f,x){ return !f.gymDue && f.min>=14*60 && f.min<18*60 && x.n===0; }, lines:[
       "No training today. Rest is part of the law.",
       "A rest day. Recover, don't drift.",
@@ -5972,7 +5997,7 @@ html.lkm .wh{overflow:hidden}
       if(f.V4 && f.V4.off){
         x.duty = f.E>=2 && f.S>=1 && f.L>=1;
         var left=[];
-        if(f.E<2) left.push(f.E===1 ? "one Execution & Science block" : "both Execution & Science blocks");
+        if(f.E<2) left.push("Execution & Science");
         if(f.S<1) left.push("Share");
         if(f.L<1) left.push("English");
         x.left = left.length<2 ? (left[0]||"") : left.slice(0,-1).join(", ")+" and "+left[left.length-1];
@@ -6656,8 +6681,9 @@ html.lkm .wh{overflow:hidden}
     /* studies skipped day after day */
     var best2=null;
     [["exe","Execution & Science",2],["sci","Share",1],["eng","English",1]].forEach(function(it){
-      var n=0, k=y; for(var i3=0;i3<60;i3++){ var r=past(k); if(!r || k<CL_START) break; if(cnt((r.ar||{})[it[0]])>=it[2]) break; n++; k=keyAdd(k,-1); }
-      var done=cnt((state.day.ar||{})[it[0]])>=it[2];
+      var need=function(kk){ return it[0]==="exe" ? esBlocks(kk) : it[2]; };
+      var n=0, k=y; for(var i3=0;i3<60;i3++){ var r=past(k); if(!r || k<CL_START) break; if(cnt((r.ar||{})[it[0]])>=need(k)) break; n++; k=keyAdd(k,-1); }
+      var done=cnt((state.day.ar||{})[it[0]])>=need(today);
       if(!best2 || n>best2.days) best2={item:it[1], days:n, doneToday:done};
     });
     G.skip=best2;
@@ -7173,7 +7199,7 @@ html.lkm .wh{overflow:hidden}
   /* every block Arurael's day holds, in the order they're offered: the studies, the eight blocks of
      work owed, and eight extra beyond them. A block is a timer; it counts only when it runs out. */
   var TASKS=[
-    {k:"exe",   name:"Execution & Science", short:"E&S",     min:25, n:2, color:"var(--a-exe)",  tags:true},
+    {k:"exe",   name:"Execution & Science", short:"E&S",     min:25, n:1, color:"var(--a-exe)",  tags:true},
     {k:"sci",   name:"Share",               short:"Share",   min:25, n:1, color:"var(--a-sci)",  tags:true},
     {k:"eng",   name:"English",             short:"English", min:10, n:1, color:"var(--a-eng)",  tags:false},
     {k:"work",  name:"Work",                short:"Work",    min:25, n:8, color:"var(--a-work)", tags:true},
@@ -7658,8 +7684,8 @@ html.lkm .wh{overflow:hidden}
     var a=r.ar||{};
     var h='<div class="th">'+fmtDay(k)+' · '+Math.round(DAY.arurael(k))+'%'+(arOff(k) ? ' · day off' : '')+'</div>';
     AR.forEach(function(m){
-      var n=(a[m.k]||[]).filter(Boolean).length;
-      h+=tr(m.color,m.name,n+"/"+m.blocks);
+      var of=m.k==="exe" ? esBlocks(k) : m.blocks, n=Math.min(of,(a[m.k]||[]).filter(Boolean).length);
+      h+=tr(m.color,m.name,n+"/"+of);
     });
     h+=tr("var(--a-work)","Work",workN(r.work)+"/"+WORK_SLOTS);
     if(workN(r.extra)) h+=tr("var(--a-xtra)","Extra",workN(r.extra)+"/"+WORK_SLOTS);
@@ -7670,6 +7696,35 @@ html.lkm .wh{overflow:hidden}
     if(top.length) h+='<div class="tr muted">'+top.map(function(k){ return tl[k].replace(/</g,"&lt;")+" "+Math.round(tm[k])+"m"; }).join(", ")+'</div>';
     return h;
   }
+  /* ---------- the day's score in the top bar, and the averages ----------
+     Averages run over every finished day since Cluster 1 began (today joins once it is over). */
+  function avgSpan(){ var out=[], k=CL_START, t=dayKey(); while(k<t && out.length<4000){ out.push(k); k=keyAdd(k,1); } return out; }
+  function avgOf(fn, keys){ keys=keys||avgSpan(); if(!keys.length) return null; var n=0; keys.forEach(function(k){ n+=fn(k, rec(k)||{}); }); return n/keys.length; }
+  function avgFmt(v){ return v==null ? "—" : String(Math.round(v*10)/10); }
+  function avgSet(id, label, val){ var e=document.getElementById(id); if(e) e.innerHTML=label+'<b>'+val+'</b>'; }
+  var AVG_MARK="";
+  function renderAvgs(force){
+    var mark=dayKey()+"|"+CL_START; if(!force && mark===AVG_MARK) return; AVG_MARK=mark;
+    var keys=avgSpan();
+    avgSet("avgRites","Avg / day", avgFmt(avgOf(function(k){ return total(recordFor(k)||{}); }, keys))+" of 8");
+    avgSet("avgDivs","Avg divisions / day", avgFmt(avgOf(function(k,r){ return workN(r.work)+workN(r.extra)+arBlocks(r.ar); }, keys)));
+    avgSet("avgWater","Avg", avgFmt(avgOf(function(k,r){ return r.water||0; }, keys)));
+    avgSet("avgDep","Avg", avgFmt(avgOf(function(k,r){ return deps(r.xr); }, keys)));
+    var fib=HABITS.filter(function(x){ return x.k==="fiber"; })[0];
+    var fk=keys.filter(function(k){ return !fib || isDue(fib,k); }), fp=avgOf(function(k,r){ return r.habits && r.habits.fiber ? 1 : 0; }, fk);
+    avgSet("avgFiber","Fiber", fp==null ? "—" : Math.round(fp*100)+"%");
+  }
+  function renderTop(){
+    var e=document.getElementById("viewPct"); if(!e || !state) return;
+    var g={dial:"arexia", xen:"xenlil", xr:"xeron", ar:"arurael"}[VIEW];
+    if(!g || dayKey()<CL_START){ e.textContent=""; return; }
+    var v=DAY[g](dayKey());
+    e.textContent = v==null || isNaN(v) ? "" : Math.round(v)+"%";
+    e.style.setProperty("--vpc","var(--"+g+")");
+    renderAvgs();
+  }
+  setInterval(function(){ try{ renderTop(); }catch(_){} }, 20000);
+  setTimeout(function(){ try{ renderTop(); renderAvgs(true); }catch(_){} }, 0);
   setInterval(arTick,250);
   setInterval(function(){ if(state) aeTick(); },250);
   document.addEventListener("visibilitychange",function(){ if(!document.hidden){ arTick(); aeEyesWake(); } });
@@ -7692,7 +7747,7 @@ html.lkm .wh{overflow:hidden}
   function tArexia(days){ var t={kept:0,of:0,nature:0}; days.forEach(function(k){ var r=rec(k)||{}, c=recordFor(k); t.of+=8; t.kept+= c?total(c):0; if(r.nature) t.nature++; }); return t; }
   function tArurael(days){ var t={W:0,X:0,S:0,E:0,L:0,n:days.length,nW:0};
     days.forEach(function(k){ var r=rec(k)||{}, a=r.ar||{}; if(!arOff(k)) t.nW++;
-      t.W+=Math.min(8,workN(r.work)); t.X+=Math.min(8,workN(r.extra)); t.S+=Math.min(1,cnt(a.sci)); t.E+=Math.min(2,cnt(a.exe)); t.L+=Math.min(1,cnt(a.eng)); });
+      t.W+=Math.min(8,workN(r.work)); t.X+=Math.min(8,workN(r.extra)); t.S+=Math.min(1,cnt(a.sci)); t.E+=arE(a,k); t.L+=Math.min(1,cnt(a.eng)); });
     return t; }
   function tXeron(days){ var t={D:0,T:0,clean:0,cleanDone:0,bound:0,n:days.length}, today=dayKey();
     days.forEach(function(k){ var r=rec(k)||{}, d=deps(r.xr), th=thrs(r.xr); t.D+=d; t.T+=th;
@@ -9203,7 +9258,7 @@ html.lkm .wh{overflow:hidden}
       ["Work", function(d){ var t=tArurael(d); return t.nW ? {a:t.W, b:8*t.nW} : {note:"days off"}; }],
       ["Extra · fills gaps", function(d){ return {note:tArurael(d).X}; }],
       ["Share", function(d){ return {a:tArurael(d).S, b:d.length}; }],
-      ["Execution & Science", function(d){ return {a:tArurael(d).E, b:2*d.length}; }],
+      ["Execution & Science", function(d){ return {a:tArurael(d).E/2, b:d.length}; }],
       ["English", function(d){ return {a:tArurael(d).L, b:d.length}; }]]);
     card(CL_GODS[2], XEN_W.map(function(w){
       return [w[2], function(d){ var z=tXenlil(d); return z.due[w[0]] ? {a:z.got[w[0]], b:z.due[w[0]]} : {note:"not due"}; }]; }));
@@ -9300,6 +9355,7 @@ html.lkm .wh{overflow:hidden}
     SEL=null; ["rTip","xTip","zTip","aTip","cTip"].forEach(function(t){ document.getElementById(t).hidden=true; });
     if(v==="dial"){ kindle(); render(); } else { douse(); RENDER[v](); }
     if(typeof renderGoals==="function") renderGoals();
+    try{ renderTop(); }catch(_){}
     window.scrollTo(0, SCROLL[v]||0);
     /* the new tab slides in from the side it lives on */
     var el=document.getElementById(VIEW_EL[v]);
@@ -9434,7 +9490,7 @@ html.lkm .wh{overflow:hidden}
   });
   function toggleGym(n,ev){ if(ev) ev.stopPropagation();
     if(shut()) return;
-    if(gymNo()!==n){ fb("deny"); toast(GYM_NAMES[n]+" is on "+["Mon","Wed","Thu"][n]+"."); return; }
+    if(gymNo()!==n){ fb("deny"); toast(GYM_NAMES[n]+" is on "+["Tue","Thu","Fri"][n]+"."); return; }
     state.day.gym=!state.day.gym; voiceEvent("xenlil", state.day.gym ? "gym" : "undo"); fb(state.day.gym?"on":"off"); save(); renderXen(); }
   [0,1,2].forEach(function(n){
     var gr=document.getElementById("gymRow"+n);
